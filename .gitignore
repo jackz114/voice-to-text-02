@@ -50,3 +50,9 @@ platform_configuration/
 
 # 截图文件夹
 screenshots/
+
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+.open-next/
+worker-configuration.d.ts
