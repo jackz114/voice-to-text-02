@@ -6,13 +6,17 @@
 
 我已为您创建了以下配置文件：
 
-### 1. Claude Desktop 配置
-**路径**: `%APPDATA%\Claude\claude_desktop_config.json`
-**完整路径**: `C:\Users\郑\AppData\Roaming\Claude\claude_desktop_config.json`
+### ✅ Kimi Code CLI 配置（主要）
+**路径**: `%USERPROFILE%\.kimi\mcp.json`
+**完整路径**: `C:\Users\郑\.kimi\mcp.json`
 
-### 2. Cursor 配置
+### 其他客户端配置
+
+### Claude Desktop 配置
+**路径**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+### Cursor 配置
 **路径**: `%USERPROFILE%\.cursor\mcp.json`
-**完整路径**: `C:\Users\郑\.cursor\mcp.json`
 
 ---
 
