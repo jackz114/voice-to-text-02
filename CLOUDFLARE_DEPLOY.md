@@ -43,6 +43,7 @@ npx wrangler kv namespace create "CACHE_KV"
 ```
 
 输出示例：
+
 ```
 🌀 Creating namespace with title "voice-to-text-02-CACHE_KV"
 ✨ Success!
@@ -68,6 +69,7 @@ npx wrangler r2 bucket create voice-to-text-storage
 ### 3. 设置自定义域名
 
 在 Cloudflare Dashboard 中：
+
 1. 进入 **Workers & Pages**
 2. 点击 **voice-to-text-02**
 3. 选择 **Triggers** → **Custom Domains**
@@ -113,6 +115,7 @@ npx wrangler secret put PAYPAL_WEBHOOK_ID
 ```
 
 然后执行：
+
 ```bash
 npx wrangler secret bulk secrets.json
 ```
@@ -228,6 +231,7 @@ jobs:
 ### 设置 GitHub Secrets
 
 在 GitHub 仓库设置中添加：
+
 - `CLOUDFLARE_API_TOKEN` - 从 Cloudflare Dashboard → My Profile → API Tokens 创建
 
 ---
@@ -288,8 +292,8 @@ npx wrangler secret put KEY_NAME
 // wrangler.jsonc
 {
   "images": {
-    "binding": "IMAGES"
-  }
+    "binding": "IMAGES",
+  },
 }
 ```
 
@@ -316,4 +320,4 @@ npx wrangler secret put KEY_NAME
 
 ---
 
-*最后更新: 2026-03-21*
+_最后更新: 2026-03-21_

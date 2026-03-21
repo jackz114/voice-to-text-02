@@ -44,7 +44,7 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
           email,
           password,
           options: {
-            captchaToken: turnstileToken,
+            captchaToken: turnstileToken || undefined,
           },
         });
         if (error) throw error;

@@ -176,7 +176,7 @@ function PayPalButtonWrapper({
 }: {
   createOrder: () => Promise<string>;
   onApprove: (data: { orderID: string }) => Promise<void>;
-  onCancel: () => void;
+  onCancel?: () => void;
   onError: (err: Record<string, unknown>) => void;
 }) {
   const [{ isPending, isRejected, isResolved }] = usePayPalScriptReducer();
@@ -242,7 +242,10 @@ export function PayPalSubscriptionButton({
   };
 
   // 用户批准订阅
-  const onApprove = async (data: { subscriptionID: string }) => {
+  const onApprove = async (data: { subscriptionID?: string | null }) => {
+    if (!data.subscriptionID) {
+      throw new Error("Subscription ID is missing");
+    }
     setIsPending(true);
     try {
       const response = await fetch("/api/paypal/verify-subscription", {
@@ -308,8 +311,8 @@ function PayPalSubscriptionWrapper({
     _data: unknown,
     actions: { subscription: { create: (config: { plan_id: string }) => Promise<string> } }
   ) => Promise<string>;
-  onApprove: (data: { subscriptionID: string }) => Promise<void>;
-  onCancel: () => void;
+  onApprove: (data: { subscriptionID?: string | null }) => Promise<void>;
+  onCancel?: () => void;
   onError: (err: Record<string, unknown>) => void;
 }) {
   const [{ isPending, isRejected, isResolved }] = usePayPalScriptReducer();

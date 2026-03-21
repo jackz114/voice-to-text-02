@@ -4,45 +4,41 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-03-21",
   "compatibility_flags": ["nodejs_compat_v2"],
-
   // 开发环境变量（非敏感）
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
   },
-
   // 路由规则
   "routes": [
     {
       "pattern": "bijiassistant.shop/*",
-      "custom_domain": true
+      "custom_domain": true,
     },
     {
       "pattern": "www.bijiassistant.shop/*",
-      "custom_domain": true
-    }
+      "custom_domain": true,
+    },
   ],
-
   // 构建输出目录
   "site": {
-    "bucket": ".open-next/assets"
+    "bucket": ".open-next/assets",
   },
-
   // Workers KV - 用于缓存和会话存储
   "kv_namespaces": [
     {
       "binding": "CACHE_KV",
-      "id": "your-kv-namespace-id"
-    }
+      "id": "a654344c6fc44a0296f5c6237bbd7445",
+      "remote": true,
+    },
   ],
-
   // R2 - 用于存储音频文件和转录结果
   "r2_buckets": [
     {
-      "binding": "STORAGE_BUCKET",
-      "bucket_name": "voice-to-text-storage"
-    }
+      "bucket_name": "voice-to-text-storage",
+      "binding": "voice_to_text_storage",
+      "remote": true,
+    },
   ],
-
   // D1 - 用于支付记录和用户信息（可选，也可以用 Supabase）
   // "d1_databases": [
   //   {
@@ -51,32 +47,30 @@
   //     "database_id": "your-database-id"
   //   }
   // ],
-
   // 日志和监控
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1
+    "head_sampling_rate": 1,
   },
-
   // 环境变量（将在 Cloudflare Dashboard 中设置）
   "env": {
     "production": {
       "vars": {
         "ENVIRONMENT": "production",
-        "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop"
-      }
+        "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop",
+      },
     },
     "staging": {
       "vars": {
         "ENVIRONMENT": "staging",
-        "NEXT_PUBLIC_APP_URL": "https://staging.bijiassistant.shop"
+        "NEXT_PUBLIC_APP_URL": "https://staging.bijiassistant.shop",
       },
       "routes": [
         {
           "pattern": "staging.bijiassistant.shop/*",
-          "custom_domain": true
-        }
-      ]
-    }
-  }
+          "custom_domain": true,
+        },
+      ],
+    },
+  },
 }
