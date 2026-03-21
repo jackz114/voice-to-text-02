@@ -24,7 +24,16 @@ export default function PaymentPage() {
 
   const handlePaymentSuccess = (details: Record<string, unknown>) => {
     console.log("Payment successful:", details);
-    setPaymentResult(details as PaymentResult);
+    const result: PaymentResult = {
+      success: true,
+      orderId: details.orderId as string,
+      status: details.status as string,
+      amount: details.amount as string,
+      currency: details.currency as string,
+      payerEmail: details.payerEmail as string,
+      captureId: details.captureId as string,
+    };
+    setPaymentResult(result);
     setError(null);
   };
 
@@ -303,7 +312,7 @@ export default function PaymentPage() {
         )}
 
         {/* 订阅成功提示 */}
-        {subscriptionResult?.success && (
+        {!!subscriptionResult?.success && (
           <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
             <div className="flex items-center justify-center mb-4">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">

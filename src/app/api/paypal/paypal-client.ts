@@ -18,12 +18,30 @@ interface PayPalOrderAmount {
   };
 }
 
+interface PayPalPaymentCapture {
+  id: string;
+  status: string;
+  amount: {
+    currency_code: string;
+    value: string;
+  };
+  seller_receivable_breakdown?: {
+    gross_amount?: { currency_code: string; value: string };
+    paypal_fee?: { currency_code: string; value: string };
+    net_amount?: { currency_code: string; value: string };
+  };
+  create_time?: string;
+}
+
 interface PayPalPurchaseUnit {
   amount: PayPalOrderAmount;
   description?: string;
   custom_id?: string;
   invoice_id?: string;
   soft_descriptor?: string;
+  payments?: {
+    captures?: PayPalPaymentCapture[];
+  };
 }
 
 interface PayPalOrder {
