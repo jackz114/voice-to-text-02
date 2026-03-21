@@ -7,12 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "build:cloudflare": "open-next build",
-    "deploy": "open-next build && wrangler deploy",
-    "deploy:staging": "open-next build && wrangler deploy --env staging",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:staging": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env staging",
     "cf:dev": "wrangler dev",
     "cf:logs": "wrangler tail",
-    "cf:secret:list": "wrangler secret list"
+    "cf:secret:list": "wrangler secret list",
+    "cf:secret:put": "wrangler secret put"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^9.0.2",
