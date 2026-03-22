@@ -24,10 +24,10 @@
 
 ### AI Knowledge Extraction
 
-- [ ] **EXTRACT-01**: AI 从转写文字或粘贴内容中提取结构化知识条目
+- [x] **EXTRACT-01**: AI 从转写文字或粘贴内容中提取结构化知识条目
 - [x] **EXTRACT-02**: 每个知识条目包含：标题、内容、来源、创建时间
 - [x] **EXTRACT-03**: 提取前显示给用户确认，避免幻觉
-- [ ] **EXTRACT-04**: AI 自动为知识条目分配领域/主题标签
+- [x] **EXTRACT-04**: AI 自动为知识条目分配领域/主题标签
 - [ ] **EXTRACT-05**: 用户可以手动调整领域标签
 
 ### Knowledge Library
@@ -103,10 +103,10 @@
 | TRANS-03 | Phase 1 — Capture Pipeline | Pending |
 | TEXT-01 | Phase 1 — Capture Pipeline | Complete |
 | TEXT-02 | Phase 1 — Capture Pipeline | Complete |
-| EXTRACT-01 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-01 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-02 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-03 | Phase 1 — Capture Pipeline | Complete |
-| EXTRACT-04 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-04 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-05 | Phase 1 — Capture Pipeline | Pending |
 | LIB-01 | Phase 2 — Review Loop | Pending |
 | LIB-02 | Phase 2 — Review Loop | Pending |
