@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, supabase } from "@/components/auth/AuthProvider";
 import { TextPasteInput } from "@/components/capture/TextPasteInput";
@@ -26,7 +26,14 @@ export default function CapturePage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // 认证守卫 — 加载中显示空状态，未登录跳转
+  // 认证守卫 — 使用 useEffect 处理重定向（避免渲染时调用 setState）
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login?redirect_to=/capture");
+    }
+  }, [loading, user, router]);
+
+  // 加载中显示空状态
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -35,9 +42,8 @@ export default function CapturePage() {
     );
   }
 
+  // 未登录显示提示（useEffect 会处理跳转）
   if (!user) {
-    // 重定向到登录页，带回调参数
-    router.push("/login?redirect_to=/capture");
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-gray-400 text-sm">请先登录后使用捕获功能。</p>
