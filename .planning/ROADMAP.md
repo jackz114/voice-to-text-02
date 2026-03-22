@@ -37,7 +37,7 @@
 Plans:
 - [x] 01-01-PLAN.md — Database schema + Drizzle setup (all 5 tables, FSRS fields, migration)
 - [ ] 01-02-PLAN.md — Extract API route + OpenAI client (POST /api/capture/extract)
-- [ ] 01-03-PLAN.md — Capture page + TextPasteInput component (UI shell, auth guard)
+- [x] 01-03-PLAN.md — Capture page + TextPasteInput component (UI shell, auth guard)
 - [ ] 01-04-PLAN.md — ConfirmationCards + Confirm API + end-to-end wiring (checkpoint for human verification)
 
 ---
@@ -85,7 +85,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Capture Pipeline | 1/4 | In Progress|  |
+| 1. Capture Pipeline | 2/4 | In Progress|  |
 | 2. Review Loop | 0/? | Not started | - |
 | 3. Retention Engine | 0/? | Not started | - |
 
