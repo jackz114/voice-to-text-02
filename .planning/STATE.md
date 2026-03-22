@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-22T12:07:49.158Z"
+last_updated: "2026-03-22T12:15:25.563Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 3
 ---
 
 # Project State: 笔记助手 (bijiassistant)
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 1 (Capture Pipeline) — EXECUTING
-Plan: 2 of 4
+Plan: 4 of 4
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: 2 of 4
 
 ---
 | Phase 01-capture-pipeline P01 | 12 | 2 tasks | 6 files |
+| Phase 01-capture-pipeline P03 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,8 @@ Plan: 2 of 4
 | text() over pgEnum for status columns | Avoids enum migration complexity when adding new status values; keeps schema flexible | 01-01 |
 | Schema-first design with all 5 tables + FSRS fields | All tables defined before first migration to avoid Phase 2 backfill debt on populated tables | 01-01 |
 | DB singleton uses prepare:false | Required for Supabase Transaction pooler compatibility; Session mode would fail under concurrent connections | 01-01 |
+| supabase imported from AuthProvider re-export | Shares the same singleton instance as AuthProvider; avoids creating a second client in capture page | 01-03 |
+| confirming state is JSON placeholder in Plan 03 | ConfirmationCards component not yet built; Plan 04 replaces the pre block with the real component | 01-03 |
 
 ### Critical Pitfalls to Avoid
 
@@ -112,6 +115,7 @@ None currently.
 
 - 2026-03-22: Project initialized. PROJECT.md, REQUIREMENTS.md, research/SUMMARY.md, ROADMAP.md, STATE.md created. 31 v1 requirements mapped across 3 phases.
 - 2026-03-22: Executed 01-01 (Drizzle schema + DB singleton). Created src/db/schema.ts (5 tables), src/db/index.ts, drizzle.config.ts, migration SQL. Installed openai, postgres, drizzle-zod. Migration pending DATABASE_URL configuration.
+- 2026-03-22: Executed 01-03 (Capture page + TextPasteInput). Created /capture route with auth guard and state machine shell (idle+extracting). TextPasteInput with 100k char counter and spinner button. Requirements TEXT-01, TEXT-02, EXTRACT-03 completed. Stopped at: Completed 01-capture-pipeline-01-03-PLAN.md
 
 ---
 
