@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, supabase } from "@/components/auth/AuthProvider";
 import { TextPasteInput } from "@/components/capture/TextPasteInput";
+import { ConfirmationCards } from "@/components/capture/ConfirmationCards";
 
 // 捕获流状态机类型
 type CaptureState = "idle" | "extracting" | "confirming" | "saving";
@@ -23,6 +24,7 @@ export default function CapturePage() {
   const [captureState, setCaptureState] = useState<CaptureState>("idle");
   const [extractedItems, setExtractedItems] = useState<KnowledgeItemCandidate[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // 认证守卫 — 加载中显示空状态，未登录跳转
   if (loading) {
@@ -42,6 +44,38 @@ export default function CapturePage() {
       </div>
     );
   }
+
+  // 确认保存处理函数 — 调用 /api/capture/confirm
+  const handleConfirm = async (acceptedItems: KnowledgeItemCandidate[]) => {
+    setCaptureState("saving");
+    setError(null);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+      const response = await fetch("/api/capture/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ items: acceptedItems }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error ?? "保存失败，请重试。");
+        setCaptureState("confirming");
+        return;
+      }
+      setSuccessMessage(`已保存 ${data.savedCount} 条知识点。`);
+      setCaptureState("idle");
+      setExtractedItems([]);
+    } catch {
+      setError("保存失败，请重试。");
+      setCaptureState("confirming");
+    }
+  };
 
   // 提取处理函数 — 调用 /api/capture/extract
   const handleExtract = async (text: string, sourceUrl?: string) => {
@@ -106,6 +140,11 @@ export default function CapturePage() {
         {/* 粘贴输入区 — idle 或 extracting 状态可见 */}
         {(captureState === "idle" || captureState === "extracting") && (
           <section className="mb-12">
+            {successMessage && captureState === "idle" && (
+              <div className="mb-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-400">
+                {successMessage}
+              </div>
+            )}
             {error && (
               <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-600 dark:text-red-400">
                 {error}
@@ -118,25 +157,17 @@ export default function CapturePage() {
           </section>
         )}
 
-        {/* 确认卡片区 — confirming 状态（Plan 04 替换此占位符） */}
-        {captureState === "confirming" && (
+        {/* 确认卡片区 — confirming 或 saving 状态 */}
+        {(captureState === "confirming" || captureState === "saving") && (
           <section>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
               提取结果（{extractedItems.length} 条）
             </h2>
-            {/* TODO(Plan 04): Replace with <ConfirmationCards> component */}
-            <pre className="rounded-lg bg-gray-50 dark:bg-gray-900 p-4 text-xs overflow-auto">
-              {JSON.stringify(extractedItems, null, 2)}
-            </pre>
-            <button
-              onClick={() => {
-                setCaptureState("idle");
-                setExtractedItems([]);
-              }}
-              className="mt-4 text-sm text-gray-500 hover:text-gray-700 underline"
-            >
-              重新粘贴
-            </button>
+            <ConfirmationCards
+              items={extractedItems}
+              onConfirm={handleConfirm}
+              isSaving={captureState === "saving"}
+            />
           </section>
         )}
       </main>
