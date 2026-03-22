@@ -9,7 +9,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Capture Pipeline** - Database schema + text input + AI knowledge extraction
+- [x] **Phase 1: Capture Pipeline** - Database schema + text input + AI knowledge extraction (completed 2026-03-22)
 - [ ] **Phase 2: Review Loop** - Knowledge library + FSRS scheduling + daily review workflow + audio recording
 - [ ] **Phase 3: Retention Engine** - Proactive notifications + knowledge search
 
@@ -38,7 +38,7 @@ Plans:
 - [x] 01-01-PLAN.md — Database schema + Drizzle setup (all 5 tables, FSRS fields, migration)
 - [x] 01-02-PLAN.md — Extract API route + OpenAI client (POST /api/capture/extract)
 - [x] 01-03-PLAN.md — Capture page + TextPasteInput component (UI shell, auth guard)
-- [ ] 01-04-PLAN.md — ConfirmationCards + Confirm API + end-to-end wiring (checkpoint for human verification)
+- [x] 01-04-PLAN.md — ConfirmationCards + Confirm API + end-to-end wiring (checkpoint for human verification)
 
 ---
 
@@ -85,7 +85,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Capture Pipeline | 3/4 | In Progress|  |
+| 1. Capture Pipeline | 4/4 | Complete   | 2026-03-22 |
 | 2. Review Loop | 0/? | Not started | - |
 | 3. Retention Engine | 0/? | Not started | - |
 
