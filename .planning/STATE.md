@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-22T12:07:49.158Z"
+progress:
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 1
+---
+
 # Project State: 笔记助手 (bijiassistant)
 
 **Last updated:** 2026-03-22
@@ -17,19 +30,8 @@
 
 ## Current Position
 
-**Phase:** 1 — Capture Pipeline
-**Plan:** None yet (awaiting `/gsd:plan-phase 1`)
-**Status:** Not started
-
-```
-Progress: [          ] 0%
-
-Phase 1: Capture Pipeline     [ ] Not started
-Phase 2: Review Loop          [ ] Not started
-Phase 3: Retention Engine     [ ] Not started
-```
-
----
+Phase: 1 (Capture Pipeline) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -42,6 +44,7 @@ Phase 3: Retention Engine     [ ] Not started
 | Requirements mapped | 31/31 |
 
 ---
+| Phase 01-capture-pipeline P01 | 12 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -54,6 +57,9 @@ Phase 3: Retention Engine     [ ] Not started
 | Synchronous transcription for MVP | Whisper calls are synchronous in Phase 1-2; Cloudflare Queue async pipeline deferred to post-v1 (safe for files under ~60 seconds) | Pre-Phase 1 |
 | Text input before audio | Text paste exercises the same LLM extraction pipeline without MediaRecorder/codec/async complexity; validate extraction quality first | Pre-Phase 1 |
 | User confirmation before DB write | LLM hallucination risk; user reviews extracted items before they are committed | Pre-Phase 1 |
+| text() over pgEnum for status columns | Avoids enum migration complexity when adding new status values; keeps schema flexible | 01-01 |
+| Schema-first design with all 5 tables + FSRS fields | All tables defined before first migration to avoid Phase 2 backfill debt on populated tables | 01-01 |
+| DB singleton uses prepare:false | Required for Supabase Transaction pooler compatibility; Session mode would fail under concurrent connections | 01-01 |
 
 ### Critical Pitfalls to Avoid
 
@@ -73,7 +79,7 @@ Phase 3: Retention Engine     [ ] Not started
 ### Architecture Notes
 
 - Stack: Next.js 16 + React 19 + TypeScript + Tailwind CSS v4, deployed to Cloudflare Workers via `@opennextjs/cloudflare`
-- DB: Supabase Postgres + Drizzle ORM (no schema files yet — must be created in Phase 1)
+- DB: Supabase Postgres + Drizzle ORM — schema created (src/db/schema.ts), singleton at src/db/index.ts, migration SQL generated; apply with `npx drizzle-kit migrate` after setting DATABASE_URL
 - Audio storage: Supabase Storage via signed URL direct upload
 - Transcription: OpenAI Whisper API (`gpt-4o-mini-transcribe` model)
 - AI extraction: GPT-4o-mini with structured output + Zod schema validation
@@ -105,6 +111,7 @@ None currently.
 ### What Was Done Last
 
 - 2026-03-22: Project initialized. PROJECT.md, REQUIREMENTS.md, research/SUMMARY.md, ROADMAP.md, STATE.md created. 31 v1 requirements mapped across 3 phases.
+- 2026-03-22: Executed 01-01 (Drizzle schema + DB singleton). Created src/db/schema.ts (5 tables), src/db/index.ts, drizzle.config.ts, migration SQL. Installed openai, postgres, drizzle-zod. Migration pending DATABASE_URL configuration.
 
 ---
 
