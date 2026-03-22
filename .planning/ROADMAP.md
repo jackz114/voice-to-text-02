@@ -32,7 +32,13 @@
   4. Confirmed knowledge items appear in the database, linked to the user and original source
   5. The system handles audio files up to the Whisper 25 MB limit and detects the browser's supported audio codec automatically
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Database schema + Drizzle setup (all 5 tables, FSRS fields, migration)
+- [ ] 01-02-PLAN.md — Extract API route + OpenAI client (POST /api/capture/extract)
+- [ ] 01-03-PLAN.md — Capture page + TextPasteInput component (UI shell, auth guard)
+- [ ] 01-04-PLAN.md — ConfirmationCards + Confirm API + end-to-end wiring (checkpoint for human verification)
 
 ---
 
@@ -77,7 +83,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Capture Pipeline | 0/? | Not started | - |
+| 1. Capture Pipeline | 4/4 | Planned | - |
 | 2. Review Loop | 0/? | Not started | - |
 | 3. Retention Engine | 0/? | Not started | - |
 
@@ -124,4 +130,4 @@
 ---
 
 *Roadmap created: 2026-03-22*
-*Last updated: 2026-03-22 after initial roadmap creation*
+*Last updated: 2026-03-22 after Phase 1 planning*
