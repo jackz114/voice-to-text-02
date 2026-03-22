@@ -53,17 +53,17 @@ Exceptions: Touch targets for accept/reject card buttons minimum 44px height (ac
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px | 400 (normal) | 1.5 |
-| Label | 14px | 500 (medium) | 1.4 |
+| Label | 14px | 400 (normal) | 1.4 |
 | Heading | 20px | 600 (semibold) | 1.3 |
-| Display | 28px | 700 (bold) | 1.2 |
+| Display | 28px | 600 (semibold) | 1.2 |
 
 **Notes:**
 - Body (16px / 400 / 1.5): used for textarea content, card body text, form field values.
-- Label (14px / 500 / 1.4): used for form field labels, card meta (domain tag label, source label), character counter.
+- Label (14px / 400 / 1.4): used for form field labels, card meta (domain tag label, source label), character counter.
 - Heading (20px / 600 / 1.3): used for page section titles ("粘贴内容" area label, "提取结果" section heading), card item title.
-- Display (28px / 700 / 1.2): used for page-level heading only ("捕获知识").
+- Display (28px / 600 / 1.2): used for page-level heading only ("捕获知识").
 
-**Source:** Existing code uses `text-2xl font-bold` (24px/700) for auth form heading, `text-sm font-medium` (14px/500) for labels, `text-lg leading-8` (18px) for body. Adjusted to tighter 4-size system. `text-3xl font-semibold` (30px/600) confirmed in `page.tsx` h1 — normalised to 28px display for capture page consistency.
+**Source:** Existing code uses `text-2xl font-bold` (24px/700) for auth form heading, `text-sm font-medium` (14px/500) for labels, `text-lg leading-8` (18px) for body. Adjusted to tighter 4-size, 2-weight system. `text-3xl font-semibold` (30px/600) confirmed in `page.tsx` h1 — normalised to 28px display for capture page consistency. Weights consolidated to 400/600 only.
 
 ---
 
@@ -90,7 +90,7 @@ Destructive reserved for: the per-card "丢弃" (reject/discard) button. No othe
 
 ```
 max-w-3xl mx-auto px-6 py-16
-  ├── Page heading (Display / 28px / bold)
+  ├── Page heading (Display / 28px / semibold)
   ├── Paste Input Block (full width)
   │   ├── Textarea (min-h: 200px, resize-y)
   │   ├── Character counter (Label / 14px / right-aligned, gray-400)
@@ -120,8 +120,8 @@ Card container: rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-5
   │   ├── Title (Heading / 20px / semibold, gray-900 / white)
   │   └── Action row: "丢弃" text button (red-600) | "编辑" text button (gray-500)
   ├── Content (Body / 16px / 1.5 line-height, gray-700 / gray-300, max 3 lines expanded)
-  ├── Meta row (Label / 14px / gray-500)
-  │   ├── Domain badge: rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-xs font-medium
+  ├── Meta row (Label / 14px / gray-400)
+  │   ├── Domain badge: rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-xs font-normal
   │   ├── Tags: same badge style, gray-100/gray-700 color
   │   └── Source (if present): truncated URL, gray-400, underline on hover
   └── Accept state indicator: unchecked by default, checkmark appears when "保留" is clicked
@@ -141,7 +141,7 @@ Field order:
 3. 领域 (Domain): single text input, pre-populated by AI
 4. 标签 (Tags): tag input — type and press Enter or comma to add a tag; each tag renders as a removable pill (x button on right); existing tags shown inline
 
-Tag pill style: `inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300`
+Tag pill style: `inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-sm font-normal text-gray-700 dark:text-gray-300`
 
 Tag remove button: `×` character, 16px, gray-400, hover red-600.
 
