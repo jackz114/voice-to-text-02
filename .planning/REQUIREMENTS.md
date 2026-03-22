@@ -28,7 +28,7 @@
 - [x] **EXTRACT-02**: 每个知识条目包含：标题、内容、来源、创建时间
 - [x] **EXTRACT-03**: 提取前显示给用户确认，避免幻觉
 - [x] **EXTRACT-04**: AI 自动为知识条目分配领域/主题标签
-- [ ] **EXTRACT-05**: 用户可以手动调整领域标签
+- [x] **EXTRACT-05**: 用户可以手动调整领域标签
 
 ### Knowledge Library
 
@@ -107,7 +107,7 @@
 | EXTRACT-02 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-03 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-04 | Phase 1 — Capture Pipeline | Complete |
-| EXTRACT-05 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-05 | Phase 1 — Capture Pipeline | Complete |
 | LIB-01 | Phase 2 — Review Loop | Pending |
 | LIB-02 | Phase 2 — Review Loop | Pending |
 | LIB-03 | Phase 2 — Review Loop | Pending |
