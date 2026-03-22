@@ -95,43 +95,43 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIO-01 | Phase 1 | Pending |
-| AUDIO-02 | Phase 1 | Pending |
-| AUDIO-03 | Phase 1 | Pending |
-| TRANS-01 | Phase 1 | Pending |
-| TRANS-02 | Phase 1 | Pending |
-| TRANS-03 | Phase 1 | Pending |
-| TEXT-01 | Phase 1 | Pending |
-| TEXT-02 | Phase 1 | Pending |
-| EXTRACT-01 | Phase 1 | Pending |
-| EXTRACT-02 | Phase 1 | Pending |
-| EXTRACT-03 | Phase 1 | Pending |
-| EXTRACT-04 | Phase 1 | Pending |
-| EXTRACT-05 | Phase 1 | Pending |
-| LIB-01 | Phase 2 | Pending |
-| LIB-02 | Phase 2 | Pending |
-| LIB-03 | Phase 2 | Pending |
-| FSRS-01 | Phase 2 | Pending |
-| FSRS-02 | Phase 2 | Pending |
-| FSRS-03 | Phase 2 | Pending |
-| FSRS-04 | Phase 2 | Pending |
-| REVIEW-01 | Phase 2 | Pending |
-| REVIEW-02 | Phase 2 | Pending |
-| REVIEW-03 | Phase 2 | Pending |
-| REVIEW-04 | Phase 2 | Pending |
-| NOTIFY-01 | Phase 3 | Pending |
-| NOTIFY-02 | Phase 3 | Pending |
-| NOTIFY-03 | Phase 3 | Pending |
-| NOTIFY-04 | Phase 3 | Pending |
-| SEARCH-01 | Phase 3 | Pending |
-| SEARCH-02 | Phase 3 | Pending |
-| SEARCH-03 | Phase 3 | Pending |
+| AUDIO-01 | Phase 1 — Capture Pipeline | Pending |
+| AUDIO-02 | Phase 1 — Capture Pipeline | Pending |
+| AUDIO-03 | Phase 1 — Capture Pipeline | Pending |
+| TRANS-01 | Phase 1 — Capture Pipeline | Pending |
+| TRANS-02 | Phase 1 — Capture Pipeline | Pending |
+| TRANS-03 | Phase 1 — Capture Pipeline | Pending |
+| TEXT-01 | Phase 1 — Capture Pipeline | Pending |
+| TEXT-02 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-01 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-02 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-03 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-04 | Phase 1 — Capture Pipeline | Pending |
+| EXTRACT-05 | Phase 1 — Capture Pipeline | Pending |
+| LIB-01 | Phase 2 — Review Loop | Pending |
+| LIB-02 | Phase 2 — Review Loop | Pending |
+| LIB-03 | Phase 2 — Review Loop | Pending |
+| FSRS-01 | Phase 2 — Review Loop | Pending |
+| FSRS-02 | Phase 2 — Review Loop | Pending |
+| FSRS-03 | Phase 2 — Review Loop | Pending |
+| FSRS-04 | Phase 2 — Review Loop | Pending |
+| REVIEW-01 | Phase 2 — Review Loop | Pending |
+| REVIEW-02 | Phase 2 — Review Loop | Pending |
+| REVIEW-03 | Phase 2 — Review Loop | Pending |
+| REVIEW-04 | Phase 2 — Review Loop | Pending |
+| NOTIFY-01 | Phase 3 — Retention Engine | Pending |
+| NOTIFY-02 | Phase 3 — Retention Engine | Pending |
+| NOTIFY-03 | Phase 3 — Retention Engine | Pending |
+| NOTIFY-04 | Phase 3 — Retention Engine | Pending |
+| SEARCH-01 | Phase 3 — Retention Engine | Pending |
+| SEARCH-02 | Phase 3 — Retention Engine | Pending |
+| SEARCH-03 | Phase 3 — Retention Engine | Pending |
 
 **Coverage:**
-- v1 requirements: 28 total
-- Mapped to phases: 28
+- v1 requirements: 31 total
+- Mapped to phases: 31
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after initial definition*
+*Last updated: 2026-03-22 after roadmap creation*
