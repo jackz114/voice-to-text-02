@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: gaps_found
-last_updated: "2026-03-23T14:30:00.000Z"
+status: unknown
+last_updated: "2026-03-23T11:47:13.793Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 10
-  completed_plans: 9
+  total_plans: 14
+  completed_plans: 10
 ---
 
 # Project State: 笔记助手 (bijiassistant)
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 02 (review-loop) — EXECUTING
-Plan: 6 of 6
+Plan: 1 of 4
 
 ## Performance Metrics
 
@@ -137,7 +137,8 @@ None currently.
 - 2026-03-23: Executed 02-03 (FSRS API routes). Installed ts-fsrs, created src/lib/fsrs.ts (dbRowToFsrsCard, fsrsResultToDbUpdate with RecordLogItem type), GET /api/review/today (items due via lte nextReviewAt + innerJoin), POST /api/review/rate (first-review createEmptyCard, ownership check, FSRS update). Requirements FSRS-01, FSRS-02, FSRS-03, FSRS-04, REVIEW-01, REVIEW-04 completed. Stopped at: Completed 02-review-loop-02-03-PLAN.md
 - 2026-03-23: Executed 02-05 (Audio capture pipeline). Created POST /api/audio/signed-url (Supabase signed URL for audio bucket), POST /api/audio/transcribe (download audio, 25MB check, gpt-4o-mini-transcribe, persist to transcriptions table), AudioRecorder.tsx (codec detection, waveform, pause/resume, direct uploadToSignedUrl). Updated capture page with two-column grid layout. Requirements AUDIO-01, AUDIO-02, AUDIO-03, TRANS-01, TRANS-02, TRANS-03 completed. Stopped at: Completed 02-review-loop-02-05-PLAN.md
 - 2026-03-23: Executed 02-02 (Library UI). Created /library page with sidebar domain navigation (DomainSidebar), list/grid toggle (KnowledgeItemCard), detail modal, delete with confirm(), all wired to /api/library/list and /api/library/delete. Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-02-PLAN.md
-- 2026-03-23: Executed 02-04 (Review Session UI). Installed framer-motion, created RatingButtons.tsx (4-emoji FSRS rating buttons), ReviewCard.tsx (swipeable card with click-to-reveal), ReviewSession.tsx (orchestrator with anti-cheat nudge + 60s undo bar), /review page with auth guard. Requirements REVIEW-02, REVIEW-03 completed (REVIEW-01/FSRS-03/FSRS-04 already complete). Stopped at: Completed 02-review-loop-02-04-PLAN.md
+- 2026-03-23: Executed 02-05-GAP (WebM to WAV conversion). Fixed audio transcription by converting webm recording to WAV format before upload for SiliconFlow API compatibility. Added proper AudioContext resource cleanup. Committed changes.
+
 
 ---
 
