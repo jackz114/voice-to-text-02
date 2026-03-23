@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-23T06:23:14.722Z"
+last_updated: "2026-03-23T08:31:06.912Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 10
+  completed_plans: 5
 ---
 
 # Project State: 笔记助手 (bijiassistant)
@@ -22,7 +22,7 @@ progress:
 
 **Core Value:** 学习时零负担记录，AI 替你管理遗忘曲线——让你知道自己学过什么，并在遗忘前精准唤醒它
 
-**Current Focus:** Phase 1 — Capture Pipeline
+**Current Focus:** Phase 02 — review-loop
 
 **Milestone:** v1 (AI Learning Assistant)
 
@@ -30,8 +30,8 @@ progress:
 
 ## Current Position
 
-Phase: 1 (Capture Pipeline) — READY FOR VERIFICATION (checkpoint:human-verify)
-Plan: 4 of 4 (all tasks complete, awaiting end-to-end manual test)
+Phase: 02 (review-loop) — EXECUTING
+Plan: 2 of 6
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: 4 of 4 (all tasks complete, awaiting end-to-end manual test)
 | Phase 01-capture-pipeline P03 | 2 | 2 tasks | 2 files |
 | Phase 01 P02 | 3m | 2 tasks | 2 files |
 | Phase 01-capture-pipeline P04 | 5 | 3 tasks | 3 files |
+| Phase 02-review-loop P01 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,7 @@ Plan: 4 of 4 (all tasks complete, awaiting end-to-end manual test)
 | zod/v3 import for zodResponseFormat | Zod v4 breaks OpenAI SDK vendored schema converter; zod/v3 compat shim is the official workaround | 01-02 |
 | Per-card state in flat useState array (not react-hook-form) | Dynamic per-card status + edit fields map naturally to array state; form library adds indirection without simplifying | 01-04 |
 | FSRS initial values at insert (nextReviewAt=tomorrow, stability=0) | Phase 1 creates review_state rows with placeholder values; Phase 2 applies real FSRS algorithm on first review event | 01-04 |
+| Delete review_state before knowledge_item | Drizzle schema has no references().onDelete cascade, so manual ordering is required to avoid FK constraint violation | 02-01 |
 
 ### Critical Pitfalls to Avoid
 
@@ -124,6 +126,8 @@ None currently.
 - 2026-03-22: Executed 01-03 (Capture page + TextPasteInput). Created /capture route with auth guard and state machine shell (idle+extracting). TextPasteInput with 100k char counter and spinner button. Requirements TEXT-01, TEXT-02, EXTRACT-03 completed. Stopped at: Completed 01-capture-pipeline-01-03-PLAN.md
 - 2026-03-22: Executed 01-02 (AI extraction pipeline). Created capture-client.ts (OpenAI singleton, zod/v3 schemas, chunkText, extractKnowledgeItems) and POST /api/capture/extract route (auth check, 100k char limit, AI extraction). Fixed openai v6 API path (chat.completions.parse not beta.chat). Requirements EXTRACT-01, EXTRACT-04 completed. Stopped at: Completed 01-02-PLAN.md
 - 2026-03-22: Executed 01-04 (ConfirmationCards + confirm API). Created ConfirmationCards.tsx (per-card accept/reject/edit/undo, tag input, bulk accept, confirm button), POST /api/capture/confirm (inserts knowledge_items + review_state with FSRS initial state), updated capture/page.tsx to wire end-to-end pipeline. Requirements EXTRACT-02, EXTRACT-03, EXTRACT-05, TEXT-02 completed. Stopped at: checkpoint:human-verify (manual end-to-end test required)
+- 2026-03-23: Phase 2 context gathered. Discussed 4 areas: 知识库浏览（混合布局+侧边栏+双模式）、复习界面（滑动卡片堆+点击揭示）、音频录制（捕获页面并列显示）、FSRS 评分（表情符号4级+防作弊+事后修正）。Created 02-CONTEXT.md.
+- 2026-03-23: Executed 02-01 (Library API routes). Created GET /api/library/list (domain filter, innerJoin reviewState, contentPreview) and DELETE /api/library/delete (ownership check, sequential delete of review_state then knowledge_item). Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-01-PLAN.md
 
 ---
 
