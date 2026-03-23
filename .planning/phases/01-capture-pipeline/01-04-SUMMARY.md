@@ -132,3 +132,14 @@ This plan completes Phase 1 (Capture Pipeline). Remaining Phase 1 gaps deferred 
 ---
 *Phase: 01-capture-pipeline*
 *Completed: 2026-03-22*
+
+## Self-Check: PASSED
+
+- FOUND: src/components/capture/ConfirmationCards.tsx
+- FOUND: src/app/api/capture/confirm/route.ts
+- FOUND: src/app/capture/page.tsx (modified)
+- FOUND: .planning/phases/01-capture-pipeline/01-04-SUMMARY.md
+- FOUND: commit 5ad74da (ConfirmationCards component)
+- FOUND: commit 9dc31d7 (confirm route)
+- FOUND: commit 479c269 (capture page wired)
+- FOUND: commit 20c2db1 (docs/metadata)
