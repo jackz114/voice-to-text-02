@@ -1,6 +1,6 @@
 // src/lib/fsrs.ts
 // FSRS 算法辅助函数 — 数据库行与 ts-fsrs Card 对象之间的映射
-import { createEmptyCard, Card, RecordLogItem } from "ts-fsrs";
+import { Card, RecordLogItem } from "ts-fsrs";
 
 // 数据库行类型（来自 review_state 表）
 export interface ReviewStateRow {
