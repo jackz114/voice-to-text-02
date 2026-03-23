@@ -174,9 +174,11 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
       setIsTranscribing(false);
 
       if (!transcribeRes.ok) {
-        setError("转写失败，请重试");
-        return;
-      }
+          const errorData = await transcribeRes.json().catch(() => ({}));
+          console.error("转写 API 错误:", transcribeRes.status, errorData);
+          setError(`转写失败: ${errorData.error || transcribeRes.status}`);
+          return;
+        }
       const { text } = await transcribeRes.json();
       onTranscriptReady(text);
     } catch (err) {
@@ -219,12 +221,23 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
       recorder.onstop = async () => {
         if (animFrameRef.current !== null) cancelAnimationFrame(animFrameRef.current);
 
+        // 检查录音数据
+        console.log("录音停止，chunks 数量:", chunksRef.current.length);
+        if (chunksRef.current.length === 0) {
+          setError("录音数据为空，请重试");
+          chunksRef.current = []; // 重置
+          return;
+        }
+
         const webmBlob = new Blob(chunksRef.current, { type: mimeType });
+        chunksRef.current = []; // 重置 chunks 防止累积
+        console.log("WebM Blob 大小:", webmBlob.size, "bytes");
 
         // 转换为 WAV 格式以获得更好的 API 兼容性
         setIsConverting(true);
         try {
           const wavBlob = await convertWebmToWav(webmBlob);
+          console.log("WAV Blob 大小:", wavBlob.size, "bytes");
           setIsConverting(false);
           await uploadAndTranscribe(wavBlob, "audio/wav", "wav");
         } catch (err) {
@@ -248,7 +261,11 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
   };
 
   const stopRecording = () => {
+    // 停止 MediaRecorder
     mediaRecorderRef.current?.stop();
+    // 关键：停止所有音轨以释放麦克风权限
+    mediaRecorderRef.current?.stream?.getTracks().forEach((track) => track.stop());
+
     if (timerRef.current !== null) clearInterval(timerRef.current);
     setIsRecording(false);
     setIsPaused(false);

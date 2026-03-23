@@ -95,19 +95,26 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("硅基流动 API 错误:", errorData);
+      const errorText = await response.text();
+      console.error("硅基流动 API 错误:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+        audioSize: audioData.size,
+        mimeType,
+      });
       await db
         .update(transcriptions)
         .set({ status: "failed" })
         .where(eq(transcriptions.id, transcriptionRow.id));
       return NextResponse.json(
-        { error: "转写服务暂时不可用", code: "TRANSCRIPTION_API_ERROR" },
+        { error: `转写服务错误: ${errorText.slice(0, 200)}`, code: "TRANSCRIPTION_API_ERROR" },
         { status: 502 }
       );
     }
 
-    const transcriptionResult = await response.json() as { text: string };
+    const transcriptionResult = (await response.json()) as { text?: string };
+    console.log("硅基流动 API 响应:", transcriptionResult);
     const transcribedText = transcriptionResult.text ?? "";
 
     // 步骤 7: 更新数据库记录（状态：completed）

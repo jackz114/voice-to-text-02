@@ -107,6 +107,10 @@ None.
 - KnowledgeItem type and card patterns available for 02-04 review UI
 - API contract: if 02-01 adds `content` to the list response, the modal stub resolves automatically
 
+## Self-Check: PASSED
+
+All 4 created files verified present. All 4 task commits verified in git log.
+
 ---
 *Phase: 02-review-loop*
 *Completed: 2026-03-23*
