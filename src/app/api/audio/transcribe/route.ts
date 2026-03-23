@@ -1,12 +1,13 @@
 // src/app/api/audio/transcribe/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import OpenAI from "openai";
 import { db } from "@/db/index";
 import { transcriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// 硅基流动 API 配置
+const SILICONFLOW_BASE_URL = "https://api.siliconflow.cn/v1";
+const SILICONFLOW_MODEL = "FunAudioLLM/SenseVoiceSmall";
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,24 +74,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 步骤 6: 调用 Whisper API 进行转写
-    // gpt-4o-mini-transcribe 仅支持 "json" 格式（不支持 "text"）
+    // 步骤 6: 调用硅基流动 SenseVoice API 进行转写
     const arrayBuffer = await audioData.arrayBuffer();
     const ext = audioPath.split(".").pop() ?? "webm";
-    const audioFile = new File([arrayBuffer], `audio.${ext}`, { type: `audio/${ext}` });
+    const mimeType = ext === "mp3" ? "audio/mpeg" : `audio/${ext}`;
 
-    const transcriptionResult = await openai.audio.transcriptions.create({
-      file: audioFile,
-      model: "gpt-4o-mini-transcribe",
-      response_format: "json",
-      language: "zh",
+    // 构建 FormData
+    const formData = new FormData();
+    formData.append("file", new Blob([arrayBuffer], { type: mimeType }), `audio.${ext}`);
+    formData.append("model", SILICONFLOW_MODEL);
+    formData.append("language", "zh");
+    formData.append("response_format", "json");
+
+    const response = await fetch(`${SILICONFLOW_BASE_URL}/audio/transcriptions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.SILICONFLOW_API_KEY}`,
+      },
+      body: formData,
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("硅基流动 API 错误:", errorData);
+      await db
+        .update(transcriptions)
+        .set({ status: "failed" })
+        .where(eq(transcriptions.id, transcriptionRow.id));
+      return NextResponse.json(
+        { error: "转写服务暂时不可用", code: "TRANSCRIPTION_API_ERROR" },
+        { status: 502 }
+      );
+    }
+
+    const transcriptionResult = await response.json() as { text: string };
+    const transcribedText = transcriptionResult.text ?? "";
 
     // 步骤 7: 更新数据库记录（状态：completed）
     await db
       .update(transcriptions)
       .set({
-        text: transcriptionResult.text,
+        text: transcribedText,
         status: "completed",
         updatedAt: new Date(),
       })
@@ -99,11 +123,11 @@ export async function POST(request: NextRequest) {
     console.log("转写完成:", {
       userId: user.id,
       audioPath,
-      textLength: transcriptionResult.text.length,
+      textLength: transcribedText.length,
     });
 
     return NextResponse.json({
-      text: transcriptionResult.text,
+      text: transcribedText,
       transcriptionId: transcriptionRow.id,
     });
   } catch (error) {
