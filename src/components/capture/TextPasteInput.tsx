@@ -8,6 +8,7 @@ interface TextPasteInputProps {
   disabled?: boolean;
 }
 
+const MIN_CHARS = 50;
 const MAX_CHARS = 100_000;
 
 export function TextPasteInput({ onExtract, isExtracting, disabled = false }: TextPasteInputProps) {
@@ -15,8 +16,8 @@ export function TextPasteInput({ onExtract, isExtracting, disabled = false }: Te
   const [sourceUrl, setSourceUrl] = useState("");
 
   const isOverLimit = text.length > MAX_CHARS;
-  const isEmpty = text.trim().length === 0;
-  const isDisabled = disabled || isExtracting || isOverLimit || isEmpty;
+  const isTooShort = text.trim().length < MIN_CHARS;
+  const isDisabled = disabled || isExtracting || isOverLimit || isTooShort;
 
   // 字符计数颜色 — 参考 UI-SPEC.md Interaction Contracts: Character Counter
   const ratio = text.length / MAX_CHARS;
@@ -39,12 +40,13 @@ export function TextPasteInput({ onExtract, isExtracting, disabled = false }: Te
           disabled={isExtracting || disabled}
           placeholder="粘贴你正在学习的文章内容……"
           rows={8}
-          className="w-full min-h-[200px] resize-y px-4 py-4 text-base leading-relaxed border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full min-h-[200px] resize-y px-4 py-4 text-base leading-relaxed text-gray-900 dark:text-gray-100 placeholder:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         />
         {/* 字符计数 — 用户开始输入后显示 */}
         {text.length > 0 && (
           <p className={`mt-1 text-right text-sm ${counterColor}`}>
             {text.length.toLocaleString()} / {MAX_CHARS.toLocaleString()} 字符
+            {isTooShort && ` — 至少需要 ${MIN_CHARS} 字符`}
             {isOverLimit && " — 已超出 100,000 字符限制"}
           </p>
         )}
