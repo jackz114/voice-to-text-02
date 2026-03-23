@@ -46,8 +46,8 @@
 ### Daily Review
 
 - [x] **REVIEW-01**: 用户可以看到「今天要复习」的知识条目列表
-- [ ] **REVIEW-02**: 复习界面显示知识条目内容和复习来源
-- [ ] **REVIEW-03**: 用户可以选择记忆程度（Again/Hard/Good/Easy）
+- [x] **REVIEW-02**: 复习界面显示知识条目内容和复习来源
+- [x] **REVIEW-03**: 用户可以选择记忆程度（Again/Hard/Good/Easy）
 - [x] **REVIEW-04**: 系统根据评分更新 FSRS 参数和下次复习日期
 
 ### Notifications
@@ -116,8 +116,8 @@
 | FSRS-03 | Phase 2 — Review Loop | Complete |
 | FSRS-04 | Phase 2 — Review Loop | Complete |
 | REVIEW-01 | Phase 2 — Review Loop | Complete |
-| REVIEW-02 | Phase 2 — Review Loop | Pending |
-| REVIEW-03 | Phase 2 — Review Loop | Pending |
+| REVIEW-02 | Phase 2 — Review Loop | Complete |
+| REVIEW-03 | Phase 2 — Review Loop | Complete |
 | REVIEW-04 | Phase 2 — Review Loop | Complete |
 | NOTIFY-01 | Phase 3 — Retention Engine | Pending |
 | NOTIFY-02 | Phase 3 — Retention Engine | Pending |
