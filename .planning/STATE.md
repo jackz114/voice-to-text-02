@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-23T08:54:24.558Z"
+last_updated: "2026-03-23T09:10:52.510Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State: 笔记助手 (bijiassistant)
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 02 (review-loop) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Plan: 4 of 6
 | Phase 02-review-loop P01 | 8 | 2 tasks | 2 files |
 | Phase 02-review-loop P03 | 15m | 3 tasks | 3 files |
 | Phase 02-review-loop P05 | 14 | 3 tasks | 5 files |
+| Phase 02-review-loop P02 | 8 | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Plan: 4 of 6
 | Per-card state in flat useState array (not react-hook-form) | Dynamic per-card status + edit fields map naturally to array state; form library adds indirection without simplifying | 01-04 |
 | FSRS initial values at insert (nextReviewAt=tomorrow, stability=0) | Phase 1 creates review_state rows with placeholder values; Phase 2 applies real FSRS algorithm on first review event | 01-04 |
 | Delete review_state before knowledge_item | Drizzle schema has no references().onDelete cascade, so manual ordering is required to avoid FK constraint violation | 02-01 |
+| KnowledgeItem type in KnowledgeItemCard, re-exported by KnowledgeLibrary | Avoids circular import since KnowledgeLibrary imports KnowledgeItemCard | 02-02 |
+| Modal for library detail view (not [id] route) | No extra API route needed in Phase 2; modal falls back to contentPreview until API returns full content | 02-02 |
 
 ### Critical Pitfalls to Avoid
 
@@ -132,6 +135,7 @@ None currently.
 - 2026-03-23: Executed 02-01 (Library API routes). Created GET /api/library/list (domain filter, innerJoin reviewState, contentPreview) and DELETE /api/library/delete (ownership check, sequential delete of review_state then knowledge_item). Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-01-PLAN.md
 - 2026-03-23: Executed 02-03 (FSRS API routes). Installed ts-fsrs, created src/lib/fsrs.ts (dbRowToFsrsCard, fsrsResultToDbUpdate with RecordLogItem type), GET /api/review/today (items due via lte nextReviewAt + innerJoin), POST /api/review/rate (first-review createEmptyCard, ownership check, FSRS update). Requirements FSRS-01, FSRS-02, FSRS-03, FSRS-04, REVIEW-01, REVIEW-04 completed. Stopped at: Completed 02-review-loop-02-03-PLAN.md
 - 2026-03-23: Executed 02-05 (Audio capture pipeline). Created POST /api/audio/signed-url (Supabase signed URL for audio bucket), POST /api/audio/transcribe (download audio, 25MB check, gpt-4o-mini-transcribe, persist to transcriptions table), AudioRecorder.tsx (codec detection, waveform, pause/resume, direct uploadToSignedUrl). Updated capture page with two-column grid layout. Requirements AUDIO-01, AUDIO-02, AUDIO-03, TRANS-01, TRANS-02, TRANS-03 completed. Stopped at: Completed 02-review-loop-02-05-PLAN.md
+- 2026-03-23: Executed 02-02 (Library UI). Created /library page with sidebar domain navigation (DomainSidebar), list/grid toggle (KnowledgeItemCard), detail modal, delete with confirm(), all wired to /api/library/list and /api/library/delete. Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-02-PLAN.md
 
 ---
 
