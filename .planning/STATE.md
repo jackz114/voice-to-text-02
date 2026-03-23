@@ -131,6 +131,7 @@ None currently.
 - 2026-03-23: Phase 2 context gathered. Discussed 4 areas: 知识库浏览（混合布局+侧边栏+双模式）、复习界面（滑动卡片堆+点击揭示）、音频录制（捕获页面并列显示）、FSRS 评分（表情符号4级+防作弊+事后修正）。Created 02-CONTEXT.md.
 - 2026-03-23: Executed 02-01 (Library API routes). Created GET /api/library/list (domain filter, innerJoin reviewState, contentPreview) and DELETE /api/library/delete (ownership check, sequential delete of review_state then knowledge_item). Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-01-PLAN.md
 - 2026-03-23: Executed 02-03 (FSRS API routes). Installed ts-fsrs, created src/lib/fsrs.ts (dbRowToFsrsCard, fsrsResultToDbUpdate with RecordLogItem type), GET /api/review/today (items due via lte nextReviewAt + innerJoin), POST /api/review/rate (first-review createEmptyCard, ownership check, FSRS update). Requirements FSRS-01, FSRS-02, FSRS-03, FSRS-04, REVIEW-01, REVIEW-04 completed. Stopped at: Completed 02-review-loop-02-03-PLAN.md
+- 2026-03-23: Executed 02-05 (Audio capture pipeline). Created POST /api/audio/signed-url (Supabase signed URL for audio bucket), POST /api/audio/transcribe (download audio, 25MB check, gpt-4o-mini-transcribe, persist to transcriptions table), AudioRecorder.tsx (codec detection, waveform, pause/resume, direct uploadToSignedUrl). Updated capture page with two-column grid layout. Requirements AUDIO-01, AUDIO-02, AUDIO-03, TRANS-01, TRANS-02, TRANS-03 completed. Stopped at: Completed 02-review-loop-02-05-PLAN.md
 
 ---
 

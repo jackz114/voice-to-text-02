@@ -7,15 +7,15 @@
 
 ### Audio Capture
 
-- [ ] **AUDIO-01**: 用户可以录制音频并直接上传到 Supabase Storage
-- [ ] **AUDIO-02**: 音频文件绕过 Cloudflare Workers，避免内存限制
-- [ ] **AUDIO-03**: 支持多种音频编码格式的自动检测
+- [x] **AUDIO-01**: 用户可以录制音频并直接上传到 Supabase Storage
+- [x] **AUDIO-02**: 音频文件绕过 Cloudflare Workers，避免内存限制
+- [x] **AUDIO-03**: 支持多种音频编码格式的自动检测
 
 ### Audio Transcription
 
-- [ ] **TRANS-01**: 系统自动将录音转写为文字（OpenAI Whisper API）
-- [ ] **TRANS-02**: 处理 Whisper API 25MB 文件大小限制（如需要，支持分块）
-- [ ] **TRANS-03**: 转写结果关联到原始音频文件和用户
+- [x] **TRANS-01**: 系统自动将录音转写为文字（OpenAI Whisper API）
+- [x] **TRANS-02**: 处理 Whisper API 25MB 文件大小限制（如需要，支持分块）
+- [x] **TRANS-03**: 转写结果关联到原始音频文件和用户
 
 ### Text Input
 
@@ -95,12 +95,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIO-01 | Phase 1 — Capture Pipeline | Pending |
-| AUDIO-02 | Phase 1 — Capture Pipeline | Pending |
-| AUDIO-03 | Phase 1 — Capture Pipeline | Pending |
-| TRANS-01 | Phase 1 — Capture Pipeline | Pending |
-| TRANS-02 | Phase 1 — Capture Pipeline | Pending |
-| TRANS-03 | Phase 1 — Capture Pipeline | Pending |
+| AUDIO-01 | Phase 1 — Capture Pipeline | Complete |
+| AUDIO-02 | Phase 1 — Capture Pipeline | Complete |
+| AUDIO-03 | Phase 1 — Capture Pipeline | Complete |
+| TRANS-01 | Phase 1 — Capture Pipeline | Complete |
+| TRANS-02 | Phase 1 — Capture Pipeline | Complete |
+| TRANS-03 | Phase 1 — Capture Pipeline | Complete |
 | TEXT-01 | Phase 1 — Capture Pipeline | Complete |
 | TEXT-02 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-01 | Phase 1 — Capture Pipeline | Complete |
