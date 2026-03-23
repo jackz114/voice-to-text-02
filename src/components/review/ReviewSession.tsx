@@ -7,8 +7,23 @@ import { RatingButtons } from "@/components/review/RatingButtons";
 import Link from "next/link";
 import type { ReviewItem } from "@/components/review/ReviewCard";
 
+type ReviewMode = "scheduled" | "browse";
+
+interface BrowseItem {
+  id: string;
+  title: string;
+  content: string;
+  domain: string;
+  source: string | null;
+  tags: string[];
+  nextReviewAt: string;
+  reviewCount: number;
+}
+
 export function ReviewSession() {
   const [items, setItems] = useState<ReviewItem[]>([]);
+  const [browseItems, setBrowseItems] = useState<BrowseItem[]>([]);
+  const [reviewMode, setReviewMode] = useState<ReviewMode>("scheduled");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +44,7 @@ export function ReviewSession() {
           data: { session },
         } = await supabase.auth.getSession();
         tokenRef.current = session?.access_token;
-        await fetchDueItems(session?.access_token);
+        await fetchItems(session?.access_token);
       } catch (err) {
         console.error("初始化复习会话失败:", err);
         setError("加载失败，请刷新重试。");
@@ -37,22 +52,36 @@ export function ReviewSession() {
       }
     };
     init();
-  }, []);
+  }, [reviewMode]);
 
-  const fetchDueItems = async (token: string | undefined) => {
+  const fetchItems = async (token: string | undefined) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/review/today", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        setError(data.error ?? "加载失败，请刷新重试。");
-        return;
+      if (reviewMode === "scheduled") {
+        const response = await fetch("/api/review/today", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setError(data.error ?? "加载失败，请刷新重试。");
+          return;
+        }
+        const data = await response.json();
+        setItems(data.items ?? []);
+      } else {
+        // Browse mode: fetch all items from library
+        const response = await fetch("/api/library/list", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setError(data.error ?? "加载失败，请刷新重试。");
+          return;
+        }
+        const data = await response.json();
+        setBrowseItems(data.items ?? []);
       }
-      const data = await response.json();
-      setItems(data.items ?? []);
       setCurrentIndex(0);
     } catch (err) {
       console.error("加载待复习条目失败:", err);
@@ -133,6 +162,11 @@ export function ReviewSession() {
     }
   };
 
+  // Browse mode: simple next card without rating
+  const handleBrowseNext = () => {
+    setCurrentIndex((prev) => prev + 1);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -146,7 +180,7 @@ export function ReviewSession() {
       <div className="flex flex-col items-center justify-center py-20">
         <p className="text-red-500 mb-4">{error}</p>
         <button
-          onClick={() => fetchDueItems(tokenRef.current)}
+          onClick={() => fetchItems(tokenRef.current)}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
         >
           重试
@@ -155,31 +189,109 @@ export function ReviewSession() {
     );
   }
 
-  // 所有卡片已复习 — 完成界面
-  if (items.length === 0 || currentIndex >= items.length) {
+  // Empty state for scheduled mode - with browse mode option
+  if (reviewMode === "scheduled" && items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
+        <div className="text-6xl">🎉</div>
+        <h2 className="text-2xl font-bold">今日复习已完成！</h2>
+        <p className="text-gray-500">
+          今天没有需要复习的知识条目，明天再来吧～
+        </p>
+        <div className="flex gap-4">
+          <button
+            onClick={() => setReviewMode("browse")}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            📚 主动复习（浏览全部）
+          </button>
+          <Link
+            href="/library"
+            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          >
+            去知识库
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // All cards reviewed in scheduled mode
+  if (reviewMode === "scheduled" && currentIndex >= items.length) {
     return (
       <div className="text-center py-20">
         <div className="text-4xl mb-4">🎉</div>
         <h2 className="text-2xl font-bold mb-2">今日复习完成！</h2>
         <p className="text-gray-600 mb-6">
-          {items.length > 0
-            ? `已完成 ${items.length} 个知识条目的复习`
-            : "今日暂无待复习的知识条目"}
+          {`已完成 ${items.length} 个知识条目的复习`}
         </p>
-        <Link
-          href="/library"
-          className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
-        >
-          返回知识库
-        </Link>
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={() => setReviewMode("browse")}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            📚 继续主动复习
+          </button>
+          <Link
+            href="/library"
+            className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+          >
+            返回知识库
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // All cards browsed in browse mode
+  if (reviewMode === "browse" && currentIndex >= browseItems.length) {
+    return (
+      <div className="text-center py-20">
+        <div className="text-4xl mb-4">📚</div>
+        <h2 className="text-2xl font-bold mb-2">已浏览全部知识！</h2>
+        <p className="text-gray-600 mb-6">
+          {`已完成 ${browseItems.length} 个知识条目的浏览`}
+        </p>
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={() => {
+              setCurrentIndex(0);
+              fetchItems(tokenRef.current);
+            }}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            🔄 重新浏览
+          </button>
+          <button
+            onClick={() => setReviewMode("scheduled")}
+            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          >
+            返回今日复习
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[60vh]">
+      {/* Browse mode indicator */}
+      {reviewMode === "browse" && (
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex justify-between items-center w-full max-w-md">
+          <span className="text-sm text-blue-800 dark:text-blue-300">
+            📚 主动复习模式 - 浏览所有知识条目
+          </span>
+          <button
+            onClick={() => setReviewMode("scheduled")}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            返回今日复习
+          </button>
+        </div>
+      )}
+
       {/* 撤销栏 — 浮层顶部 */}
-      {showUndoBar && lastRatedItem && (
+      {showUndoBar && lastRatedItem && reviewMode === "scheduled" && (
         <div className="fixed top-4 right-4 bg-gray-800 text-white rounded-lg p-3 flex flex-col gap-2 z-50 max-w-xs shadow-xl">
           <span className="text-sm font-medium">刚才评错了？选择正确评分：</span>
           <RatingButtons onRate={handleUndo} disabled={false} />
@@ -187,7 +299,7 @@ export function ReviewSession() {
       )}
 
       {/* Anti-cheat nudge */}
-      {showEasyNudge && (
+      {showEasyNudge && reviewMode === "scheduled" && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-yellow-100 border border-yellow-300 rounded-lg p-3 text-sm text-yellow-800 z-50 max-w-xs shadow-md">
           真的这么轻松吗？如果下次忘了，进度会重置哦。
         </div>
@@ -195,29 +307,148 @@ export function ReviewSession() {
 
       {/* 进度指示器 */}
       <p className="text-gray-500 text-sm mb-4">
-        {currentIndex} / {items.length} 已完成
+        {currentIndex} / {reviewMode === "scheduled" ? items.length : browseItems.length} 已完成
       </p>
 
-      {/* 卡片堆叠 — 渲染顶部最多 3 张 */}
+      {/* 卡片区域 */}
       <div className="relative w-full max-w-md h-[400px]">
-        {items
-          .slice(currentIndex, currentIndex + 3)
-          .reverse()
-          .map((item, i) => {
-            const visibleCount = Math.min(3, items.length - currentIndex);
-            const isTopCard = i === visibleCount - 1;
-            const cardStackIndex = visibleCount - 1 - i;
-            return (
-              <ReviewCard
-                key={item.itemId}
-                item={item}
-                isTop={isTopCard}
-                onRate={handleRate}
-                stackIndex={cardStackIndex}
-              />
-            );
-          })}
+        {reviewMode === "scheduled" ? (
+          // Scheduled mode: use ReviewCard with swipe and rating
+          items
+            .slice(currentIndex, currentIndex + 3)
+            .reverse()
+            .map((item, i) => {
+              const visibleCount = Math.min(3, items.length - currentIndex);
+              const isTopCard = i === visibleCount - 1;
+              const cardStackIndex = visibleCount - 1 - i;
+              return (
+                <ReviewCard
+                  key={item.itemId}
+                  item={item}
+                  isTop={isTopCard}
+                  onRate={handleRate}
+                  stackIndex={cardStackIndex}
+                />
+              );
+            })
+        ) : (
+          // Browse mode: simplified card without FSRS rating
+          browseItems
+            .slice(currentIndex, currentIndex + 3)
+            .reverse()
+            .map((item, i) => {
+              const visibleCount = Math.min(3, browseItems.length - currentIndex);
+              const isTopCard = i === visibleCount - 1;
+              const cardStackIndex = visibleCount - 1 - i;
+              return (
+                <BrowseCard
+                  key={item.id}
+                  item={item}
+                  isTop={isTopCard}
+                  onNext={handleBrowseNext}
+                  stackIndex={cardStackIndex}
+                />
+              );
+            })
+        )}
       </div>
+    </div>
+  );
+}
+
+// Simplified browse card without FSRS ratings
+interface BrowseCardProps {
+  item: BrowseItem;
+  isTop: boolean;
+  onNext: () => void;
+  stackIndex: number;
+}
+
+function BrowseCard({ item, isTop, onNext, stackIndex }: BrowseCardProps) {
+  const [revealed, setRevealed] = useState(false);
+
+  const stackOffset = stackIndex * 4;
+  const stackScale = 1 - stackIndex * 0.02;
+
+  return (
+    <div
+      className="absolute w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 select-none transition-transform"
+      style={{
+        transform: `scale(${stackScale}) translateY(${-stackOffset}px)`,
+        zIndex: 10 - stackIndex,
+        opacity: isTop ? 1 : 0.7,
+      }}
+    >
+      {/* 卡片头部：领域徽章 + 复习次数 */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium px-2 py-1 rounded-full">
+          {item.domain}
+        </span>
+        <span className="text-xs text-gray-400">第 {item.reviewCount} 次复习</span>
+      </div>
+
+      {/* 标题 */}
+      <h2 className="text-xl font-bold text-center mt-4 mb-6 text-gray-900 dark:text-white">
+        {item.title}
+      </h2>
+
+      {/* 内容区域 */}
+      {!revealed ? (
+        <div className="flex flex-col items-center justify-center py-8">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">先尝试回忆内容，再点击揭示</p>
+          <button
+            onClick={() => setRevealed(true)}
+            className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+          >
+            点击揭示内容
+          </button>
+        </div>
+      ) : (
+        <div>
+          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed mb-4">
+            {item.content}
+          </p>
+
+          {/* 标签 */}
+          {item.tags && item.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-4">
+              {item.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-block bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs px-2 py-0.5 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* 来源链接 */}
+          {item.source && (
+            <p className="text-xs text-gray-400 mb-4 truncate">
+              来源:{" "}
+              <a
+                href={item.source}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {item.source}
+              </a>
+            </p>
+          )}
+
+          {/* 下一张按钮 */}
+          <button
+            onClick={onNext}
+            disabled={!isTop}
+            className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+          >
+            下一张 →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

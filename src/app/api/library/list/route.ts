@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       .select({
         id: knowledgeItems.id,
         title: knowledgeItems.title,
+        content: knowledgeItems.content,
         domain: knowledgeItems.domain,
         source: knowledgeItems.source,
         tags: knowledgeItems.tags,
