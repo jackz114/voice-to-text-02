@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-23T21:00:00+08:00",
+  "phase": "02",
+  "phase_name": "review-loop",
+  "phase_dir": ".planning/phases/02-review-loop",
+  "plan": 2,
+  "task": 2,
+  "total_tasks": 2,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": 1,
+      "name": "02-02-GAP: Library UX fixes",
+      "status": "done",
+      "commit": "c600801"
+    },
+    {
+      "id": 2,
+      "name": "02-04-GAP: Browse mode for proactive review",
+      "status": "done",
+      "commit": "b6c7075"
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": 3,
+      "name": "02-02-GAP-UX: Add review navigation to detail modal",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "Browse mode uses simplified card without FSRS ratings",
+      "rationale": "Browse mode is for proactive review without scheduling updates",
+      "phase": "02"
+    },
+    {
+      "decision": "Empty state shows two action buttons: browse mode and library",
+      "rationale": "Give users clear options when no items are due",
+      "phase": "02"
+    }
+  ],
+  "uncommitted_files": [],
+  "next_action": "Read 02-02-GAP-UX-PLAN.md and implement review navigation buttons in knowledge detail modal",
+  "context_notes": "Wave 2 gap fixes complete. Ready for Wave 3 UX enhancement. No blockers."
+}
