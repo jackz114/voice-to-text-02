@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, supabase } from "@/components/auth/AuthProvider";
 import { TextPasteInput } from "@/components/capture/TextPasteInput";
 import { ConfirmationCards } from "@/components/capture/ConfirmationCards";
+import { AudioRecorder } from "@/components/capture/AudioRecorder";
 
 // 捕获流状态机类型
 type CaptureState = "idle" | "extracting" | "confirming" | "saving";
@@ -25,6 +26,8 @@ export default function CapturePage() {
   const [extractedItems, setExtractedItems] = useState<KnowledgeItemCandidate[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [inputText, setInputText] = useState<string>("");
+  const [authToken, setAuthToken] = useState<string | undefined>(undefined);
 
   // 认证守卫 — 使用 useEffect 处理重定向（避免渲染时调用 setState）
   useEffect(() => {
@@ -32,6 +35,13 @@ export default function CapturePage() {
       router.push("/login?redirect_to=/capture");
     }
   }, [loading, user, router]);
+
+  // 获取 session token 供 AudioRecorder 使用
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setAuthToken(data.session?.access_token);
+    });
+  }, []);
 
   // 加载中显示空状态
   if (loading) {
@@ -50,6 +60,11 @@ export default function CapturePage() {
       </div>
     );
   }
+
+  // 音频转写完成回调 — 将转写文字填入文本输入区
+  const handleTranscriptReady = (text: string) => {
+    setInputText(text);
+  };
 
   // 确认保存处理函数 — 调用 /api/capture/confirm
   const handleConfirm = async (acceptedItems: KnowledgeItemCandidate[]) => {
@@ -130,20 +145,20 @@ export default function CapturePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* 顶部导航 */}
-      <nav className="w-full max-w-3xl mx-auto flex items-center justify-between px-6 py-4">
+      <nav className="w-full max-w-5xl mx-auto flex items-center justify-between px-6 py-4">
         <a href="/" className="text-xl font-bold text-gray-900 dark:text-white">
           笔记助手
         </a>
         <span className="text-sm text-gray-500">{user.email}</span>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-6 py-16">
+      <main className="max-w-5xl mx-auto px-6 py-16">
         {/* 页面标题 */}
         <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-gray-900 dark:text-white mb-8">
           捕获知识
         </h1>
 
-        {/* 粘贴输入区 — idle 或 extracting 状态可见 */}
+        {/* 粘贴输入区 + 音频录制区 — idle 或 extracting 状态可见（并列显示，AUDIO-02）*/}
         {(captureState === "idle" || captureState === "extracting") && (
           <section className="mb-12">
             {successMessage && captureState === "idle" && (
@@ -156,10 +171,25 @@ export default function CapturePage() {
                 {error}
               </div>
             )}
-            <TextPasteInput
-              onExtract={handleExtract}
-              isExtracting={captureState === "extracting"}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 文字粘贴输入区域 — key 变化时重新挂载组件以填入转写结果 */}
+              <div>
+                <TextPasteInput
+                  key={inputText || "empty"}
+                  onExtract={handleExtract}
+                  isExtracting={captureState === "extracting"}
+                  initialValue={inputText}
+                />
+              </div>
+
+              {/* 音频录制区域 */}
+              <div>
+                <AudioRecorder
+                  onTranscriptReady={handleTranscriptReady}
+                  authToken={authToken}
+                />
+              </div>
+            </div>
           </section>
         )}
 

@@ -6,13 +6,19 @@ interface TextPasteInputProps {
   onExtract: (text: string, sourceUrl?: string) => Promise<void>;
   isExtracting: boolean;
   disabled?: boolean;
+  initialValue?: string; // 用于接收音频转写结果填入文本框
 }
 
 const MIN_CHARS = 50;
 const MAX_CHARS = 100_000;
 
-export function TextPasteInput({ onExtract, isExtracting, disabled = false }: TextPasteInputProps) {
-  const [text, setText] = useState("");
+export function TextPasteInput({
+  onExtract,
+  isExtracting,
+  disabled = false,
+  initialValue = "",
+}: TextPasteInputProps) {
+  const [text, setText] = useState(initialValue);
   const [sourceUrl, setSourceUrl] = useState("");
 
   const isOverLimit = text.length > MAX_CHARS;
