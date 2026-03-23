@@ -5,6 +5,7 @@ import { useAuth, supabase } from "@/components/auth/AuthProvider";
 import { DomainSidebar } from "@/components/library/DomainSidebar";
 import { KnowledgeItemCard } from "@/components/library/KnowledgeItemCard";
 import type { KnowledgeItem } from "@/components/library/KnowledgeItemCard";
+import Link from "next/link";
 
 // Re-export for consumers
 export type { KnowledgeItem };
@@ -285,8 +286,53 @@ export function KnowledgeLibrary() {
               <span>已复习 {viewingItem.reviewCount} 次</span>
             </div>
 
-            {/* Close button */}
-            <div className="flex justify-end mt-4">
+            {/* Action buttons */}
+            <div className="flex flex-col gap-3 mt-6">
+              <div className="flex gap-3">
+                <Link
+                  href="/review"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg text-center hover:bg-blue-600 transition-colors"
+                >
+                  🔄 去复习
+                </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const {
+                        data: { session },
+                      } = await supabase.auth.getSession();
+                      const token = session?.access_token ?? "";
+
+                      const response = await fetch("/api/review/rate", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: token ? `Bearer ${token}` : "",
+                        },
+                        body: JSON.stringify({
+                          knowledgeItemId: viewingItem.id,
+                          rating: 3, // "Good" rating
+                        }),
+                      });
+
+                      if (!response.ok) {
+                        alert("标记失败，请重试");
+                        return;
+                      }
+
+                      // Close modal and refresh items to show updated review count
+                      setViewingItem(null);
+                      await fetchItems(selectedDomain ?? undefined);
+                    } catch {
+                      alert("标记失败，请重试");
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  ✅ 标记为已复习
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => setViewingItem(null)}
