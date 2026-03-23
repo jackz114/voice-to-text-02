@@ -2,7 +2,7 @@
 phase: 02-review-loop
 plan: "05"
 subsystem: audio
-tags: [mediarecorder, whisper, supabase-storage, signed-url, web-audio-api, openai, transcription]
+tags: [mediarecorder, whisper, supabase-storage, signed-url, web-audio-api, siliconflow, sensevoice, transcription]
 
 # Dependency graph
 requires:
@@ -12,7 +12,7 @@ requires:
     provides: "Auth pattern from confirm/route.ts, capture-client.ts OpenAI pattern"
 provides:
   - "POST /api/audio/signed-url — issues Supabase Storage signed upload URLs for the audio bucket"
-  - "POST /api/audio/transcribe — server-side Whisper transcription via gpt-4o-mini-transcribe model"
+  - "POST /api/audio/transcribe — server-side transcription via SiliconFlow SenseVoice API (FunAudioLLM/SenseVoiceSmall)"
   - "AudioRecorder component with codec detection, waveform visualization, pause/resume, and direct browser-to-Supabase upload"
   - "/capture page updated with side-by-side text paste + audio recorder layout"
 affects: [03-notifications, future-audio-improvements]
@@ -36,13 +36,13 @@ key-files:
     - src/components/capture/TextPasteInput.tsx
 
 key-decisions:
-  - "OPENAI_API_KEY used for Whisper (gpt-4o-mini-transcribe) even though extraction uses DEEPSEEK_API_KEY — different API providers for different tasks"
+  - "SILICONFLOW_API_KEY used for SenseVoice transcription even though extraction uses DEEPSEEK_API_KEY — different API providers for different tasks"
   - "key-based remount for TextPasteInput transcript population (avoids setState-in-effect ESLint error)"
   - "Container widened from max-w-3xl to max-w-5xl to accommodate two-column grid layout"
 
 patterns-established:
   - "Signed URL pattern: POST /api/audio/signed-url returns {signedUrl, token, path}; client calls supabase.storage.uploadToSignedUrl(path, token, blob)"
-  - "Transcription pattern: POST /api/audio/transcribe accepts {audioPath}; downloads from storage, calls Whisper, persists to transcriptions table"
+  - "Transcription pattern: POST /api/audio/transcribe accepts {audioPath}; downloads from storage, calls SiliconFlow SenseVoice, persists to transcriptions table"
 
 requirements-completed: [AUDIO-01, AUDIO-02, AUDIO-03, TRANS-01, TRANS-02, TRANS-03]
 
@@ -53,7 +53,7 @@ completed: 2026-03-23
 
 # Phase 02 Plan 05: Audio Capture Summary
 
-**MediaRecorder component with signed URL direct upload to Supabase Storage, Web Audio API waveform, and gpt-4o-mini-transcribe Whisper integration populating the capture text area**
+**MediaRecorder component with signed URL direct upload to Supabase Storage, Web Audio API waveform, and SiliconFlow SenseVoice integration populating the capture text area**
 
 ## Performance
 
@@ -65,9 +65,9 @@ completed: 2026-03-23
 
 ## Accomplishments
 
-- Audio capture pipeline: record → signed URL → direct browser upload to Supabase Storage → Whisper transcription → populate text input
+- Audio capture pipeline: record → signed URL → direct browser upload to Supabase Storage → SiliconFlow SenseVoice transcription → populate text input
 - AudioRecorder component with codec auto-detection (webm/opus preferred), 32kbps recording, animated waveform, pause/resume, 25MB pre-upload guard
-- Two API routes: signed-url (issues Supabase upload tokens) and transcribe (downloads from storage, calls gpt-4o-mini-transcribe, persists to transcriptions table)
+- Two API routes: signed-url (issues Supabase upload tokens) and transcribe (downloads from storage, calls SiliconFlow SenseVoice API, persists to transcriptions table)
 - Capture page updated to show text paste area and audio recorder side by side in responsive two-column grid
 
 ## Task Commits
@@ -81,14 +81,14 @@ Each task was committed atomically:
 ## Files Created/Modified
 
 - `src/app/api/audio/signed-url/route.ts` - POST handler: authenticates user, generates Supabase Storage signed upload URL for audio bucket
-- `src/app/api/audio/transcribe/route.ts` - POST handler: downloads audio from Storage, checks 25MB limit, calls gpt-4o-mini-transcribe, persists result to transcriptions table
+- `src/app/api/audio/transcribe/route.ts` - POST handler: downloads audio from Storage, checks 25MB limit, calls SiliconFlow SenseVoice API, persists result to transcriptions table
 - `src/components/capture/AudioRecorder.tsx` - Client component: codec detection, Web Audio API waveform, pause/resume, direct uploadToSignedUrl, onTranscriptReady callback
 - `src/app/capture/page.tsx` - Updated to two-column grid with AudioRecorder alongside TextPasteInput; authToken state from Supabase session
 - `src/components/capture/TextPasteInput.tsx` - Added optional initialValue prop for transcript population via key-based remount
 
 ## Decisions Made
 
-- `OPENAI_API_KEY` env var used for Whisper transcription — the project uses `DEEPSEEK_API_KEY` for extraction but `gpt-4o-mini-transcribe` is an OpenAI-only model; both can coexist
+- `SILICONFLOW_API_KEY` env var used for SiliconFlow SenseVoice transcription — the project uses `DEEPSEEK_API_KEY` for extraction but `FunAudioLLM/SenseVoiceSmall` via SiliconFlow API is used for audio transcription; both can coexist
 - Used key-based TextPasteInput remount (`key={inputText || "empty"}`) to populate the textarea with transcript without triggering the `react-hooks/set-state-in-effect` lint error
 - Container widened to `max-w-5xl` to give the two-column grid adequate width
 
@@ -111,7 +111,7 @@ Each task was committed atomically:
 
 ## Issues Encountered
 
-- The project uses `DEEPSEEK_API_KEY` for AI extraction but Whisper requires OpenAI — `OPENAI_API_KEY` is used for the transcription route. User will need to add this env var for transcription to work.
+- The project uses `DEEPSEEK_API_KEY` for AI extraction and `SILICONFLOW_API_KEY` for SenseVoice audio transcription — user will need to add the SiliconFlow env var for transcription to work.
 
 ## User Setup Required
 
@@ -130,7 +130,7 @@ Before audio transcription works end-to-end:
    ON storage.objects FOR SELECT TO authenticated
    USING (bucket_id = 'audio' AND auth.uid()::text = (storage.foldername(name))[1]);
    ```
-4. **OPENAI_API_KEY** env var: Add to `.env.local` for Whisper transcription (separate from `DEEPSEEK_API_KEY` used for extraction)
+4. **SILICONFLOW_API_KEY** env var: Add to `.env.local` for SenseVoice transcription (get key from https://siliconflow.cn/)
 
 ## Next Phase Readiness
 
