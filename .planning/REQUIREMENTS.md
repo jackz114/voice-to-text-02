@@ -32,23 +32,23 @@
 
 ### Knowledge Library
 
-- [ ] **LIB-01**: 用户可以按领域分类浏览所有知识条目
-- [ ] **LIB-02**: 用户可以查看单个知识条目的完整内容
-- [ ] **LIB-03**: 用户可以删除不需要的知识条目
+- [x] **LIB-01**: 用户可以按领域分类浏览所有知识条目
+- [x] **LIB-02**: 用户可以查看单个知识条目的完整内容
+- [x] **LIB-03**: 用户可以删除不需要的知识条目
 
 ### FSRS Scheduling
 
-- [ ] **FSRS-01**: 每个知识条目创建时自动计算首次复习日期
-- [ ] **FSRS-02**: 系统记录每个条目的稳定性(S)和难度(D)参数
-- [ ] **FSRS-03**: 支持 FSRS 算法的记忆程度评分输入
-- [ ] **FSRS-04**: 根据评分自动计算并更新下次复习日期
+- [x] **FSRS-01**: 每个知识条目创建时自动计算首次复习日期
+- [x] **FSRS-02**: 系统记录每个条目的稳定性(S)和难度(D)参数
+- [x] **FSRS-03**: 支持 FSRS 算法的记忆程度评分输入
+- [x] **FSRS-04**: 根据评分自动计算并更新下次复习日期
 
 ### Daily Review
 
-- [ ] **REVIEW-01**: 用户可以看到「今天要复习」的知识条目列表
+- [x] **REVIEW-01**: 用户可以看到「今天要复习」的知识条目列表
 - [ ] **REVIEW-02**: 复习界面显示知识条目内容和复习来源
 - [ ] **REVIEW-03**: 用户可以选择记忆程度（Again/Hard/Good/Easy）
-- [ ] **REVIEW-04**: 系统根据评分更新 FSRS 参数和下次复习日期
+- [x] **REVIEW-04**: 系统根据评分更新 FSRS 参数和下次复习日期
 
 ### Notifications
 
@@ -108,17 +108,17 @@
 | EXTRACT-03 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-04 | Phase 1 — Capture Pipeline | Complete |
 | EXTRACT-05 | Phase 1 — Capture Pipeline | Complete |
-| LIB-01 | Phase 2 — Review Loop | Pending |
-| LIB-02 | Phase 2 — Review Loop | Pending |
-| LIB-03 | Phase 2 — Review Loop | Pending |
-| FSRS-01 | Phase 2 — Review Loop | Pending |
-| FSRS-02 | Phase 2 — Review Loop | Pending |
-| FSRS-03 | Phase 2 — Review Loop | Pending |
-| FSRS-04 | Phase 2 — Review Loop | Pending |
-| REVIEW-01 | Phase 2 — Review Loop | Pending |
+| LIB-01 | Phase 2 — Review Loop | Complete |
+| LIB-02 | Phase 2 — Review Loop | Complete |
+| LIB-03 | Phase 2 — Review Loop | Complete |
+| FSRS-01 | Phase 2 — Review Loop | Complete |
+| FSRS-02 | Phase 2 — Review Loop | Complete |
+| FSRS-03 | Phase 2 — Review Loop | Complete |
+| FSRS-04 | Phase 2 — Review Loop | Complete |
+| REVIEW-01 | Phase 2 — Review Loop | Complete |
 | REVIEW-02 | Phase 2 — Review Loop | Pending |
 | REVIEW-03 | Phase 2 — Review Loop | Pending |
-| REVIEW-04 | Phase 2 — Review Loop | Pending |
+| REVIEW-04 | Phase 2 — Review Loop | Complete |
 | NOTIFY-01 | Phase 3 — Retention Engine | Pending |
 | NOTIFY-02 | Phase 3 — Retention Engine | Pending |
 | NOTIFY-03 | Phase 3 — Retention Engine | Pending |

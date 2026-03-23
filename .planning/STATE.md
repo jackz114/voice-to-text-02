@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-23T08:31:06.912Z"
+last_updated: "2026-03-23T08:54:24.558Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 7
 ---
 
 # Project State: 笔记助手 (bijiassistant)
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 02 (review-loop) — EXECUTING
-Plan: 2 of 6
+Plan: 4 of 6
 
 ## Performance Metrics
 
@@ -49,6 +49,8 @@ Plan: 2 of 6
 | Phase 01 P02 | 3m | 2 tasks | 2 files |
 | Phase 01-capture-pipeline P04 | 5 | 3 tasks | 3 files |
 | Phase 02-review-loop P01 | 8 | 2 tasks | 2 files |
+| Phase 02-review-loop P03 | 15m | 3 tasks | 3 files |
+| Phase 02-review-loop P05 | 14 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -128,6 +130,7 @@ None currently.
 - 2026-03-22: Executed 01-04 (ConfirmationCards + confirm API). Created ConfirmationCards.tsx (per-card accept/reject/edit/undo, tag input, bulk accept, confirm button), POST /api/capture/confirm (inserts knowledge_items + review_state with FSRS initial state), updated capture/page.tsx to wire end-to-end pipeline. Requirements EXTRACT-02, EXTRACT-03, EXTRACT-05, TEXT-02 completed. Stopped at: checkpoint:human-verify (manual end-to-end test required)
 - 2026-03-23: Phase 2 context gathered. Discussed 4 areas: 知识库浏览（混合布局+侧边栏+双模式）、复习界面（滑动卡片堆+点击揭示）、音频录制（捕获页面并列显示）、FSRS 评分（表情符号4级+防作弊+事后修正）。Created 02-CONTEXT.md.
 - 2026-03-23: Executed 02-01 (Library API routes). Created GET /api/library/list (domain filter, innerJoin reviewState, contentPreview) and DELETE /api/library/delete (ownership check, sequential delete of review_state then knowledge_item). Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-01-PLAN.md
+- 2026-03-23: Executed 02-03 (FSRS API routes). Installed ts-fsrs, created src/lib/fsrs.ts (dbRowToFsrsCard, fsrsResultToDbUpdate with RecordLogItem type), GET /api/review/today (items due via lte nextReviewAt + innerJoin), POST /api/review/rate (first-review createEmptyCard, ownership check, FSRS update). Requirements FSRS-01, FSRS-02, FSRS-03, FSRS-04, REVIEW-01, REVIEW-04 completed. Stopped at: Completed 02-review-loop-02-03-PLAN.md
 
 ---
 

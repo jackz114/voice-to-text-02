@@ -62,11 +62,11 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Library API routes (GET /api/library/list, DELETE /api/library/delete)
+- [x] 02-01-PLAN.md — Library API routes (GET /api/library/list, DELETE /api/library/delete)
 - [ ] 02-02-PLAN.md — Library UI (/library page, sidebar, list/grid view, detail modal, delete)
-- [ ] 02-03-PLAN.md — Review API routes + ts-fsrs (GET /api/review/today, POST /api/review/rate)
+- [x] 02-03-PLAN.md — Review API routes + ts-fsrs (GET /api/review/today, POST /api/review/rate)
 - [ ] 02-04-PLAN.md — Review Session UI (/review page, swipe cards, rating buttons, undo bar)
-- [ ] 02-05-PLAN.md — Audio Recorder + Signed URL + Transcribe API (MediaRecorder, direct upload, Whisper)
+- [x] 02-05-PLAN.md — Audio Recorder + Signed URL + Transcribe API (MediaRecorder, direct upload, Whisper)
 - [ ] 02-06-PLAN.md — Human verification checkpoint (all 7 phase success criteria)
 
 ---
@@ -94,7 +94,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Capture Pipeline | 4/4 | Complete   | 2026-03-22 |
-| 2. Review Loop | 0/6 | Planned | - |
+| 2. Review Loop | 3/6 | In Progress|  |
 | 3. Retention Engine | 0/? | Not started | - |
 
 ---
