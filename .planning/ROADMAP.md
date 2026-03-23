@@ -9,8 +9,8 @@
 
 ## Phases
 
-- [ ] **Phase 1: Capture Pipeline** - Database schema + text/audio input + AI knowledge extraction
-- [ ] **Phase 2: Review Loop** - Knowledge library + FSRS scheduling + daily review workflow
+- [x] **Phase 1: Capture Pipeline** - Database schema + text input + AI knowledge extraction (completed 2026-03-22)
+- [ ] **Phase 2: Review Loop** - Knowledge library + FSRS scheduling + daily review workflow + audio recording
 - [ ] **Phase 3: Retention Engine** - Proactive notifications + knowledge search
 
 ---
@@ -19,30 +19,36 @@
 
 ### Phase 1: Capture Pipeline
 
-**Goal**: Users can capture knowledge from audio recordings and text pastes, and the system produces confirmed, structured knowledge items stored in the database.
+**Goal**: Users can capture knowledge from text pastes, and the system produces confirmed, structured knowledge items stored in the database. (Audio recording deferred to Phase 2 per D-06.)
 
 **Depends on**: Nothing (first phase — builds on existing Auth + PayPal foundation)
 
-**Requirements**: AUDIO-01, AUDIO-02, AUDIO-03, TRANS-01, TRANS-02, TRANS-03, TEXT-01, TEXT-02, EXTRACT-01, EXTRACT-02, EXTRACT-03, EXTRACT-04, EXTRACT-05
+**Requirements**: TEXT-01, TEXT-02, EXTRACT-01, EXTRACT-02, EXTRACT-03, EXTRACT-04, EXTRACT-05
 
 **Success Criteria** (what must be TRUE):
-  1. A logged-in user can record audio in the browser and have it uploaded to Supabase Storage without the bytes passing through a Cloudflare Worker
-  2. A user can paste article text into the app and submit it for AI extraction
-  3. After submitting audio or text, the user sees a confirmation screen with AI-extracted knowledge items (title, content, source, domain tag) that they can review and accept or discard before anything is saved
-  4. Confirmed knowledge items appear in the database, linked to the user and original source
-  5. The system handles audio files up to the Whisper 25 MB limit and detects the browser's supported audio codec automatically
+  1. A user can paste article text into the app and submit it for AI extraction
+  2. After submitting text, the user sees a confirmation screen with AI-extracted knowledge items (title, content, source, domain tag, created_at) that they can review and accept or discard before anything is saved
+  3. Confirmed knowledge items appear in the database, linked to the user and original source
+  4. Each card can be edited (title, content, domain, tags) before confirmation
+  5. The database schema is forward-compatible with Phase 2 audio and FSRS features
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [x] 01-01-PLAN.md — Database schema + Drizzle setup (all 5 tables, FSRS fields, migration)
+- [x] 01-02-PLAN.md — Extract API route + OpenAI client (POST /api/capture/extract)
+- [x] 01-03-PLAN.md — Capture page + TextPasteInput component (UI shell, auth guard)
+- [x] 01-04-PLAN.md — ConfirmationCards + Confirm API + end-to-end wiring (checkpoint for human verification)
 
 ---
 
 ### Phase 2: Review Loop
 
-**Goal**: Users can browse their accumulated knowledge and complete daily FSRS-scheduled review sessions that accurately update each item's retention state.
+**Goal**: Users can browse their accumulated knowledge and complete daily FSRS-scheduled review sessions that accurately update each item's retention state. Phase 2 also adds audio recording and Whisper transcription (deferred from Phase 1).
 
 **Depends on**: Phase 1 (knowledge items must exist before scheduling or review is meaningful)
 
-**Requirements**: LIB-01, LIB-02, LIB-03, FSRS-01, FSRS-02, FSRS-03, FSRS-04, REVIEW-01, REVIEW-02, REVIEW-03, REVIEW-04
+**Requirements**: LIB-01, LIB-02, LIB-03, FSRS-01, FSRS-02, FSRS-03, FSRS-04, REVIEW-01, REVIEW-02, REVIEW-03, REVIEW-04, AUDIO-01, AUDIO-02, AUDIO-03, TRANS-01, TRANS-02, TRANS-03
 
 **Success Criteria** (what must be TRUE):
   1. A user can browse all their knowledge items, filtered by domain, and open any individual item to see its full content
@@ -50,6 +56,8 @@
   3. Every newly confirmed knowledge item has a next-review date automatically assigned (first review due the following day)
   4. A user visiting the app sees a "Review Today" list containing only items due today (using FSRS scheduling with stability and difficulty parameters)
   5. After rating a reviewed item Again / Hard / Good / Easy, the item disappears from today's queue and its next review date and FSRS state are updated on the server
+  6. A logged-in user can record audio in the browser and have it uploaded to Supabase Storage without the bytes passing through a Cloudflare Worker
+  7. The system handles audio files up to the Whisper 25 MB limit and detects the browser's supported audio codec automatically
 
 **Plans**: TBD
 
@@ -77,7 +85,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Capture Pipeline | 0/? | Not started | - |
+| 1. Capture Pipeline | 4/4 | Complete   | 2026-03-22 |
 | 2. Review Loop | 0/? | Not started | - |
 | 3. Retention Engine | 0/? | Not started | - |
 
@@ -87,12 +95,12 @@
 
 | Requirement | Phase |
 |-------------|-------|
-| AUDIO-01 | Phase 1 |
-| AUDIO-02 | Phase 1 |
-| AUDIO-03 | Phase 1 |
-| TRANS-01 | Phase 1 |
-| TRANS-02 | Phase 1 |
-| TRANS-03 | Phase 1 |
+| AUDIO-01 | Phase 2 |
+| AUDIO-02 | Phase 2 |
+| AUDIO-03 | Phase 2 |
+| TRANS-01 | Phase 2 |
+| TRANS-02 | Phase 2 |
+| TRANS-03 | Phase 2 |
 | TEXT-01 | Phase 1 |
 | TEXT-02 | Phase 1 |
 | EXTRACT-01 | Phase 1 |
@@ -124,4 +132,4 @@
 ---
 
 *Roadmap created: 2026-03-22*
-*Last updated: 2026-03-22 after initial roadmap creation*
+*Last updated: 2026-03-22 — Phase 1 revised to reflect D-06 (audio deferred to Phase 2); Phase 2 updated to include AUDIO-* and TRANS-* requirements*
