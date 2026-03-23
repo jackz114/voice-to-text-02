@@ -66,24 +66,31 @@ function writeString(view: DataView, offset: number, string: string) {
 // 将 webm Blob 转换为 WAV Blob（16kHz 单声道，适合语音识别）
 async function convertWebmToWav(webmBlob: Blob): Promise<Blob> {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const arrayBuffer = await webmBlob.arrayBuffer();
-  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  try {
+    const arrayBuffer = await webmBlob.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-  // 重采样到 16kHz 单声道
-  const targetSampleRate = 16000;
-  const offlineContext = new OfflineAudioContext(
-    1, // 单声道
-    Math.ceil(audioBuffer.duration * targetSampleRate),
-    targetSampleRate
-  );
+    // 重采样到 16kHz 单声道
+    const targetSampleRate = 16000;
+    const offlineContext = new OfflineAudioContext(
+      1, // 单声道
+      Math.ceil(audioBuffer.duration * targetSampleRate),
+      targetSampleRate
+    );
 
-  const source = offlineContext.createBufferSource();
-  source.buffer = audioBuffer;
-  source.connect(offlineContext.destination);
-  source.start();
+    const source = offlineContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(offlineContext.destination);
+    source.start();
 
-  const renderedBuffer = await offlineContext.startRendering();
-  return audioBufferToWav(renderedBuffer);
+    const renderedBuffer = await offlineContext.startRendering();
+    return audioBufferToWav(renderedBuffer);
+  } finally {
+    // 关闭 AudioContext 以释放资源
+    if (audioContext.state !== "closed") {
+      await audioContext.close();
+    }
+  }
 }
 
 // 按优先级探测浏览器支持的最佳音频编码格式（AUDIO-03）
@@ -117,6 +124,7 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
   const uploadAndTranscribe = async (blob: Blob, mimeType: string, ext: string) => {
@@ -198,6 +206,7 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
 
       // Web Audio API 用于波形可视化
       const audioCtx = new AudioContext();
+      audioContextRef.current = audioCtx;
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 64;
       const source = audioCtx.createMediaStreamSource(stream);
@@ -265,6 +274,11 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
     mediaRecorderRef.current?.stop();
     // 关键：停止所有音轨以释放麦克风权限
     mediaRecorderRef.current?.stream?.getTracks().forEach((track) => track.stop());
+
+    // 关闭 AudioContext 以释放资源
+    if (audioContextRef.current?.state !== "closed") {
+      audioContextRef.current?.close();
+    }
 
     if (timerRef.current !== null) clearInterval(timerRef.current);
     setIsRecording(false);

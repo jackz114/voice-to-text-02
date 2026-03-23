@@ -77,7 +77,8 @@ export async function POST(request: NextRequest) {
     // 步骤 6: 调用硅基流动 SenseVoice API 进行转写
     const arrayBuffer = await audioData.arrayBuffer();
     const ext = audioPath.split(".").pop() ?? "webm";
-    const mimeType = ext === "mp3" ? "audio/mpeg" : `audio/${ext}`;
+    // 修复 MIME type：WAV 文件需要特定的 MIME type
+    const mimeType = ext === "mp3" ? "audio/mpeg" : ext === "wav" ? "audio/wav" : `audio/${ext}`;
 
     // 构建 FormData
     const formData = new FormData();
@@ -139,8 +140,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("转写错误:", error);
+    const errorMessage = error instanceof Error ? error.message : "未知错误";
     return NextResponse.json(
-      { error: "转写失败，请重试", code: "TRANSCRIPTION_ERROR" },
+      { error: `转写失败: ${errorMessage}`, code: "TRANSCRIPTION_ERROR" },
       { status: 500 }
     );
   }
