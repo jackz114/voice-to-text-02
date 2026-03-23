@@ -4,8 +4,86 @@ import { useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 interface AudioRecorderProps {
-  onTranscriptReady: (text: string) => void; // called with transcribed text
-  authToken: string | undefined; // Bearer token from parent (session.access_token)
+  onTranscriptReady: (text: string) => void;
+  authToken: string | undefined;
+}
+
+// WAV 编码辅助函数：将 AudioBuffer 转换为 WAV Blob
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+  const numberOfChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const format = 1; // PCM
+  const bitDepth = 16;
+
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = numberOfChannels * bytesPerSample;
+  const dataLength = buffer.length * numberOfChannels * bytesPerSample;
+  const bufferLength = 44 + dataLength;
+
+  const arrayBuffer = new ArrayBuffer(bufferLength);
+  const view = new DataView(arrayBuffer);
+
+  // 写入 WAV 文件头
+  writeString(view, 0, "RIFF");
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(view, 8, "WAVE");
+  writeString(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, format, true);
+  view.setUint16(22, numberOfChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitDepth, true);
+  writeString(view, 36, "data");
+  view.setUint32(40, dataLength, true);
+
+  // 写入音频数据
+  const offset = 44;
+  const channelData: Float32Array[] = [];
+  for (let i = 0; i < numberOfChannels; i++) {
+    channelData.push(buffer.getChannelData(i));
+  }
+
+  let index = 0;
+  for (let i = 0; i < buffer.length; i++) {
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const sample = Math.max(-1, Math.min(1, channelData[channel][i]));
+      view.setInt16(offset + index, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      index += 2;
+    }
+  }
+
+  return new Blob([arrayBuffer], { type: "audio/wav" });
+}
+
+function writeString(view: DataView, offset: number, string: string) {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
+  }
+}
+
+// 将 webm Blob 转换为 WAV Blob（16kHz 单声道，适合语音识别）
+async function convertWebmToWav(webmBlob: Blob): Promise<Blob> {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const arrayBuffer = await webmBlob.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  // 重采样到 16kHz 单声道
+  const targetSampleRate = 16000;
+  const offlineContext = new OfflineAudioContext(
+    1, // 单声道
+    Math.ceil(audioBuffer.duration * targetSampleRate),
+    targetSampleRate
+  );
+
+  const source = offlineContext.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(offlineContext.destination);
+  source.start();
+
+  const renderedBuffer = await offlineContext.startRendering();
+  return audioBufferToWav(renderedBuffer);
 }
 
 // 按优先级探测浏览器支持的最佳音频编码格式（AUDIO-03）
@@ -28,6 +106,7 @@ function getSupportedMimeType(): string {
 export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,15 +212,26 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
       };
       updateWaveform();
 
-      // 关键：在 onstop 内部组装 Blob，而不是在调用 stop() 之后（Pitfall 4）
+      // 关键：在 onstop 内部组装 Blob，并进行格式转换
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       recorder.onstop = async () => {
         if (animFrameRef.current !== null) cancelAnimationFrame(animFrameRef.current);
-        const blob = new Blob(chunksRef.current, { type: mimeType });
-        const ext = mimeType.includes("mp4") ? "mp4" : mimeType.includes("ogg") ? "ogg" : "webm";
-        await uploadAndTranscribe(blob, mimeType, ext);
+
+        const webmBlob = new Blob(chunksRef.current, { type: mimeType });
+
+        // 转换为 WAV 格式以获得更好的 API 兼容性
+        setIsConverting(true);
+        try {
+          const wavBlob = await convertWebmToWav(webmBlob);
+          setIsConverting(false);
+          await uploadAndTranscribe(wavBlob, "audio/wav", "wav");
+        } catch (err) {
+          setIsConverting(false);
+          setError("音频格式转换失败，请重试");
+          console.error("音频转换错误:", err);
+        }
       };
 
       recorder.start(1000); // 每秒收集一个 chunk
@@ -204,6 +294,7 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {/* 状态提示 */}
+      {isConverting && <p className="text-gray-600 text-sm text-center">正在转换音频格式...</p>}
       {isUploading && <p className="text-gray-600 text-sm text-center">正在上传...</p>}
       {isTranscribing && <p className="text-gray-600 text-sm text-center">正在转写，请稍候...</p>}
 
@@ -212,7 +303,7 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
         {!isRecording ? (
           <button
             onClick={startRecording}
-            disabled={isUploading || isTranscribing}
+            disabled={isConverting || isUploading || isTranscribing}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium disabled:opacity-50"
           >
             🎙️ 开始录制
