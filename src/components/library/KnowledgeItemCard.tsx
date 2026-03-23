@@ -87,7 +87,7 @@ export function KnowledgeItemCard({ item, viewMode, onDelete, onClick }: Knowled
   // Grid mode
   return (
     <div
-      className="relative p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+      className="relative p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 group"
       onClick={() => onClick(item)}
     >
       {/* Delete button in top-right corner for grid mode */}
