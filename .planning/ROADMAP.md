@@ -59,7 +59,15 @@ Plans:
   6. A logged-in user can record audio in the browser and have it uploaded to Supabase Storage without the bytes passing through a Cloudflare Worker
   7. The system handles audio files up to the Whisper 25 MB limit and detects the browser's supported audio codec automatically
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Library API routes (GET /api/library/list, DELETE /api/library/delete)
+- [ ] 02-02-PLAN.md — Library UI (/library page, sidebar, list/grid view, detail modal, delete)
+- [ ] 02-03-PLAN.md — Review API routes + ts-fsrs (GET /api/review/today, POST /api/review/rate)
+- [ ] 02-04-PLAN.md — Review Session UI (/review page, swipe cards, rating buttons, undo bar)
+- [ ] 02-05-PLAN.md — Audio Recorder + Signed URL + Transcribe API (MediaRecorder, direct upload, Whisper)
+- [ ] 02-06-PLAN.md — Human verification checkpoint (all 7 phase success criteria)
 
 ---
 
@@ -86,7 +94,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Capture Pipeline | 4/4 | Complete   | 2026-03-22 |
-| 2. Review Loop | 0/? | Not started | - |
+| 2. Review Loop | 0/6 | Planned | - |
 | 3. Retention Engine | 0/? | Not started | - |
 
 ---
@@ -132,4 +140,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-03-22*
-*Last updated: 2026-03-22 — Phase 1 revised to reflect D-06 (audio deferred to Phase 2); Phase 2 updated to include AUDIO-* and TRANS-* requirements*
+*Last updated: 2026-03-23 — Phase 2 plans added (6 plans, 3 waves)*
