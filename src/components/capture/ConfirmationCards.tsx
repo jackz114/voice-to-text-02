@@ -46,6 +46,8 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
 
   const acceptedCards = cards.filter((c) => c.status === "accepted");
+  const selectableCards = cards.filter((c) => c.status !== "rejected");
+  const allSelected = selectableCards.length > 0 && selectableCards.every((c) => c.status === "accepted");
   const canConfirm = acceptedCards.length > 0 && !isSaving;
 
   // Accept a card
@@ -120,11 +122,17 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
     );
   };
 
-  // Bulk accept all non-rejected cards
-  const handleAcceptAll = () => {
-    setCards((prev) =>
-      prev.map((c) => (c.status !== "rejected" ? { ...c, status: "accepted" } : c))
-    );
+  // 全选/全取消切换
+  const handleToggleAll = () => {
+    if (allSelected) {
+      setCards((prev) =>
+        prev.map((c) => (c.status === "accepted" ? { ...c, status: "default" } : c))
+      );
+    } else {
+      setCards((prev) =>
+        prev.map((c) => (c.status !== "rejected" ? { ...c, status: "accepted" } : c))
+      );
+    }
   };
 
   // Tag input: commit on Enter, comma, or Tab
@@ -179,8 +187,8 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
           className={[
             "rounded-xl border bg-gray-50 dark:bg-gray-900 p-6 transition-all",
             card.status === "accepted"
-              ? "border-l-4 border-blue-600 shadow-sm border-r border-t border-b border-gray-200 dark:border-gray-700"
-              : "border border-gray-200 dark:border-gray-700",
+              ? "border-blue-500 dark:border-blue-400 shadow-sm ring-1 ring-blue-500 dark:ring-blue-400"
+              : "border-gray-200 dark:border-gray-700",
             card.status === "rejected" ? "opacity-40" : "",
           ]
             .filter(Boolean)
@@ -202,7 +210,7 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
                       )
                     )
                   }
-                  className="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 text-base text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
               {/* Content */}
@@ -218,7 +226,7 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
                       )
                     )
                   }
-                  className="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+                  className="w-full px-3 py-2 text-base text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
                 />
                 <p className="mt-1 text-xs text-gray-400">建议 100-200 字符，适合间隔重复复习</p>
               </div>
@@ -235,7 +243,7 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
                       )
                     )
                   }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
               {/* Tags */}
@@ -272,7 +280,7 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
                       }
                       onKeyDown={(e) => handleTagKeyDown(card.id, e)}
                       placeholder="输入标签，按 Enter 确认"
-                      className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder-gray-400"
+                      className="flex-1 min-w-[120px] bg-transparent text-sm text-gray-900 dark:text-gray-100 outline-none placeholder-gray-400"
                     />
                   )}
                 </div>
@@ -299,53 +307,76 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
             /* Display mode */
             <>
               {/* Card header */}
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <h3
-                  className={[
-                    "text-xl font-semibold text-gray-900 dark:text-white leading-snug",
-                    card.status === "rejected" ? "line-through" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  {card.title}
-                </h3>
+              <div className="flex items-start gap-3 mb-3">
+                {/* 勾选框 — 点击切换保留/取消保留 */}
                 {card.status !== "rejected" && (
-                  <div className="flex items-center gap-3 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleRejectRequest(card.id)}
-                      className="text-sm text-red-600 hover:text-red-700"
-                    >
-                      丢弃
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(card.id)}
-                      className="text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      编辑
-                    </button>
-                    {card.status !== "accepted" && (
-                      <button
-                        type="button"
-                        onClick={() => handleAccept(card.id)}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        保留
-                      </button>
-                    )}
-                  </div>
-                )}
-                {card.status === "rejected" && (
                   <button
                     type="button"
-                    onClick={() => handleUndo(card.id)}
-                    className="text-sm text-gray-500 hover:text-gray-700"
+                    onClick={() =>
+                      card.status === "accepted"
+                        ? handleUndo(card.id)
+                        : handleAccept(card.id)
+                    }
+                    className={[
+                      "mt-1 shrink-0 h-5 w-5 rounded border-2 flex items-center justify-center transition-colors",
+                      card.status === "accepted"
+                        ? "bg-blue-600 border-blue-600 text-white"
+                        : "border-gray-400 dark:border-gray-500 hover:border-blue-500",
+                    ].join(" ")}
+                    aria-label={card.status === "accepted" ? "取消保留" : "保留此卡片"}
                   >
-                    撤销
+                    {card.status === "accepted" && (
+                      <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
+                        <path
+                          d="M2 6l3 3 5-5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
                   </button>
                 )}
+                <div className="flex-1 flex items-start justify-between gap-4">
+                  <h3
+                    className={[
+                      "text-xl font-semibold text-gray-900 dark:text-white leading-snug",
+                      card.status === "rejected" ? "line-through" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    {card.title}
+                  </h3>
+                  {card.status !== "rejected" && (
+                    <div className="flex items-center gap-3 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleRejectRequest(card.id)}
+                        className="text-sm text-red-600 hover:text-red-700"
+                      >
+                        丢弃
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(card.id)}
+                        className="text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        编辑
+                      </button>
+                    </div>
+                  )}
+                  {card.status === "rejected" && (
+                    <button
+                      type="button"
+                      onClick={() => handleUndo(card.id)}
+                      className="text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      撤销
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Reject inline confirmation */}
@@ -407,11 +438,11 @@ export function ConfirmationCards({ items, onConfirm, isSaving }: ConfirmationCa
       <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="button"
-          onClick={handleAcceptAll}
+          onClick={handleToggleAll}
           disabled={isSaving}
           className="text-sm text-gray-500 hover:text-gray-700 underline disabled:opacity-40"
         >
-          全部保留
+          {allSelected ? "全部取消" : "全部保留"}
         </button>
         <button
           type="button"

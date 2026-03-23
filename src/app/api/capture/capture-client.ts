@@ -2,17 +2,19 @@
 // AI 提取客户端 — OpenAI 单例、Zod schema、文本分块工具
 
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod/v3"; // 必须使用 zod/v3 路径，不能用 'zod' — 见研究报告 Pitfall 1
 
-// OpenAI 单例
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// DeepSeek 单例（兼容 OpenAI SDK，使用 DeepSeek API）
+const openai = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: "https://api.deepseek.com",
+});
 
 // Zod schema — 单个知识条目（返回给前端的候选项）
 export const KnowledgeItemCandidateSchema = z.object({
   title: z.string(),
   content: z.string().max(200), // 100-200 字符，适合 FSRS 复习 (D-14)
-  source: z.string().optional(), // 可选——让模型只在文本中明确存在时才填写
+  source: z.string().nullable(), // 可选——让模型只在文本中明确存在时才填写（结构化输出要求 nullable 而非 optional）
   domain: z.string(), // 领域标签 (EXTRACT-04)
   tags: z.array(z.string()), // 多个标签 (D-16)
 });
@@ -60,33 +62,38 @@ async function extractFromChunk(
   sourceUrl?: string
 ): Promise<KnowledgeItemCandidate[]> {
   const sourceHint = sourceUrl ? `\n来源网址: ${sourceUrl}` : "";
-  const result = await openai.chat.completions.parse({
-    model: "gpt-4o-mini",
-    temperature: 0, // temperature: 0 是防止幻觉的必要设置 (PITFALLS.md)
+  const result = await openai.chat.completions.create({
+    model: "deepseek-chat",
+    temperature: 0, // temperature: 0 是防止幻觉的必要设置
+    response_format: { type: "json_object" },
     messages: [
       {
         role: "system",
-        content: `从用户提供的文本中提取独立的知识条目。
+        content: `从用户提供的文本中提取独立的知识条目，以 JSON 格式返回。
+返回格式必须为：{"items": [...]}，每个条目包含：
+- title: string（简短标题）
+- content: string（100-200 字符摘要，适合间隔重复复习）
+- source: string | null（仅在原文中明确存在网址或文章标题时填写，否则为 null）
+- domain: string（最合适的学习领域，如 React、营销、经济学）
+- tags: string[]（2-5 个关键词标签）
+
 规则：
-- 只提取文本中明确陈述的事实，不要推断、扩展或添加原文没有的上下文
-- 每个 content 摘要控制在 100-200 字符，适合间隔重复复习
-- source 字段只在原文中明确存在网址或文章标题时填写，否则留空
-- domain 填写最合适的学习领域（如 React、营销、经济学）
-- tags 填写 2-5 个相关关键词标签`,
+- 只提取文本中明确陈述的事实，不要推断或添加原文没有的上下文
+- 若无法提取则返回 {"items": []}`,
       },
       {
         role: "user",
         content: `${chunk}${sourceHint}`,
       },
     ],
-    response_format: zodResponseFormat(ExtractionResultSchema, "extraction_result"),
   });
 
-  if (result.choices[0].message.refusal) {
-    throw new CaptureError("模型拒绝提取", "MODEL_REFUSED", 422);
+  const raw = result.choices[0].message.content ?? "{}";
+  const parsed = ExtractionResultSchema.safeParse(JSON.parse(raw));
+  if (!parsed.success) {
+    throw new CaptureError("模型返回格式无效", "INVALID_RESPONSE", 500);
   }
-
-  return result.choices[0].message.parsed?.items ?? [];
+  return parsed.data.items;
 }
 
 // 主提取函数 — 处理分块和去重
