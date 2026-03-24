@@ -141,7 +141,7 @@ None currently.
 
 ### What Was Done Last
 
-- 2026-03-24: Plan 03-04 completed. Full search page with advanced filters, result cards with excerpt highlighting, pagination, and empty state guidance. Created SearchResults, SearchEmptyState, DomainFilter components and /search page. 6 commits including dependency installation.
+- 2026-03-24: Plan 03-07 completed. Notification Preferences UI with /settings/notifications page, email toggle, time picker, timezone selector, domain filters, and display name input. Created user_preferences table, API routes, and updated UserNav with dropdown menu. 6 commits, 8 files, 25m duration.
 
 ---
 
