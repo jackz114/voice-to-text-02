@@ -84,9 +84,10 @@ Plans:
 - [ ] 03-02-PLAN.md — Full-text search API
 - [ ] 03-03-PLAN.md — Search UI components
 - [ ] 03-04-PLAN.md — Email notification service
-- [ ] 03-05-PLAN.md — Daily digest cron job
-- [ ] 03-06-PLAN.md — Notification preferences UI
-- [ ] 03-07-PLAN.md — End-to-end integration testing
+- [x] 03-05-PLAN.md — Email template & service (Resend + React Email)
+- [ ] 03-06-PLAN.md — Daily digest cron job
+- [ ] 03-07-PLAN.md — Notification preferences UI
+- [ ] 03-08-PLAN.md — End-to-end integration testing
 
 ---
 
@@ -96,7 +97,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Capture Pipeline | 4/4 | Complete   | 2026-03-22 |
 | 2. Review Loop | 11/11 | Complete   | 2026-03-24 |
-| 3. Retention Engine | 1/7 | In Progress | 2026-03-24 |
+| 3. Retention Engine | 2/8 | In Progress | 2026-03-24 |
 
 ---
 
@@ -141,4 +142,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-03-22*
-*Last updated: 2026-03-24 — Phase 3 plan 03-01 completed; added 7 plans for Retention Engine phase*
+*Last updated: 2026-03-24 — Plan 03-05 completed (Email template & service)*
