@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export interface KnowledgeItem {
   id: string;
@@ -23,12 +24,16 @@ interface KnowledgeItemCardProps {
 
 export function KnowledgeItemCard({ item, viewMode, onDelete, onClick }: KnowledgeItemCardProps) {
   const [hovered, setHovered] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("确定要删除这条知识吗？")) {
-      onDelete(item.id);
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteDialog(false);
+    onDelete(item.id);
   };
 
   const formattedNextReview = new Date(item.nextReviewAt).toLocaleDateString("zh-CN");
@@ -70,7 +75,7 @@ export function KnowledgeItemCard({ item, viewMode, onDelete, onClick }: Knowled
           {/* Delete button — visible on hover (web) or always visible on touch */}
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             className={[
               "text-red-600 hover:text-red-800 text-sm transition-opacity",
               hovered ? "opacity-100" : "opacity-0 group-hover:opacity-100",
@@ -80,6 +85,18 @@ export function KnowledgeItemCard({ item, viewMode, onDelete, onClick }: Knowled
             删除
           </button>
         </div>
+
+        {/* Delete confirmation dialog */}
+        <ConfirmDialog
+          isOpen={showDeleteDialog}
+          title="删除确认"
+          message={`确定要删除「${item.title}」这条知识吗？此操作不可撤销。`}
+          confirmText="删除"
+          cancelText="取消"
+          confirmVariant="danger"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowDeleteDialog(false)}
+        />
       </div>
     );
   }
@@ -93,7 +110,7 @@ export function KnowledgeItemCard({ item, viewMode, onDelete, onClick }: Knowled
       {/* Delete button in top-right corner for grid mode */}
       <button
         type="button"
-        onClick={handleDelete}
+        onClick={handleDeleteClick}
         className="absolute top-2 right-2 text-xs text-red-600 hover:text-red-800 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
         aria-label="删除"
       >
@@ -126,6 +143,18 @@ export function KnowledgeItemCard({ item, viewMode, onDelete, onClick }: Knowled
           </span>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        title="删除确认"
+        message={`确定要删除「${item.title}」这条知识吗？此操作不可撤销。`}
+        confirmText="删除"
+        cancelText="取消"
+        confirmVariant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
     </div>
   );
 }
