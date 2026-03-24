@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (retention-engine) — EXECUTING
-Plan: 2 of 7 (03-01 completed, 03-02 next)
+Plan: 6 of 7 (03-06 completed, 03-07 next)
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Plan: 2 of 7 (03-01 completed, 03-02 next)
 | Requirements mapped | 31/31 |
 
 ---
+| Phase 03-retention-engine 03-06 | 15m | 3 tasks | 3 files |
 | Phase 03-retention-engine 03-01 | 5m | 5 steps | 2 files |
 | Phase 01-capture-pipeline P01 | 12 | 2 tasks | 6 files |
 | Phase 01-capture-pipeline P03 | 2 | 2 tasks | 2 files |
@@ -56,6 +57,9 @@ Plan: 2 of 7 (03-01 completed, 03-02 next)
 
 | Decision | Rationale | Phase |
 |----------|-----------|-------|
+| websearch_to_tsquery for search syntax | Google-like syntax support (quoted phrases, OR, -excluded) without custom parser complexity | 03-02 |
+| Types defined in search.ts not route.ts | Avoids circular dependency between search utilities and API route | 03-02 |
+| Hourly cron with timezone conversion | Cloudflare Cron Triggers run on UTC schedule; convert user local time to UTC hour for accurate delivery | 03-06 |
 | FSRS over SM-2 | 20-30% fewer reviews for same retention; `ts-fsrs` is zero-dep reference impl; retrofitting FSRS state onto SM-2 schema requires painful migration | Pre-Phase 1 |
 | Audio bytes never through Workers | Cloudflare Workers 128 MB memory limit; audio must be uploaded directly from browser to Supabase Storage via signed URL | Pre-Phase 1 |
 | Synchronous transcription for MVP | Whisper calls are synchronous in Phase 1-2; Cloudflare Queue async pipeline deferred to post-v1 (safe for files under ~60 seconds) | Pre-Phase 1 |
@@ -85,7 +89,7 @@ Plan: 2 of 7 (03-01 completed, 03-02 next)
 
 ### Pending Decisions (resolve during phase planning)
 
-- Cron trigger for notifications: Cloudflare Cron Trigger vs. Supabase pg_cron (decide in Phase 3 planning)
+- ~~Cron trigger for notifications: Cloudflare Cron Trigger vs. Supabase pg_cron (decide in Phase 3 planning)~~ **RESOLVED: Cloudflare Cron Trigger selected (03-06)**
 - VAD library Workers compatibility: verify `@ricky0123/vad-web` browser-side WASM works before committing in Phase 1 planning
 - Chunk overlap deduplication: concrete algorithm needed if audio approaches 25 MB in Phase 1 planning
 
@@ -123,6 +127,7 @@ None currently.
 
 ### What Was Done Last
 
+- 2026-03-24: Plan 03-06 completed. Cloudflare Cron Trigger configured for hourly execution. Daily email handler with timezone-aware scheduling, user preference filtering, and Resend email delivery.
 - 2026-03-24: Plan 03-01 completed. Database schema extended with full-text search (tsvector + GIN), vector search pre-migration (pgvector + HNSW), and user_preferences table for notification settings.
 - 2026-03-24: Phase 2 completed. All 11 plans executed including gap fixes. UAT verified with 10 passed, 0 issues.
 - 2026-03-24: User manually fixed remaining 6 gaps from 02-PLAN.md. All fixes verified.
