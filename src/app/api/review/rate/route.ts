@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { db } from "@/db/index";
 import { knowledgeItems, reviewState } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
-import { FSRS, Rating, createEmptyCard } from "ts-fsrs";
+import { FSRS, Rating, Grade, createEmptyCard } from "ts-fsrs";
 import { dbRowToFsrsCard, fsrsResultToDbUpdate } from "@/lib/fsrs";
 
 export async function POST(request: NextRequest) {
@@ -73,11 +73,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 步骤 4: 构建 FSRS 卡片并计算新状态
-    const f = new FSRS();
+    const f = new FSRS({});
     // 首次复习：使用 createEmptyCard() 避免 stability=0 的错误初始状态
     const fsrsCard =
       row.reviewCount === 0 ? createEmptyCard(row.nextReviewAt) : dbRowToFsrsCard(row);
-    const result = f.next(fsrsCard, new Date(), rating as Rating);
+    const result = f.next(fsrsCard, new Date(), rating as Grade);
     const dbUpdate = fsrsResultToDbUpdate(result, row.reviewCount);
 
     // 步骤 5: 写回数据库

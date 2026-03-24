@@ -65,7 +65,8 @@ function writeString(view: DataView, offset: number, string: string) {
 
 // 将 webm Blob 转换为 WAV Blob（16kHz 单声道，适合语音识别）
 async function convertWebmToWav(webmBlob: Blob): Promise<Blob> {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   try {
     const arrayBuffer = await webmBlob.arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);

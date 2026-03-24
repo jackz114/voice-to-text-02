@@ -75,7 +75,8 @@ export function ReviewCard({ item, isTop, onRate, stackIndex }: ReviewCardProps)
       {!revealed ? (
         /* 未揭示状态 — 点击揭示内容按钮 */
         <div className="flex flex-col items-center justify-center py-8">
-          <p className="text-gray-400 text-sm mb-4">先尝试回忆内容，再点击揭示</p>
+          <p className="text-gray-400 text-sm mb-2">先尝试回忆内容，再点击揭示</p>
+          <p className="text-gray-400 text-xs mb-4">揭示后可评分</p>
           <button
             onClick={() => setRevealed(true)}
             className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"

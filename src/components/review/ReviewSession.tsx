@@ -34,6 +34,9 @@ export function ReviewSession() {
   const [undoTimeoutId, setUndoTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [showUndoBar, setShowUndoBar] = useState(false);
   const [showEasyNudge, setShowEasyNudge] = useState(false);
+  // Browse mode domain filter
+  const [browseDomains, setBrowseDomains] = useState<string[]>([]);
+  const [selectedBrowseDomain, setSelectedBrowseDomain] = useState<string | null>(null);
   const tokenRef = useRef<string | undefined>(undefined);
 
   // 获取 access token 并加载待复习条目
@@ -45,6 +48,10 @@ export function ReviewSession() {
         } = await supabase.auth.getSession();
         tokenRef.current = session?.access_token;
         await fetchItems(session?.access_token);
+        // Browse 模式下获取领域列表
+        if (reviewMode === "browse") {
+          await fetchBrowseDomains(session?.access_token);
+        }
       } catch (err) {
         console.error("初始化复习会话失败:", err);
         setError("加载失败，请刷新重试。");
@@ -54,7 +61,7 @@ export function ReviewSession() {
     init();
   }, [reviewMode]);
 
-  const fetchItems = async (token: string | undefined) => {
+  const fetchItems = async (token: string | undefined, domain?: string | null) => {
     setLoading(true);
     setError(null);
     try {
@@ -70,8 +77,11 @@ export function ReviewSession() {
         const data = await response.json();
         setItems(data.items ?? []);
       } else {
-        // Browse mode: fetch all items from library
-        const response = await fetch("/api/library/list", {
+        // Browse mode: fetch all items from library with optional domain filter
+        const url = domain
+          ? `/api/library/list?domain=${encodeURIComponent(domain)}`
+          : "/api/library/list";
+        const response = await fetch(url, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!response.ok) {
@@ -89,6 +99,29 @@ export function ReviewSession() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Browse mode: fetch all domains for filter dropdown
+  const fetchBrowseDomains = async (token: string | undefined) => {
+    try {
+      const response = await fetch("/api/library/domains", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) {
+        console.error("获取领域列表失败");
+        return;
+      }
+      const data = await response.json();
+      setBrowseDomains(data.domains ?? []);
+    } catch (err) {
+      console.error("获取领域列表失败:", err);
+    }
+  };
+
+  // Handle domain selection in browse mode
+  const handleDomainChange = async (domain: string | null) => {
+    setSelectedBrowseDomain(domain);
+    await fetchItems(tokenRef.current, domain);
   };
 
   const handleRate = async (itemId: string, rating: 1 | 2 | 3 | 4) => {
@@ -277,16 +310,36 @@ export function ReviewSession() {
     <div className="relative flex flex-col items-center justify-center min-h-[60vh]">
       {/* Browse mode indicator */}
       {reviewMode === "browse" && (
-        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex justify-between items-center w-full max-w-md">
-          <span className="text-sm text-blue-800 dark:text-blue-300">
-            📚 主动复习模式 - 浏览所有知识条目
-          </span>
-          <button
-            onClick={() => setReviewMode("scheduled")}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            返回今日复习
-          </button>
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex flex-col gap-3 w-full max-w-md">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-blue-800 dark:text-blue-300">
+              📚 主动复习模式
+            </span>
+            <button
+              onClick={() => setReviewMode("scheduled")}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              返回今日复习
+            </button>
+          </div>
+          {/* Domain filter dropdown */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-blue-700 dark:text-blue-400 whitespace-nowrap">
+              选择领域:
+            </label>
+            <select
+              value={selectedBrowseDomain ?? ""}
+              onChange={(e) => handleDomainChange(e.target.value || null)}
+              className="flex-1 text-sm px-3 py-2 rounded-lg border border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">全部领域</option>
+              {browseDomains.map((domain) => (
+                <option key={domain} value={domain}>
+                  {domain}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 
@@ -346,6 +399,7 @@ export function ReviewSession() {
                   item={item}
                   isTop={isTopCard}
                   onNext={handleBrowseNext}
+                  onRate={handleRate}
                   stackIndex={cardStackIndex}
                 />
               );
@@ -356,19 +410,26 @@ export function ReviewSession() {
   );
 }
 
-// Simplified browse card without FSRS ratings
+// Simplified browse card with optional FSRS rating
 interface BrowseCardProps {
   item: BrowseItem;
   isTop: boolean;
   onNext: () => void;
+  onRate: (itemId: string, rating: 1 | 2 | 3 | 4) => void;
   stackIndex: number;
 }
 
-function BrowseCard({ item, isTop, onNext, stackIndex }: BrowseCardProps) {
+function BrowseCard({ item, isTop, onNext, onRate, stackIndex }: BrowseCardProps) {
   const [revealed, setRevealed] = useState(false);
 
   const stackOffset = stackIndex * 4;
   const stackScale = 1 - stackIndex * 0.02;
+
+  // 处理评分并进入下一张
+  const handleRateAndNext = (rating: 1 | 2 | 3 | 4) => {
+    onRate(item.id, rating);
+    // 注意：onRate 内部会处理卡片切换，不需要再调用 onNext
+  };
 
   return (
     <div
@@ -395,7 +456,8 @@ function BrowseCard({ item, isTop, onNext, stackIndex }: BrowseCardProps) {
       {/* 内容区域 */}
       {!revealed ? (
         <div className="flex flex-col items-center justify-center py-8">
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">先尝试回忆内容，再点击揭示</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">先尝试回忆内容，再点击揭示</p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mb-4">揭示后可评分</p>
           <button
             onClick={() => setRevealed(true)}
             className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
@@ -439,13 +501,19 @@ function BrowseCard({ item, isTop, onNext, stackIndex }: BrowseCardProps) {
             </p>
           )}
 
-          {/* 下一张按钮 */}
+          {/* 评分按钮 - Browse 模式下也可以评分 */}
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500 text-center">掌握程度如何？</p>
+            <RatingButtons onRate={handleRateAndNext} disabled={!isTop} />
+          </div>
+
+          {/* 或者仅浏览下一张 */}
           <button
             onClick={onNext}
             disabled={!isTop}
-            className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+            className="w-full mt-3 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
           >
-            下一张 →
+            仅浏览，不评分 →
           </button>
         </div>
       )}

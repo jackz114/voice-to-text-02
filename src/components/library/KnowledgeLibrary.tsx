@@ -18,6 +18,9 @@ interface KnowledgeItemDetail extends KnowledgeItem {
 export function KnowledgeLibrary() {
   const { user } = useAuth();
   const [items, setItems] = useState<KnowledgeItem[]>([]);
+  const [domains, setDomains] = useState<string[]>([]);
+  const [domainCounts, setDomainCounts] = useState<Record<string, number>>({});
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
@@ -61,6 +64,14 @@ export function KnowledgeLibrary() {
     }
   };
 
+  // 初始加载：获取 domains（只执行一次）
+  useEffect(() => {
+    if (user) {
+      fetchDomains();
+    }
+  }, [user]);
+
+  // 当 selectedDomain 变化时，只刷新 items
   useEffect(() => {
     if (user) {
       fetchItems(selectedDomain ?? undefined);
@@ -95,26 +106,69 @@ export function KnowledgeLibrary() {
     }
   };
 
-  const handleItemClick = (item: KnowledgeItem) => {
-    setViewingItem(item);
+  const handleItemClick = async (item: KnowledgeItem) => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+
+      const response = await fetch(`/api/library/item?id=${encodeURIComponent(item.id)}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("获取详情失败:", response.status, errorData);
+        return;
+      }
+
+      const itemDetail = await response.json();
+      setViewingItem(itemDetail);
+    } catch (err) {
+      console.error("获取详情失败:", err);
+    }
   };
 
-  // Compute domains and counts from all items (always from full list)
-  const allDomains = Array.from(new Set(items.map((i) => i.domain)));
-  const itemCounts: Record<string, number> = {};
-  for (const item of items) {
-    itemCounts[item.domain] = (itemCounts[item.domain] ?? 0) + 1;
-  }
+  const fetchDomains = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+
+      const response = await fetch("/api/library/domains", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error("获取领域列表失败");
+        return;
+      }
+
+      const data = await response.json();
+      setDomains(data.domains ?? []);
+      setDomainCounts(data.counts ?? {});
+      setTotalCount(data.totalCount ?? 0);
+    } catch (err) {
+      console.error("获取领域列表失败:", err);
+    }
+  };
 
   return (
     <div className="flex h-full min-h-[calc(100vh-4rem)]">
       {/* Left sidebar */}
       <aside className="w-64 border-r p-4 hidden md:block">
         <DomainSidebar
-          domains={allDomains}
+          domains={domains}
           selectedDomain={selectedDomain}
           onSelect={setSelectedDomain}
-          itemCounts={itemCounts}
+          itemCounts={domainCounts}
+          totalCount={totalCount}
         />
       </aside>
 
@@ -124,9 +178,7 @@ export function KnowledgeLibrary() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">知识库</h1>
-            {!loading && (
-              <span className="text-sm text-gray-500">{items.length} 条</span>
-            )}
+            {!loading && <span className="text-sm text-gray-500">{items.length} 条</span>}
           </div>
           {/* View mode toggle */}
           <div className="flex items-center gap-1 border rounded-lg p-1">
@@ -277,9 +329,7 @@ export function KnowledgeLibrary() {
 
             {/* Dates */}
             <div className="flex flex-wrap gap-4 text-xs text-gray-500 border-t pt-4">
-              <span>
-                创建时间：{new Date(viewingItem.createdAt).toLocaleDateString("zh-CN")}
-              </span>
+              <span>创建时间：{new Date(viewingItem.createdAt).toLocaleDateString("zh-CN")}</span>
               <span>
                 下次复习：{new Date(viewingItem.nextReviewAt).toLocaleDateString("zh-CN")}
               </span>

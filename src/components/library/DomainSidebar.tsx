@@ -5,10 +5,12 @@ interface DomainSidebarProps {
   selectedDomain: string | null; // null = All
   onSelect: (domain: string | null) => void;
   itemCounts: Record<string, number>; // domain -> count mapping
+  totalCount?: number; // 总数量（可选，如果不传则自动计算）
 }
 
-export function DomainSidebar({ domains, selectedDomain, onSelect, itemCounts }: DomainSidebarProps) {
-  const totalCount = Object.values(itemCounts).reduce((sum, n) => sum + n, 0);
+export function DomainSidebar({ domains, selectedDomain, onSelect, itemCounts, totalCount: propTotalCount }: DomainSidebarProps) {
+  const computedTotalCount = Object.values(itemCounts).reduce((sum, n) => sum + n, 0);
+  const totalCount = propTotalCount ?? computedTotalCount;
 
   return (
     <div>
