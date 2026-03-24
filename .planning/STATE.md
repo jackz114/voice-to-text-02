@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-last_updated: "2026-03-24T07:00:00Z"
+last_updated: "2026-03-24T08:00:00Z"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 22
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State: 笔记助手 (bijiassistant)
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (retention-engine) — EXECUTING
-Plan: 4 of 8 (03-04 completed, next TBD)
+Plan: 3 of 8 (03-03 completed, 03-04 next)
 
 ## Performance Metrics
 
@@ -44,6 +44,8 @@ Plan: 4 of 8 (03-04 completed, next TBD)
 | Requirements mapped | 31/31 |
 
 ---
+| Phase 03-retention-engine 03-03 | 20m | 6 tasks | 6 files |
+| Phase 03-retention-engine 03-07 | 30m | 5 tasks | 5 files |
 | Phase 03-retention-engine 03-04 | 15m | 5 tasks | 5 files |
 | Phase 03-retention-engine 03-02 | 15m | 2 tasks | 2 files |
 | Phase 03-retention-engine 03-06 | 15m | 3 tasks | 3 files |
@@ -59,6 +61,11 @@ Plan: 4 of 8 (03-04 completed, next TBD)
 
 | Decision | Rationale | Phase |
 |----------|-----------|-------|
+| cmdk library for command palette | Provides accessible, keyboard-navigable command palette with built-in focus management; industry standard for React | 03-03 |
+| use-debounce for search input | 300ms debounce per D-14; use-debounce is lightweight and battle-tested | 03-03 |
+| ESLint disable for set-state-in-effect rule | Rule flags legitimate patterns (localStorage hydration, data fetching); targeted disables with explanations | 03-03 |
+|----------|-----------|-------|
+| UserNav dropdown menu added | Original UserNav was simple; enhanced with dropdown for better UX and settings access | 03-07 |
 | DomainFilter uses Bearer token auth | /api/library/domains expects Bearer token; AuthProvider exports supabase singleton for session access | 03-04 |
 | URL sync via window.history.replaceState | Enables shareable search links without full page navigation; cleaner than router.push for URL-only updates | 03-04 |
 | websearch_to_tsquery for search syntax | Google-like syntax support (quoted phrases, OR, -excluded) without custom parser complexity | 03-02 |
@@ -108,7 +115,8 @@ Plan: 4 of 8 (03-04 completed, next TBD)
 - Email: `resend` SDK, free tier 3,000/month
 - Existing: Auth (Supabase), PayPal payment UI — complete at UI layer, DB writes are TODO stubs
 - **Search API**: Full-text search with PostgreSQL tsvector, ts_rank ranking, ts_headline excerpts — `GET /api/search?q=xxx&domain=xxx&limit=10`
-- **Search UI**: `/search` page with debounced input, domain filter, result cards, pagination, and URL sync for shareable links
+- **Search UI**: Global Cmd+K search modal with cmdk, 300ms debounce, history persistence; `/search` page with advanced filters, result cards, pagination, and URL sync for shareable links
+- **Notification Preferences**: `/settings/notifications` page with email toggle, time picker, timezone selector, domain filters, and display name per D-01, D-02, D-09
 
 ### Blockers
 
@@ -133,6 +141,7 @@ None currently.
 
 ### What Was Done Last
 
+- 2026-03-24: Plan 03-03 completed. Global search UI with Cmd+K modal, cmdk library integration, 300ms debounced search, localStorage history persistence, and keyboard navigation per D-04, D-12, D-13, D-14. Requirements SEARCH-01, SEARCH-02 satisfied.
 - 2026-03-24: Plan 03-04 completed. Full search page created with advanced filters, result cards with excerpt highlighting, and empty state guidance per D-04, D-10, D-11. Requirements SEARCH-01, SEARCH-02, SEARCH-03 satisfied.
 - 2026-03-24: Plan 03-02 completed. Full-text search API implemented with PostgreSQL tsvector, ts_rank ranking, and ts_headline excerpt generation. Endpoint: GET /api/search with q, domain, limit, offset parameters.
 - 2026-03-24: Plan 03-06 completed. Cloudflare Cron Trigger configured for hourly execution. Daily email handler with timezone-aware scheduling, user preference filtering, and Resend email delivery.
