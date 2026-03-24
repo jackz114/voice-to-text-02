@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { knowledgeItems } from "@/db/schema";
 import { sql, desc, eq, and } from "drizzle-orm";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import {
   toTsQuery,
   buildRankExpression,
@@ -44,11 +44,16 @@ export type SearchResponse = {
 export async function GET(request: NextRequest) {
   try {
     // Step 1: Authenticate user
-    const supabase = createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token ?? undefined);
 
     if (authError || !user) {
       return NextResponse.json(
@@ -141,6 +146,7 @@ export async function GET(request: NextRequest) {
     const response: SearchResponse = {
       results: results.map((r) => ({
         ...r,
+        excerpt: String(r.excerpt),
         rank: Number(r.rank),
       })),
       query,
