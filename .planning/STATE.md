@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-03-23T05:49:46.590Z"
+status: active
+last_updated: "2026-03-24T06:09:00Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 2
+  total_plans: 22
+  completed_plans: 16
 ---
 
 # Project State: 笔记助手 (bijiassistant)
 
-**Last updated:** 2026-03-22
-**Updated by:** roadmapper (initial creation)
+**Last updated:** 2026-03-24
+**Updated by:** user
 
 ---
 
@@ -22,7 +22,7 @@ progress:
 
 **Core Value:** 学习时零负担记录，AI 替你管理遗忘曲线——让你知道自己学过什么，并在遗忘前精准唤醒它
 
-**Current Focus:** Phase 1 — Capture Pipeline
+**Current Focus:** Phase 03 — retention-engine
 
 **Milestone:** v1 (AI Learning Assistant)
 
@@ -30,20 +30,21 @@ progress:
 
 ## Current Position
 
-Phase: 1 (Capture Pipeline) — READY FOR VERIFICATION (checkpoint:human-verify)
-Plan: 4 of 4 (all tasks complete, awaiting end-to-end manual test)
+Phase: 03 (retention-engine) — EXECUTING
+Plan: 2 of 7 (03-01 completed, 03-02 next)
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
 | Phases total | 3 |
-| Phases complete | 0 |
-| Plans total | TBD |
-| Plans complete | 0 |
+| Phases complete | 2 |
+| Plans total | 22 |
+| Plans complete | 16 |
 | Requirements mapped | 31/31 |
 
 ---
+| Phase 03-retention-engine 03-01 | 5m | 5 steps | 2 files |
 | Phase 01-capture-pipeline P01 | 12 | 2 tasks | 6 files |
 | Phase 01-capture-pipeline P03 | 2 | 2 tasks | 2 files |
 | Phase 01 P02 | 3m | 2 tasks | 2 files |
@@ -69,6 +70,9 @@ Plan: 4 of 4 (all tasks complete, awaiting end-to-end manual test)
 | zod/v3 import for zodResponseFormat | Zod v4 breaks OpenAI SDK vendored schema converter; zod/v3 compat shim is the official workaround | 01-02 |
 | Per-card state in flat useState array (not react-hook-form) | Dynamic per-card status + edit fields map naturally to array state; form library adds indirection without simplifying | 01-04 |
 | FSRS initial values at insert (nextReviewAt=tomorrow, stability=0) | Phase 1 creates review_state rows with placeholder values; Phase 2 applies real FSRS algorithm on first review event | 01-04 |
+| customType for tsvector | Drizzle ORM lacks native tsvector support; customType wrapper enables full-text search with proper typing | 03-01 |
+| Weighted search vector (A/B/C) | Title/tags weight A, content weight B, source weight C per D-05 requirements for relevance ranking | 03-01 |
+| Pre-migration for Phase 4 vector search | Added embedding column (1536d) with HNSW index in Phase 3 to avoid separate migration later | 03-01 |
 
 ### Critical Pitfalls to Avoid
 
@@ -119,11 +123,10 @@ None currently.
 
 ### What Was Done Last
 
+- 2026-03-24: Plan 03-01 completed. Database schema extended with full-text search (tsvector + GIN), vector search pre-migration (pgvector + HNSW), and user_preferences table for notification settings.
+- 2026-03-24: Phase 2 completed. All 11 plans executed including gap fixes. UAT verified with 10 passed, 0 issues.
+- 2026-03-24: User manually fixed remaining 6 gaps from 02-PLAN.md. All fixes verified.
 - 2026-03-22: Project initialized. PROJECT.md, REQUIREMENTS.md, research/SUMMARY.md, ROADMAP.md, STATE.md created. 31 v1 requirements mapped across 3 phases.
-- 2026-03-22: Executed 01-01 (Drizzle schema + DB singleton). Created src/db/schema.ts (5 tables), src/db/index.ts, drizzle.config.ts, migration SQL. Installed openai, postgres, drizzle-zod. Migration pending DATABASE_URL configuration.
-- 2026-03-22: Executed 01-03 (Capture page + TextPasteInput). Created /capture route with auth guard and state machine shell (idle+extracting). TextPasteInput with 100k char counter and spinner button. Requirements TEXT-01, TEXT-02, EXTRACT-03 completed. Stopped at: Completed 01-capture-pipeline-01-03-PLAN.md
-- 2026-03-22: Executed 01-02 (AI extraction pipeline). Created capture-client.ts (OpenAI singleton, zod/v3 schemas, chunkText, extractKnowledgeItems) and POST /api/capture/extract route (auth check, 100k char limit, AI extraction). Fixed openai v6 API path (chat.completions.parse not beta.chat). Requirements EXTRACT-01, EXTRACT-04 completed. Stopped at: Completed 01-02-PLAN.md
-- 2026-03-22: Executed 01-04 (ConfirmationCards + confirm API). Created ConfirmationCards.tsx (per-card accept/reject/edit/undo, tag input, bulk accept, confirm button), POST /api/capture/confirm (inserts knowledge_items + review_state with FSRS initial state), updated capture/page.tsx to wire end-to-end pipeline. Requirements EXTRACT-02, EXTRACT-03, EXTRACT-05, TEXT-02 completed. Stopped at: checkpoint:human-verify (manual end-to-end test required)
 
 ---
 

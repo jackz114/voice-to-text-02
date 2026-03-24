@@ -10,7 +10,7 @@
 ## Phases
 
 - [x] **Phase 1: Capture Pipeline** - Database schema + text input + AI knowledge extraction (completed 2026-03-22)
-- [ ] **Phase 2: Review Loop** - Knowledge library + FSRS scheduling + daily review workflow + audio recording
+- [x] **Phase 2: Review Loop** - Knowledge library + FSRS scheduling + daily review workflow + audio recording (completed 2026-03-24)
 - [ ] **Phase 3: Retention Engine** - Proactive notifications + knowledge search
 
 ---
@@ -77,7 +77,16 @@ Plans:
   3. A user can type a natural language query ("what do I know about Cloudflare Workers?") and receive a list of matching knowledge items ordered by relevance with a preview and source
   4. A user can opt out of email reminders
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [x] 03-01-PLAN.md — Database schema extensions (search_vector, embedding, user_preferences)
+- [ ] 03-02-PLAN.md — Full-text search API
+- [ ] 03-03-PLAN.md — Search UI components
+- [ ] 03-04-PLAN.md — Email notification service
+- [ ] 03-05-PLAN.md — Daily digest cron job
+- [ ] 03-06-PLAN.md — Notification preferences UI
+- [ ] 03-07-PLAN.md — End-to-end integration testing
 
 ---
 
@@ -86,8 +95,8 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Capture Pipeline | 4/4 | Complete   | 2026-03-22 |
-| 2. Review Loop | 0/? | Not started | - |
-| 3. Retention Engine | 0/? | Not started | - |
+| 2. Review Loop | 11/11 | Complete   | 2026-03-24 |
+| 3. Retention Engine | 1/7 | In Progress | 2026-03-24 |
 
 ---
 
@@ -132,4 +141,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-03-22*
-*Last updated: 2026-03-22 — Phase 1 revised to reflect D-06 (audio deferred to Phase 2); Phase 2 updated to include AUDIO-* and TRANS-* requirements*
+*Last updated: 2026-03-24 — Phase 3 plan 03-01 completed; added 7 plans for Retention Engine phase*
