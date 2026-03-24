@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-last_updated: "2026-03-24T06:09:00Z"
+last_updated: "2026-03-24T06:45:00Z"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 22
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State: 笔记助手 (bijiassistant)
 
 **Last updated:** 2026-03-24
-**Updated by:** user
+**Updated by:** Claude Opus 4.6
 
 ---
 
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (retention-engine) — EXECUTING
-Plan: 6 of 7 (03-06 completed, 03-07 next)
+Plan: 2 of 8 (03-02 completed, 03-03 next)
 
 ## Performance Metrics
 
@@ -40,10 +40,11 @@ Plan: 6 of 7 (03-06 completed, 03-07 next)
 | Phases total | 3 |
 | Phases complete | 2 |
 | Plans total | 22 |
-| Plans complete | 16 |
+| Plans complete | 17 |
 | Requirements mapped | 31/31 |
 
 ---
+| Phase 03-retention-engine 03-02 | 15m | 2 tasks | 2 files |
 | Phase 03-retention-engine 03-06 | 15m | 3 tasks | 3 files |
 | Phase 03-retention-engine 03-01 | 5m | 5 steps | 2 files |
 | Phase 01-capture-pipeline P01 | 12 | 2 tasks | 6 files |
@@ -103,6 +104,7 @@ Plan: 6 of 7 (03-06 completed, 03-07 next)
 - FSRS: `ts-fsrs` ^5.2.3, server-side only
 - Email: `resend` SDK, free tier 3,000/month
 - Existing: Auth (Supabase), PayPal payment UI — complete at UI layer, DB writes are TODO stubs
+- **Search API**: Full-text search with PostgreSQL tsvector, ts_rank ranking, ts_headline excerpts — `GET /api/search?q=xxx&domain=xxx&limit=10`
 
 ### Blockers
 
@@ -127,6 +129,7 @@ None currently.
 
 ### What Was Done Last
 
+- 2026-03-24: Plan 03-02 completed. Full-text search API implemented with PostgreSQL tsvector, ts_rank ranking, and ts_headline excerpt generation. Endpoint: GET /api/search with q, domain, limit, offset parameters.
 - 2026-03-24: Plan 03-06 completed. Cloudflare Cron Trigger configured for hourly execution. Daily email handler with timezone-aware scheduling, user preference filtering, and Resend email delivery.
 - 2026-03-24: Plan 03-01 completed. Database schema extended with full-text search (tsvector + GIN), vector search pre-migration (pgvector + HNSW), and user_preferences table for notification settings.
 - 2026-03-24: Phase 2 completed. All 11 plans executed including gap fixes. UAT verified with 10 passed, 0 issues.
