@@ -37,36 +37,42 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
   // Debounce search input (300ms per D-14)
   const [debouncedQuery] = useDebounce(query, 300);
 
-  // Fetch search results when debounced query changes
-  useEffect(() => {
-    if (debouncedQuery.length < 2) {
-      setResults([]);
+  // Search function - extracted to avoid setState in effect body
+  const performSearch = useCallback(
+    async (searchQuery: string) => {
+      if (searchQuery.length < 2) {
+        setResults([]);
+        setError(null);
+        return;
+      }
+
+      setLoading(true);
       setError(null);
-      return;
-    }
 
-    setLoading(true);
-    setError(null);
-
-    fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}&limit=5`)
-      .then(async (res) => {
+      try {
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(searchQuery)}&limit=5`
+        );
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || "Search failed");
         }
-        return res.json();
-      })
-      .then((data) => {
+        const data = await res.json();
         setResults(data.results || []);
-      })
-      .catch((err) => {
-        setError(err.message);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Search failed");
         setResults([]);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
-  }, [debouncedQuery]);
+      }
+    },
+    []
+  );
+
+  // Fetch search results when debounced query changes
+  useEffect(() => {
+    performSearch(debouncedQuery);
+  }, [debouncedQuery, performSearch]);
 
   // Handle result selection
   const handleSelect = useCallback(
