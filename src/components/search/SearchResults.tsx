@@ -52,7 +52,7 @@ interface SearchResultCardProps {
   onClick: () => void;
 }
 
-function SearchResultCard({ result, query, onClick }: SearchResultCardProps) {
+function SearchResultCard({ result, query: _query, onClick }: SearchResultCardProps) {
   const formattedDate = new Date(result.createdAt).toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "short",
