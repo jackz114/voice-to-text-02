@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "./AuthProvider";
-import { Bell, Settings, LogOut, ChevronDown } from "lucide-react";
+import { Bell, LogOut, ChevronDown } from "lucide-react";
 
 export function UserNav() {
   const { user, loading, signOut } = useAuth();

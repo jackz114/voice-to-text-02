@@ -52,7 +52,7 @@ export function NotificationPreferences({
       if (!response.ok) throw new Error("Failed to fetch preferences");
       const data = await response.json();
       setPreferences(data);
-    } catch (err) {
+    } catch (_err) {
       setError("加载设置失败");
     } finally {
       setLoading(false);
@@ -77,7 +77,7 @@ export function NotificationPreferences({
 
       setSaveMessage("设置已保存");
       setTimeout(() => setSaveMessage(null), 3000);
-    } catch (err) {
+    } catch (_err) {
       setError("保存失败，请重试");
     } finally {
       setSaving(false);
