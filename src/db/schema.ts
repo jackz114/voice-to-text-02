@@ -7,22 +7,61 @@ import {
   integer,
   real,
   numeric,
+  boolean,
+  customType,
+  index,
 } from "drizzle-orm/pg-core";
+import { sql, SQL } from "drizzle-orm";
+import { vector } from "drizzle-orm/pg-core";
+
+// Custom type for tsvector (Drizzle doesn't have native support)
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return "tsvector";
+  },
+});
 
 // Table 1: knowledge_items — core entity for captured knowledge
-export const knowledgeItems = pgTable("knowledge_items", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
-  sourceType: text("source_type").notNull(), // "text_paste" (Phase 1) | "audio_transcription" (Phase 2 forward-compat)
-  sourceContent: text("source_content"), // original pasted text or transcription
-  title: text("title").notNull(),
-  content: text("content").notNull(), // 100-200 char summary, optimal for FSRS
-  source: text("source"), // URL or title of original article (optional)
-  domain: text("domain").notNull(), // e.g. "React", "Marketing"
-  tags: text("tags").array().notNull().default([]),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const knowledgeItems = pgTable(
+  "knowledge_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    sourceType: text("source_type").notNull(), // "text_paste" | "audio_transcription"
+    sourceContent: text("source_content"),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    source: text("source"),
+    domain: text("domain").notNull(),
+    tags: text("tags").array().notNull().default([]),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+
+    // Phase 3: Full-text search vector (D-03, D-05)
+    // Title weight A, Tags weight A, Content weight B, Source weight C
+    searchVector: tsvector("search_vector")
+      .notNull()
+      .generatedAlwaysAs(
+        (): SQL =>
+          sql`setweight(to_tsvector('chinese', coalesce(${knowledgeItems.title}, '')), 'A') ||
+              setweight(to_tsvector('chinese', coalesce(array_to_string(${knowledgeItems.tags}, ' '), '')), 'A') ||
+              setweight(to_tsvector('chinese', coalesce(${knowledgeItems.content}, '')), 'B') ||
+              setweight(to_tsvector('chinese', coalesce(${knowledgeItems.source}, '')), 'C')`
+      ),
+
+    // Phase 4: Semantic search vector (D-03 pre-migration)
+    embedding: vector("embedding", { dimensions: 1536 }),
+  },
+  (table) => [
+    // GIN index for full-text search (D-03)
+    index("knowledge_items_search_idx")
+      .using("gin", table.searchVector),
+
+    // HNSW index for vector similarity (Phase 4)
+    index("knowledge_items_embedding_idx")
+      .using("hnsw", table.embedding.op("vector_cosine_ops")),
+  ]
+);
 
 // Table 2: review_state — FSRS scheduling state per knowledge item (1:1)
 // CRITICAL: All FSRS fields must be here from Phase 1 to avoid Phase 2 migration debt
@@ -75,3 +114,21 @@ export const subscriptions = pgTable("subscriptions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// Table 6: user_preferences — notification and user settings (D-01, D-02, D-09)
+export const userPreferences = pgTable("user_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().unique(),
+  emailNotificationsEnabled: boolean("email_notifications_enabled").notNull().default(true),
+  dailyReminderTime: text("daily_reminder_time").notNull().default("09:00"), // HH:mm format
+  reminderTimezone: text("reminder_timezone").notNull().default("Asia/Shanghai"),
+  includedDomains: text("included_domains").array().notNull().default([]), // empty = all domains
+  saveSearchHistory: boolean("save_search_history").notNull().default(true),
+  displayName: text("display_name"), // for email personalization
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Export types for all tables
+export type UserPreference = typeof userPreferences.$inferSelect;
+export type NewUserPreference = typeof userPreferences.$inferInsert;
