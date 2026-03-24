@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-last_updated: "2026-03-24T06:45:00Z"
+last_updated: "2026-03-24T07:00:00Z"
 progress:
   total_phases: 3
   completed_phases: 2
@@ -31,7 +31,7 @@ progress:
 ## Current Position
 
 Phase: 03 (retention-engine) — EXECUTING
-Plan: 2 of 8 (03-02 completed, 03-03 next)
+Plan: 4 of 8 (03-04 completed, next TBD)
 
 ## Performance Metrics
 
@@ -40,10 +40,11 @@ Plan: 2 of 8 (03-02 completed, 03-03 next)
 | Phases total | 3 |
 | Phases complete | 2 |
 | Plans total | 22 |
-| Plans complete | 17 |
+| Plans complete | 18 |
 | Requirements mapped | 31/31 |
 
 ---
+| Phase 03-retention-engine 03-04 | 15m | 5 tasks | 5 files |
 | Phase 03-retention-engine 03-02 | 15m | 2 tasks | 2 files |
 | Phase 03-retention-engine 03-06 | 15m | 3 tasks | 3 files |
 | Phase 03-retention-engine 03-01 | 5m | 5 steps | 2 files |
@@ -58,6 +59,8 @@ Plan: 2 of 8 (03-02 completed, 03-03 next)
 
 | Decision | Rationale | Phase |
 |----------|-----------|-------|
+| DomainFilter uses Bearer token auth | /api/library/domains expects Bearer token; AuthProvider exports supabase singleton for session access | 03-04 |
+| URL sync via window.history.replaceState | Enables shareable search links without full page navigation; cleaner than router.push for URL-only updates | 03-04 |
 | websearch_to_tsquery for search syntax | Google-like syntax support (quoted phrases, OR, -excluded) without custom parser complexity | 03-02 |
 | Types defined in search.ts not route.ts | Avoids circular dependency between search utilities and API route | 03-02 |
 | Hourly cron with timezone conversion | Cloudflare Cron Triggers run on UTC schedule; convert user local time to UTC hour for accurate delivery | 03-06 |
@@ -105,6 +108,7 @@ Plan: 2 of 8 (03-02 completed, 03-03 next)
 - Email: `resend` SDK, free tier 3,000/month
 - Existing: Auth (Supabase), PayPal payment UI — complete at UI layer, DB writes are TODO stubs
 - **Search API**: Full-text search with PostgreSQL tsvector, ts_rank ranking, ts_headline excerpts — `GET /api/search?q=xxx&domain=xxx&limit=10`
+- **Search UI**: `/search` page with debounced input, domain filter, result cards, pagination, and URL sync for shareable links
 
 ### Blockers
 
@@ -129,6 +133,7 @@ None currently.
 
 ### What Was Done Last
 
+- 2026-03-24: Plan 03-04 completed. Full search page created with advanced filters, result cards with excerpt highlighting, and empty state guidance per D-04, D-10, D-11. Requirements SEARCH-01, SEARCH-02, SEARCH-03 satisfied.
 - 2026-03-24: Plan 03-02 completed. Full-text search API implemented with PostgreSQL tsvector, ts_rank ranking, and ts_headline excerpt generation. Endpoint: GET /api/search with q, domain, limit, offset parameters.
 - 2026-03-24: Plan 03-06 completed. Cloudflare Cron Trigger configured for hourly execution. Daily email handler with timezone-aware scheduling, user preference filtering, and Resend email delivery.
 - 2026-03-24: Plan 03-01 completed. Database schema extended with full-text search (tsvector + GIN), vector search pre-migration (pgvector + HNSW), and user_preferences table for notification settings.

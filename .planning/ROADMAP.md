@@ -82,8 +82,8 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Database schema extensions (search_vector, embedding, user_preferences)
 - [x] 03-02-PLAN.md — Full-text search API
-- [ ] 03-03-PLAN.md — Search UI components
-- [x] 03-04-PLAN.md — Email notification service
+- [ ] 03-03-PLAN.md — Global Search UI (Cmd+K modal)
+- [x] 03-04-PLAN.md — Full Search Page (/search with filters, results, pagination)
 - [x] 03-05-PLAN.md — Email template & service (Resend + React Email)
 - [x] 03-06-PLAN.md — Daily digest cron job
 - [ ] 03-07-PLAN.md — Notification preferences UI
@@ -142,4 +142,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-03-22*
-*Last updated: 2026-03-24 — Plan 03-06 completed (Cron Trigger & Daily Email)*
+*Last updated: 2026-03-24 — Plan 03-04 completed (Full Search Page)*
