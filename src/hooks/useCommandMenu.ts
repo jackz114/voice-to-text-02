@@ -20,12 +20,6 @@ export function useCommandMenu(): UseCommandMenuReturn {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K to toggle (D-13)
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        toggle();
-      }
-
       // ESC to close (D-13)
       if (e.key === "Escape" && open) {
         setOpen(false);
@@ -34,7 +28,7 @@ export function useCommandMenu(): UseCommandMenuReturn {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, toggle]);
+  }, [open]);
 
   return { open, setOpen, toggle };
 }

@@ -37,9 +37,6 @@ export function SearchTrigger({
       >
         <Search className="h-4 w-4" />
         <span className="flex-1 text-sm">搜索...</span>
-        <kbd className="hidden rounded border border-gray-200 bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500 sm:inline-block">
-          Cmd+K
-        </kbd>
       </button>
     );
   }
@@ -52,9 +49,6 @@ export function SearchTrigger({
     >
       <Search className="h-4 w-4" />
       <span>搜索</span>
-      <kbd className="ml-2 hidden rounded border border-gray-300 bg-white px-1.5 py-0.5 text-xs font-medium text-gray-500 sm:inline-block">
-        Cmd+K
-      </kbd>
     </button>
   );
 }

@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { UserNav } from "@/components/auth/UserNav";
+import { SearchTrigger } from "@/components/search";
+import { SearchModal } from "@/components/search";
 
 export default function Home() {
   return (
@@ -11,8 +13,13 @@ export default function Home() {
         <div className="text-xl font-bold text-gray-900 dark:text-white">
           Voice to Text
         </div>
-        <UserNav />
+        <div className="flex items-center gap-2">
+          <SearchTrigger variant="icon" />
+          <UserNav />
+        </div>
       </nav>
+
+      <SearchModal />
 
       <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <Image
