@@ -1,3 +1,6 @@
 // src/components/search/index.ts
 export { SearchModal } from "./SearchModal";
 export { SearchTrigger } from "./SearchTrigger";
+export { SearchResults } from "./SearchResults";
+export { SearchEmptyState } from "./SearchEmptyState";
+export { DomainFilter } from "./DomainFilter";
