@@ -85,7 +85,16 @@ Plans:
   3. A user can type a natural language query ("what do I know about Cloudflare Workers?") and receive a list of matching knowledge items ordered by relevance with a preview and source
   4. A user can opt out of email reminders
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [x] 03-01-PLAN.md — Database schema extensions (tsvector + pgvector + user_preferences)
+- [x] 03-02-PLAN.md — Search API implementation (GET /api/search with ts_rank, ts_headline)
+- [ ] 03-03-PLAN.md — Search UI components (Cmd+K modal, search results)
+- [ ] 03-04-PLAN.md — Full search page with filters
+- [ ] 03-05-PLAN.md — Email templates and Resend integration
+- [ ] 03-06-PLAN.md — Cloudflare Cron daily reminders
+- [ ] 03-07-PLAN.md — Notification preferences UI
 
 ---
 
@@ -95,7 +104,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Capture Pipeline | 4/4 | Complete   | 2026-03-22 |
 | 2. Review Loop | 5/6 | In Progress|  |
-| 3. Retention Engine | 0/? | Not started | - |
+| 3. Retention Engine | 2/7 | In Progress|  |
 
 ---
 
@@ -140,4 +149,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-03-22*
-*Last updated: 2026-03-23 — Phase 2 plans added (6 plans, 3 waves)*
+*Last updated: 2026-03-24 — Phase 3 plans 03-01 and 03-02 completed*

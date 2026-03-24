@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-23T12:45:18.963Z"
+last_updated: "2026-03-24T04:10:00Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 14
-  completed_plans: 11
+  total_plans: 22
+  completed_plans: 12
 ---
 
 # Project State: 笔记助手 (bijiassistant)
 
-**Last updated:** 2026-03-22
-**Updated by:** roadmapper (initial creation)
+**Last updated:** 2026-03-24
+**Updated by:** execute-phase (03-02 completed)
 
 ---
 
@@ -22,7 +22,7 @@ progress:
 
 **Core Value:** 学习时零负担记录，AI 替你管理遗忘曲线——让你知道自己学过什么，并在遗忘前精准唤醒它
 
-**Current Focus:** Phase 02 — review-loop
+**Current Focus:** Phase 03 — retention-engine
 
 **Milestone:** v1 (AI Learning Assistant)
 
@@ -30,17 +30,17 @@ progress:
 
 ## Current Position
 
-Phase: 02 (review-loop) — EXECUTING
-Plan: 1 of 3
+Phase: 03 (retention-engine) — EXECUTING
+Plan: 2 of 7
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
 | Phases total | 3 |
-| Phases complete | 0 |
-| Plans total | TBD |
-| Plans complete | 0 |
+| Phases complete | 2 |
+| Plans total | 22 |
+| Plans complete | 12 |
 | Requirements mapped | 31/31 |
 
 ---
@@ -53,6 +53,13 @@ Plan: 1 of 3
 | Phase 02-review-loop P05 | 14 | 3 tasks | 5 files |
 | Phase 02-review-loop P02 | 8 | 4 tasks | 4 files |
 | Phase 02 P04 | 15 | 3 tasks | 4 files |
+| Phase 03-retention-engine P01 | 6 | 6 tasks | 2 files |
+| Phase 03-retention-engine P02 | 5m | 3 tasks | 2 files |
+| Phase 03-retention-engine P03 | 6 | 6 tasks | 5 files |
+| Phase 03-retention-engine P04 | 5 | 5 tasks | 4 files |
+| Phase 03-retention-engine P05 | 6 | 6 tasks | 4 files |
+| Phase 03-retention-engine P06 | 4 | 4 tasks | 2 files |
+| Phase 03-retention-engine P07 | 5 | 5 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -77,6 +84,11 @@ Plan: 1 of 3
 | Delete review_state before knowledge_item | Drizzle schema has no references().onDelete cascade, so manual ordering is required to avoid FK constraint violation | 02-01 |
 | KnowledgeItem type in KnowledgeItemCard, re-exported by KnowledgeLibrary | Avoids circular import since KnowledgeLibrary imports KnowledgeItemCard | 02-02 |
 | Modal for library detail view (not [id] route) | No extra API route needed in Phase 2; modal falls back to contentPreview until API returns full content | 02-02 |
+| PostgreSQL Hybrid Search (tsvector + pgvector) | Single database supports both full-text and semantic; embedding storage pre-migration prevents backfill debt | 03-03 |
+| Daily email trigger — user-defined time | Users know their schedule best; avoids sleep/work interruptions | 03-01 |
+| Email content — titles only, hide content | Prevents spoiling active recall; drives app engagement | 03-03 |
+| Search result interaction — Drawer/Modal | Preserves context, enables quick iteration, maintains navigation state | 03-04 |
+| Real-time search with 300ms debounce | Balances responsiveness and server load; prevents request spam | 03-04 |
 
 ### Critical Pitfalls to Avoid
 
@@ -90,6 +102,7 @@ Plan: 1 of 3
 ### Pending Decisions (resolve during phase planning)
 
 - Cron trigger for notifications: Cloudflare Cron Trigger vs. Supabase pg_cron (decide in Phase 3 planning)
+  - **Update 2026-03-24**: Decided to use Cloudflare Cron Trigger for email scheduling (03-CONTEXT.md D-01)
 - VAD library Workers compatibility: verify `@ricky0123/vad-web` browser-side WASM works before committing in Phase 1 planning
 - Chunk overlap deduplication: concrete algorithm needed if audio approaches 25 MB in Phase 1 planning
 
@@ -123,21 +136,12 @@ None currently.
 1. Read this file for current position
 2. Read `.planning/ROADMAP.md` for phase goals and success criteria
 3. Read `.planning/REQUIREMENTS.md` for requirement details
-4. Run `/gsd:plan-phase 1` to begin planning Phase 1
+4. Read `.planning/phases/03-retention-engine/03-PLAN.md` for execution order
+5. Run `/gsd:execute-phase 03` to begin executing Phase 3 plans
 
 ### What Was Done Last
 
-- 2026-03-22: Project initialized. PROJECT.md, REQUIREMENTS.md, research/SUMMARY.md, ROADMAP.md, STATE.md created. 31 v1 requirements mapped across 3 phases.
-- 2026-03-22: Executed 01-01 (Drizzle schema + DB singleton). Created src/db/schema.ts (5 tables), src/db/index.ts, drizzle.config.ts, migration SQL. Installed openai, postgres, drizzle-zod. Migration pending DATABASE_URL configuration.
-- 2026-03-22: Executed 01-03 (Capture page + TextPasteInput). Created /capture route with auth guard and state machine shell (idle+extracting). TextPasteInput with 100k char counter and spinner button. Requirements TEXT-01, TEXT-02, EXTRACT-03 completed. Stopped at: Completed 01-capture-pipeline-01-03-PLAN.md
-- 2026-03-22: Executed 01-02 (AI extraction pipeline). Created capture-client.ts (OpenAI singleton, zod/v3 schemas, chunkText, extractKnowledgeItems) and POST /api/capture/extract route (auth check, 100k char limit, AI extraction). Fixed openai v6 API path (chat.completions.parse not beta.chat). Requirements EXTRACT-01, EXTRACT-04 completed. Stopped at: Completed 01-02-PLAN.md
-- 2026-03-22: Executed 01-04 (ConfirmationCards + confirm API). Created ConfirmationCards.tsx (per-card accept/reject/edit/undo, tag input, bulk accept, confirm button), POST /api/capture/confirm (inserts knowledge_items + review_state with FSRS initial state), updated capture/page.tsx to wire end-to-end pipeline. Requirements EXTRACT-02, EXTRACT-03, EXTRACT-05, TEXT-02 completed. Stopped at: checkpoint:human-verify (manual end-to-end test required)
-- 2026-03-23: Phase 2 context gathered. Discussed 4 areas: 知识库浏览（混合布局+侧边栏+双模式）、复习界面（滑动卡片堆+点击揭示）、音频录制（捕获页面并列显示）、FSRS 评分（表情符号4级+防作弊+事后修正）。Created 02-CONTEXT.md.
-- 2026-03-23: Executed 02-01 (Library API routes). Created GET /api/library/list (domain filter, innerJoin reviewState, contentPreview) and DELETE /api/library/delete (ownership check, sequential delete of review_state then knowledge_item). Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-01-PLAN.md
-- 2026-03-23: Executed 02-03 (FSRS API routes). Installed ts-fsrs, created src/lib/fsrs.ts (dbRowToFsrsCard, fsrsResultToDbUpdate with RecordLogItem type), GET /api/review/today (items due via lte nextReviewAt + innerJoin), POST /api/review/rate (first-review createEmptyCard, ownership check, FSRS update). Requirements FSRS-01, FSRS-02, FSRS-03, FSRS-04, REVIEW-01, REVIEW-04 completed. Stopped at: Completed 02-review-loop-02-03-PLAN.md
-- 2026-03-23: Executed 02-05 (Audio capture pipeline). Created POST /api/audio/signed-url (Supabase signed URL for audio bucket), POST /api/audio/transcribe (download audio, 25MB check, gpt-4o-mini-transcribe, persist to transcriptions table), AudioRecorder.tsx (codec detection, waveform, pause/resume, direct uploadToSignedUrl). Updated capture page with two-column grid layout. Requirements AUDIO-01, AUDIO-02, AUDIO-03, TRANS-01, TRANS-02, TRANS-03 completed. Stopped at: Completed 02-review-loop-02-05-PLAN.md
-- 2026-03-23: Executed 02-02 (Library UI). Created /library page with sidebar domain navigation (DomainSidebar), list/grid toggle (KnowledgeItemCard), detail modal, delete with confirm(), all wired to /api/library/list and /api/library/delete. Requirements LIB-01, LIB-02, LIB-03 completed. Stopped at: Completed 02-review-loop-02-02-PLAN.md
-- 2026-03-23: Executed 02-05-GAP (WebM to WAV conversion). Fixed audio transcription by converting webm recording to WAV format before upload for SiliconFlow API compatibility. Added proper AudioContext resource cleanup. Committed changes.
+- 2026-03-24: Plan 03-02 completed. Search API implementation with PostgreSQL full-text search (tsvector/tsquery), ts_rank relevance scoring, ts_headline excerpt generation. Created src/lib/search.ts and src/app/api/search/route.ts. 3 commits: search utility module, search API endpoint, import pattern fixes.
 
 ---
 
