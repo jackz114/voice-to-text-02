@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!Number.isInteger(rating) || rating < 1 || rating > 4) {
+    if (typeof rating !== "number" || !Number.isInteger(rating) || rating < 1 || rating > 4) {
       return NextResponse.json(
         { error: "评分必须是 1-4 之间的整数", code: "INVALID_RATING" },
         { status: 400 }
