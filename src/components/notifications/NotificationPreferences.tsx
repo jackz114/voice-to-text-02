@@ -42,7 +42,7 @@ export function NotificationPreferences({
     try {
       const response = await fetch("/api/notifications/preferences");
       if (!response.ok) throw new Error("Failed to fetch preferences");
-      const data = await response.json();
+      const data = await response.json() as PreferencesResponse;
       setPreferences(data);
     } catch (_err) {
       setError("加载设置失败");
