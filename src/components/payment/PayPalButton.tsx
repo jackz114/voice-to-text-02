@@ -93,11 +93,11 @@ export function PayPalButton({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(errorData.error || "创建订单失败");
       }
 
-      const data = await response.json();
+      const data = await response.json() as { orderId: string };
       return data.orderId;
     } catch (error) {
       console.error("Create order error:", error);
@@ -120,11 +120,11 @@ export function PayPalButton({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(errorData.error || "支付处理失败");
       }
 
-      const orderData = await response.json();
+      const orderData = await response.json() as Record<string, unknown>;
       onSuccess?.(orderData);
     } catch (error) {
       console.error("Capture order error:", error);
@@ -259,11 +259,11 @@ export function PayPalSubscriptionButton({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(errorData.error || "订阅验证失败");
       }
 
-      const subscriptionData = await response.json();
+      const subscriptionData = await response.json() as Record<string, unknown>;
       onSuccess?.(subscriptionData);
     } catch (error) {
       console.error("Subscription verification error:", error);
