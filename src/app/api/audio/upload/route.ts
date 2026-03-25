@@ -1,3 +1,5 @@
+/// <reference types="./cloudflare" />
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -53,9 +55,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 步骤 5: 生成唯一文件名
+    // 步骤 5: 生成唯一文件名 (使用 crypto 替代 Math.random)
     const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(2, 11);
+    const randomSuffix = crypto.randomUUID().replace(/-/g, "").substring(0, 10);
     const fileExtension = file.name.split(".").pop() || "webm";
     const key = `audio/${user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
 

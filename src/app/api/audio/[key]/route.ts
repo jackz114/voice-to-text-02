@@ -1,3 +1,5 @@
+/// <reference types="../../../types/cloudflare" />
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -66,7 +68,8 @@ export async function GET(
     headers.set("etag", object.httpEtag);
     headers.set("Cache-Control", "public, max-age=31536000"); // 缓存一年
 
-    return new NextResponse(object.body as ReadableStream, {
+    // 使用 Web Streams API 直接传递 body，避免类型断言
+    return new Response(object.body, {
       headers,
     });
   } catch (error) {
