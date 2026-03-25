@@ -83,7 +83,10 @@ export default function CapturePage() {
         },
         body: JSON.stringify({ items: acceptedItems }),
       });
-      const data = await response.json();
+      const data = await response.json() as {
+        error?: string;
+        savedCount?: number;
+      };
       if (!response.ok) {
         setError(data.error ?? "保存失败，请重试。");
         setCaptureState("confirming");
@@ -120,7 +123,10 @@ export default function CapturePage() {
         body: JSON.stringify({ text, sourceUrl }),
       });
 
-      const data = await response.json();
+      const data = await response.json() as {
+        error?: string;
+        items?: KnowledgeItemCandidate[];
+      };
 
       if (!response.ok) {
         setError(data.error ?? "提取失败，请检查网络后重试。");
