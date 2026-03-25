@@ -4,11 +4,22 @@
 import OpenAI from "openai";
 import { z } from "zod/v3"; // 必须使用 zod/v3 路径，不能用 'zod' — 见研究报告 Pitfall 1
 
-// DeepSeek 单例（兼容 OpenAI SDK，使用 DeepSeek API）
-const openai = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: "https://api.deepseek.com",
-});
+// DeepSeek 客户端懒加载（避免构建时因缺少环境变量而报错）
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiInstance) {
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing DEEPSEEK_API_KEY environment variable");
+    }
+    openaiInstance = new OpenAI({
+      apiKey,
+      baseURL: "https://api.deepseek.com",
+    });
+  }
+  return openaiInstance;
+}
 
 // Zod schema — 单个知识条目（返回给前端的候选项）
 export const KnowledgeItemCandidateSchema = z.object({
@@ -62,7 +73,7 @@ async function extractFromChunk(
   sourceUrl?: string
 ): Promise<KnowledgeItemCandidate[]> {
   const sourceHint = sourceUrl ? `\n来源网址: ${sourceUrl}` : "";
-  const result = await openai.chat.completions.create({
+  const result = await getOpenAIClient().chat.completions.create({
     model: "deepseek-chat",
     temperature: 0, // temperature: 0 是防止幻觉的必要设置
     response_format: { type: "json_object" },
@@ -118,5 +129,3 @@ export async function extractKnowledgeItems(
     return true;
   });
 }
-
-export { openai };
