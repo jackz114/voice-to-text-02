@@ -3,7 +3,7 @@
   "name": "voice-to-text-02",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-03-21",
-  "compatibility_flags": ["nodejs_compat", "enable_nodejs_fs_module"],
+  "compatibility_flags": ["nodejs_compat_v2"],
 
   "vars": {
     "ENVIRONMENT": "production"

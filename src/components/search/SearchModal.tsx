@@ -30,7 +30,6 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
   const [debouncedQuery] = useDebounce(query, 300);
 
   // Fetch search results when debounced query changes
-  // eslint-disable-next-line
   useEffect(() => {
     if (debouncedQuery.length < 2) {
       setResults([]);
@@ -114,15 +113,16 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
             onValueChange={setQuery}
             className="flex-1 border-0 bg-transparent px-4 py-4 text-base outline-none placeholder:text-gray-400"
           />
-          {loading && <Loader2 className="h-5 w-5 animate-spin text-gray-400" />}
-          {!loading && query && (
+          {loading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          ) : query ? (
             <button
               onClick={() => setQuery("")}
               className="rounded-full p-1 hover:bg-gray-100"
             >
               <X className="h-4 w-4 text-gray-400" />
             </button>
-          )}
+          ) : null}
           <kbd className="ml-2 hidden rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-500 sm:inline-block">
             ESC
           </kbd>
@@ -131,22 +131,16 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
         {/* Results area */}
         <Command.List className="max-h-[60vh] overflow-y-auto p-2">
           {/* Loading state */}
-          {loading && (
+          {loading ? (
             <div className="flex items-center justify-center py-8 text-gray-500">
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               搜索中...
             </div>
-          )}
-
-          {/* Error state */}
-          {error && !loading && (
+          ) : error ? (
             <div className="py-8 text-center text-red-500">
               <p>{error}</p>
             </div>
-          )}
-
-          {/* Search history (D-12) */}
-          {showHistory && (
+          ) : showHistory ? (
             <Command.Group heading="搜索历史">
               {history.map((item) => (
                 <Command.Item
@@ -171,10 +165,7 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
                 </Command.Item>
               ))}
             </Command.Group>
-          )}
-
-          {/* Empty state with no query */}
-          {!showHistory && query.length === 0 && !loading && (
+          ) : query.length === 0 ? (
             <div className="py-8 text-center text-gray-500">
               <Search className="mx-auto mb-3 h-8 w-8 text-gray-300" />
               <p>输入关键词开始搜索</p>
@@ -182,10 +173,7 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
                 支持标题、内容、标签、来源搜索
               </p>
             </div>
-          )}
-
-          {/* Empty results */}
-          {!loading && !error && query.length >= 2 && results.length === 0 && (
+          ) : results.length === 0 ? (
             <Command.Empty>
               <div className="py-8 text-center">
                 <p className="text-gray-600">
@@ -196,10 +184,7 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
                 </p>
               </div>
             </Command.Empty>
-          )}
-
-          {/* Search results */}
-          {results.length > 0 && !loading && (
+          ) : (
             <Command.Group heading="搜索结果">
               {results.map((result) => (
                 <Command.Item
@@ -221,7 +206,7 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
                       className="line-clamp-2 text-sm text-gray-600"
                       dangerouslySetInnerHTML={{ __html: result.excerpt }}
                     />
-                    {result.tags.length > 0 && (
+                    {result.tags.length > 0 ? (
                       <div className="mt-1 flex flex-wrap gap-1">
                         {result.tags.slice(0, 3).map((tag) => (
                           <span
@@ -232,7 +217,7 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
                           </span>
                         ))}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </Command.Item>
               ))}
@@ -240,7 +225,7 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
           )}
 
           {/* View all results link */}
-          {results.length > 0 && !loading && (
+          {results.length > 0 && !loading ? (
             <Command.Item
               value="view-all"
               onSelect={handleViewAll}
@@ -248,7 +233,7 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
             >
               查看全部 {results.length >= 5 ? "结果" : `${results.length} 条结果`} →
             </Command.Item>
-          )}
+          ) : null}
         </Command.List>
 
         {/* Footer with keyboard shortcuts */}

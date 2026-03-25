@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import { getPayPalAccessToken } from "../paypal-client";
 
 const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID || "";
 const PAYPAL_API_URL = process.env.PAYPAL_API_URL || "https://api-m.sandbox.paypal.com";
@@ -60,30 +60,6 @@ async function verifyWebhookSignature(
     console.error("Webhook signature verification error:", error);
     return false;
   }
-}
-
-// 获取 PayPal 访问令牌
-async function getPayPalAccessToken(): Promise<string> {
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "";
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET || "";
-
-  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-
-  const response = await fetch(`${PAYPAL_API_URL}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to get PayPal access token");
-  }
-
-  const data = await response.json();
-  return data.access_token;
 }
 
 /**

@@ -210,7 +210,7 @@ export function KnowledgeLibrary() {
         </div>
 
         {/* Content area */}
-        {loading && (
+        {loading ? (
           <div className="flex items-center justify-center py-16">
             <div
               className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900"
@@ -218,15 +218,11 @@ export function KnowledgeLibrary() {
             />
             <span className="ml-3 text-gray-500 text-sm">加载中…</span>
           </div>
-        )}
-
-        {!loading && error && (
+        ) : error ? (
           <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
             {error}
           </div>
-        )}
-
-        {!loading && !error && items.length === 0 && (
+        ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-gray-500 mb-4">暂无知识条目，去添加一些吧</p>
             <a
@@ -236,9 +232,7 @@ export function KnowledgeLibrary() {
               去捕获知识
             </a>
           </div>
-        )}
-
-        {!loading && !error && items.length > 0 && (
+        ) : (
           <div
             className={
               viewMode === "grid"
@@ -300,7 +294,7 @@ export function KnowledgeLibrary() {
             </div>
 
             {/* Tags */}
-            {viewingItem.tags.length > 0 && (
+            {viewingItem.tags.length > 0 ? (
               <div className="flex flex-wrap gap-2 mb-4">
                 {viewingItem.tags.map((tag) => (
                   <span
@@ -311,10 +305,10 @@ export function KnowledgeLibrary() {
                   </span>
                 ))}
               </div>
-            )}
+            ) : null}
 
             {/* Source link */}
-            {viewingItem.source && (
+            {viewingItem.source ? (
               <div className="mb-4">
                 <a
                   href={viewingItem.source}
@@ -325,7 +319,7 @@ export function KnowledgeLibrary() {
                   {viewingItem.source}
                 </a>
               </div>
-            )}
+            ) : null}
 
             {/* Dates */}
             <div className="flex flex-wrap gap-4 text-xs text-gray-500 border-t pt-4">

@@ -8,7 +8,7 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as { orderId?: string };
     const { orderId } = body;
 
     // 参数验证

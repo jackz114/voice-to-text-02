@@ -1,4 +1,4 @@
-/// <reference types="./cloudflare" />
+/// <reference types="../../../../types/cloudflare" />
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";

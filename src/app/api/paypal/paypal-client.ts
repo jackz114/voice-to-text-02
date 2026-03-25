@@ -251,12 +251,12 @@ export async function getSubscriptionDetails(
 
 // 生成发票 ID
 function generateInvoiceId(): string {
-  return `INV-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+  return `INV-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").substring(0, 9)}`;
 }
 
 // 生成请求 ID
 function generateRequestId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+  return `${Date.now()}-${crypto.randomUUID().replace(/-/g, "").substring(0, 12)}`;
 }
 
 export type { PayPalOrder, PayPalPurchaseUnit };

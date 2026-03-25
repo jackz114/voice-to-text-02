@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
 
   // 输出配置（Cloudflare Workers 适配器会自动处理）
   // output: "standalone",
+
+  // 优化包导入，减少冷启动时间
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
 };
 
 export default nextConfig;

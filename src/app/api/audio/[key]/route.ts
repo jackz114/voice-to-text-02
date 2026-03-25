@@ -1,4 +1,4 @@
-/// <reference types="../../../types/cloudflare" />
+/// <reference types="../../../../types/cloudflare" />
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -64,12 +64,12 @@ export async function GET(
 
     // 步骤 6: 返回文件内容
     const headers = new Headers();
-    object.writeHttpMetadata(headers);
+    object.writeHttpMetadata(headers as unknown as import("@cloudflare/workers-types").Headers);
     headers.set("etag", object.httpEtag);
     headers.set("Cache-Control", "public, max-age=31536000"); // 缓存一年
 
-    // 使用 Web Streams API 直接传递 body，避免类型断言
-    return new Response(object.body, {
+    // 使用 Web Streams API 直接传递 body
+    return new Response(object.body as unknown as BodyInit, {
       headers,
     });
   } catch (error) {

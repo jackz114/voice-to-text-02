@@ -105,13 +105,13 @@ export default function PaymentPage() {
         </div>
 
         {/* 错误提示 */}
-        {error && (
+        {error ? (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
             <p className="text-red-700 dark:text-red-400 text-sm text-center">
               {error}
             </p>
           </div>
-        )}
+        ) : null}
 
         {/* 单次购买 */}
         {activeTab === "onetime" && (
@@ -290,7 +290,7 @@ export default function PaymentPage() {
         )}
 
         {/* 支付成功提示 */}
-        {paymentResult?.success && (
+        {paymentResult?.success ? (
           <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
             <div className="flex items-center justify-center mb-4">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
@@ -309,10 +309,10 @@ export default function PaymentPage() {
               金额: {paymentResult.currency} {paymentResult.amount}
             </p>
           </div>
-        )}
+        ) : null}
 
         {/* 订阅成功提示 */}
-        {!!subscriptionResult?.success && (
+        {subscriptionResult?.success ? (
           <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
             <div className="flex items-center justify-center mb-4">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
@@ -328,7 +328,7 @@ export default function PaymentPage() {
               欢迎加入月度会员，无限量使用语音转文本服务
             </p>
           </div>
-        )}
+        ) : null}
 
         {/* 使用说明 */}
         <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
