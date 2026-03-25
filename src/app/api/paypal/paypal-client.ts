@@ -92,7 +92,7 @@ export async function getPayPalAccessToken(): Promise<string> {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as { error_description?: string; message?: string };
     throw new PayPalError(
       `Failed to get PayPal access token: ${errorData.error_description || response.statusText}`,
       response.status,

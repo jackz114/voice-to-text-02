@@ -64,12 +64,14 @@ export async function GET(
 
     // 步骤 6: 返回文件内容
     const headers = new Headers();
-    object.writeHttpMetadata(headers as unknown as import("@cloudflare/workers-types").Headers);
+    // 手动设置 content-type，避免 writeHttpMetadata 的类型冲突
+    const contentType = object.httpMetadata?.contentType || "application/octet-stream";
+    headers.set("content-type", contentType);
     headers.set("etag", object.httpEtag);
     headers.set("Cache-Control", "public, max-age=31536000"); // 缓存一年
 
     // 使用 Web Streams API 直接传递 body
-    return new Response(object.body as unknown as BodyInit, {
+    return new Response(object.body as ReadableStream<Uint8Array>, {
       headers,
     });
   } catch (error) {
