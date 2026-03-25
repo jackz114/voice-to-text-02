@@ -187,12 +187,12 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
       setIsTranscribing(false);
 
       if (!transcribeRes.ok) {
-          const errorData = await transcribeRes.json().catch(() => ({}));
+          const errorData = await transcribeRes.json().catch(() => ({})) as { error?: string };
           console.error("转写 API 错误:", transcribeRes.status, errorData);
           setError(`转写失败: ${errorData.error || transcribeRes.status}`);
           return;
         }
-      const { text } = await transcribeRes.json();
+      const { text } = await transcribeRes.json() as { text: string };
       onTranscriptReady(text);
     } catch (err) {
       setIsUploading(false);
