@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 // 获取音频文件 (通过 API 代理访问 R2)
 // 路由: GET /api/audio/[key]
@@ -9,11 +9,16 @@ export async function GET(
 ) {
   try {
     // 步骤 1: 验证用户身份 (可选: 如果是公开分享可以去掉)
-    const supabase = createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token ?? undefined);
 
     if (authError || !user) {
       return NextResponse.json(

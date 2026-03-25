@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 // 上传音频文件到 R2
 // 路由: POST /api/audio/upload
 export async function POST(request: NextRequest) {
   try {
     // 步骤 1: 验证用户身份
-    const supabase = createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token ?? undefined);
 
     if (authError || !user) {
       return NextResponse.json(
