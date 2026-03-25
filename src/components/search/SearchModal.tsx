@@ -43,10 +43,10 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
     fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}&limit=5`)
       .then(async (res) => {
         if (!res.ok) {
-          const data = await res.json();
+          const data = await res.json() as { error?: string };
           throw new Error(data.error || "Search failed");
         }
-        return res.json();
+        return res.json() as Promise<{ results?: SearchResult[] }>;
       })
       .then((data) => {
         setResults(data.results || []);
