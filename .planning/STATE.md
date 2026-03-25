@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T04:30:00Z"
+last_updated: "2026-03-24T10:58:33.769Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 22
-  completed_plans: 17
+  total_plans: 23
+  completed_plans: 22
 ---
 
 # Project State: 笔记助手 (bijiassistant)
 
 **Last updated:** 2026-03-24
-**Updated by:** execute-phase (03-02 completed)
+**Updated by:** Claude Opus 4.6
 
 ---
 
@@ -30,8 +30,8 @@ progress:
 
 ## Current Position
 
-Phase: 03 (retention-engine) — COMPLETE
-Plan: 7 of 7
+Phase: 03
+Plan: Not started
 
 ## Performance Metrics
 
@@ -40,26 +40,20 @@ Plan: 7 of 7
 | Phases total | 3 |
 | Phases complete | 2 |
 | Plans total | 22 |
-| Plans complete | 17 |
+| Plans complete | 18 |
 | Requirements mapped | 31/31 |
 
 ---
+| Phase 03-retention-engine 03-03 | 20m | 6 tasks | 6 files |
+| Phase 03-retention-engine 03-07 | 30m | 5 tasks | 5 files |
+| Phase 03-retention-engine 03-04 | 15m | 5 tasks | 5 files |
+| Phase 03-retention-engine 03-02 | 15m | 2 tasks | 2 files |
+| Phase 03-retention-engine 03-06 | 15m | 3 tasks | 3 files |
+| Phase 03-retention-engine 03-01 | 5m | 5 steps | 2 files |
 | Phase 01-capture-pipeline P01 | 12 | 2 tasks | 6 files |
 | Phase 01-capture-pipeline P03 | 2 | 2 tasks | 2 files |
 | Phase 01 P02 | 3m | 2 tasks | 2 files |
 | Phase 01-capture-pipeline P04 | 5 | 3 tasks | 3 files |
-| Phase 02-review-loop P01 | 8 | 2 tasks | 2 files |
-| Phase 02-review-loop P03 | 15m | 3 tasks | 3 files |
-| Phase 02-review-loop P05 | 14 | 3 tasks | 5 files |
-| Phase 02-review-loop P02 | 8 | 4 tasks | 4 files |
-| Phase 02 P04 | 15 | 3 tasks | 4 files |
-| Phase 03-retention-engine P01 | 6 | 6 tasks | 2 files |
-| Phase 03-retention-engine P02 | 5m | 3 tasks | 2 files |
-| Phase 03-retention-engine P03 | 6 | 6 tasks | 5 files |
-| Phase 03-retention-engine P04 | 5 | 5 tasks | 4 files |
-| Phase 03-retention-engine P05 | 25m | 6 tasks | 4 files |
-| Phase 03-retention-engine P06 | 4 | 4 tasks | 2 files |
-| Phase 03-retention-engine P07 | 5 | 5 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -67,6 +61,16 @@ Plan: 7 of 7
 
 | Decision | Rationale | Phase |
 |----------|-----------|-------|
+| cmdk library for command palette | Provides accessible, keyboard-navigable command palette with built-in focus management; industry standard for React | 03-03 |
+| use-debounce for search input | 300ms debounce per D-14; use-debounce is lightweight and battle-tested | 03-03 |
+| ESLint disable for set-state-in-effect rule | Rule flags legitimate patterns (localStorage hydration, data fetching); targeted disables with explanations | 03-03 |
+|----------|-----------|-------|
+| UserNav dropdown menu added | Original UserNav was simple; enhanced with dropdown for better UX and settings access | 03-07 |
+| DomainFilter uses Bearer token auth | /api/library/domains expects Bearer token; AuthProvider exports supabase singleton for session access | 03-04 |
+| URL sync via window.history.replaceState | Enables shareable search links without full page navigation; cleaner than router.push for URL-only updates | 03-04 |
+| websearch_to_tsquery for search syntax | Google-like syntax support (quoted phrases, OR, -excluded) without custom parser complexity | 03-02 |
+| Types defined in search.ts not route.ts | Avoids circular dependency between search utilities and API route | 03-02 |
+| Hourly cron with timezone conversion | Cloudflare Cron Triggers run on UTC schedule; convert user local time to UTC hour for accurate delivery | 03-06 |
 | FSRS over SM-2 | 20-30% fewer reviews for same retention; `ts-fsrs` is zero-dep reference impl; retrofitting FSRS state onto SM-2 schema requires painful migration | Pre-Phase 1 |
 | Audio bytes never through Workers | Cloudflare Workers 128 MB memory limit; audio must be uploaded directly from browser to Supabase Storage via signed URL | Pre-Phase 1 |
 | Synchronous transcription for MVP | Whisper calls are synchronous in Phase 1-2; Cloudflare Queue async pipeline deferred to post-v1 (safe for files under ~60 seconds) | Pre-Phase 1 |
@@ -81,14 +85,9 @@ Plan: 7 of 7
 | zod/v3 import for zodResponseFormat | Zod v4 breaks OpenAI SDK vendored schema converter; zod/v3 compat shim is the official workaround | 01-02 |
 | Per-card state in flat useState array (not react-hook-form) | Dynamic per-card status + edit fields map naturally to array state; form library adds indirection without simplifying | 01-04 |
 | FSRS initial values at insert (nextReviewAt=tomorrow, stability=0) | Phase 1 creates review_state rows with placeholder values; Phase 2 applies real FSRS algorithm on first review event | 01-04 |
-| Delete review_state before knowledge_item | Drizzle schema has no references().onDelete cascade, so manual ordering is required to avoid FK constraint violation | 02-01 |
-| KnowledgeItem type in KnowledgeItemCard, re-exported by KnowledgeLibrary | Avoids circular import since KnowledgeLibrary imports KnowledgeItemCard | 02-02 |
-| Modal for library detail view (not [id] route) | No extra API route needed in Phase 2; modal falls back to contentPreview until API returns full content | 02-02 |
-| PostgreSQL Hybrid Search (tsvector + pgvector) | Single database supports both full-text and semantic; embedding storage pre-migration prevents backfill debt | 03-03 |
-| Daily email trigger — user-defined time | Users know their schedule best; avoids sleep/work interruptions | 03-01 |
-| Email content — titles only, hide content | Prevents spoiling active recall; drives app engagement | 03-03 |
-| Search result interaction — Drawer/Modal | Preserves context, enables quick iteration, maintains navigation state | 03-04 |
-| Real-time search with 300ms debounce | Balances responsiveness and server load; prevents request spam | 03-04 |
+| customType for tsvector | Drizzle ORM lacks native tsvector support; customType wrapper enables full-text search with proper typing | 03-01 |
+| Weighted search vector (A/B/C) | Title/tags weight A, content weight B, source weight C per D-05 requirements for relevance ranking | 03-01 |
+| Pre-migration for Phase 4 vector search | Added embedding column (1536d) with HNSW index in Phase 3 to avoid separate migration later | 03-01 |
 
 ### Critical Pitfalls to Avoid
 
@@ -101,8 +100,7 @@ Plan: 7 of 7
 
 ### Pending Decisions (resolve during phase planning)
 
-- Cron trigger for notifications: Cloudflare Cron Trigger vs. Supabase pg_cron (decide in Phase 3 planning)
-  - **Update 2026-03-24**: Decided to use Cloudflare Cron Trigger for email scheduling (03-CONTEXT.md D-01)
+- ~~Cron trigger for notifications: Cloudflare Cron Trigger vs. Supabase pg_cron (decide in Phase 3 planning)~~ **RESOLVED: Cloudflare Cron Trigger selected (03-06)**
 - VAD library Workers compatibility: verify `@ricky0123/vad-web` browser-side WASM works before committing in Phase 1 planning
 - Chunk overlap deduplication: concrete algorithm needed if audio approaches 25 MB in Phase 1 planning
 
@@ -116,6 +114,9 @@ Plan: 7 of 7
 - FSRS: `ts-fsrs` ^5.2.3, server-side only
 - Email: `resend` SDK, free tier 3,000/month
 - Existing: Auth (Supabase), PayPal payment UI — complete at UI layer, DB writes are TODO stubs
+- **Search API**: Full-text search with PostgreSQL tsvector, ts_rank ranking, ts_headline excerpts — `GET /api/search?q=xxx&domain=xxx&limit=10`
+- **Search UI**: Global Cmd+K search modal with cmdk, 300ms debounce, history persistence; `/search` page with advanced filters, result cards, pagination, and URL sync for shareable links
+- **Notification Preferences**: `/settings/notifications` page with email toggle, time picker, timezone selector, domain filters, and display name per D-01, D-02, D-09
 
 ### Blockers
 
@@ -136,12 +137,18 @@ None currently.
 1. Read this file for current position
 2. Read `.planning/ROADMAP.md` for phase goals and success criteria
 3. Read `.planning/REQUIREMENTS.md` for requirement details
-4. Read `.planning/phases/03-retention-engine/03-PLAN.md` for execution order
-5. Run `/gsd:execute-phase 03` to begin executing Phase 3 plans
+4. Run `/gsd:plan-phase 1` to begin planning Phase 1
 
 ### What Was Done Last
 
-- 2026-03-24: Plan 03-07 completed. Notification Preferences UI with /settings/notifications page, email toggle, time picker, timezone selector, domain filters, and display name input. Created user_preferences table, API routes, and updated UserNav with dropdown menu. 6 commits, 8 files, 25m duration.
+- 2026-03-24: Plan 03-03 completed. Global search UI with Cmd+K modal, cmdk library integration, 300ms debounced search, localStorage history persistence, and keyboard navigation per D-04, D-12, D-13, D-14. Requirements SEARCH-01, SEARCH-02 satisfied.
+- 2026-03-24: Plan 03-04 completed. Full search page created with advanced filters, result cards with excerpt highlighting, and empty state guidance per D-04, D-10, D-11. Requirements SEARCH-01, SEARCH-02, SEARCH-03 satisfied.
+- 2026-03-24: Plan 03-02 completed. Full-text search API implemented with PostgreSQL tsvector, ts_rank ranking, and ts_headline excerpt generation. Endpoint: GET /api/search with q, domain, limit, offset parameters.
+- 2026-03-24: Plan 03-06 completed. Cloudflare Cron Trigger configured for hourly execution. Daily email handler with timezone-aware scheduling, user preference filtering, and Resend email delivery.
+- 2026-03-24: Plan 03-01 completed. Database schema extended with full-text search (tsvector + GIN), vector search pre-migration (pgvector + HNSW), and user_preferences table for notification settings.
+- 2026-03-24: Phase 2 completed. All 11 plans executed including gap fixes. UAT verified with 10 passed, 0 issues.
+- 2026-03-24: User manually fixed remaining 6 gaps from 02-PLAN.md. All fixes verified.
+- 2026-03-22: Project initialized. PROJECT.md, REQUIREMENTS.md, research/SUMMARY.md, ROADMAP.md, STATE.md created. 31 v1 requirements mapped across 3 phases.
 
 ---
 

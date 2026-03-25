@@ -1,10 +1,8 @@
-// src/components/search/DomainFilter.tsx
-// Domain filter dropdown for search
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { ChevronDown, X } from "lucide-react";
+import { supabase } from "@/components/auth/AuthProvider";
 
 interface DomainFilterProps {
   selectedDomain: string | null;
@@ -21,15 +19,34 @@ export function DomainFilter({
 
   useEffect(() => {
     // Fetch user's domains from the library API
-    fetch("/api/library/domains")
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchDomains = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch("/api/library/domains", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch domains");
+        }
+
+        const data = await response.json();
         setDomains(data.domains || []);
+      } catch (error) {
+        console.error("Error fetching domains:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchDomains();
   }, []);
 
   if (loading) {
@@ -55,7 +72,7 @@ export function DomainFilter({
             </span>
             <X
               className="h-4 w-4 text-gray-400 hover:text-gray-600"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<SVGSVGElement>) => {
                 e.stopPropagation();
                 onDomainChange(null);
               }}

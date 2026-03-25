@@ -1,6 +1,3 @@
-// src/components/search/SearchEmptyState.tsx
-// Empty state with guidance (D-11)
-
 "use client";
 
 import { useRouter } from "next/navigation";

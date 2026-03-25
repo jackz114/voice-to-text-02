@@ -1,0 +1,27 @@
+
+> voice-to-txt-02@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
+- Environments: .env
+✓ Ready in 1688ms
+
+ GET /settings/notifications 200 in 5.1s (next.js: 905ms, application-code: 4.2s)
+ GET /api/notifications/preferences 200 in 4.4s (next.js: 763ms, application-code: 3.6s)
+✓ Compiled in 2s
+[browser] TypeError: Failed to fetch
+    at new Promise (<anonymous>)
+ GET /settings/notifications 200 in 6.6s (next.js: 2.4s, application-code: 4.2s)
+ GET /api/notifications/preferences 200 in 1511ms (next.js: 45ms, application-code: 1466ms)
+ GET /settings/notifications 200 in 2.4s (next.js: 20ms, application-code: 2.4s)
+ GET /api/notifications/preferences 200 in 1863ms (next.js: 22ms, application-code: 1841ms)
+○ Compiling / ...
+⚠ Server is approaching the used memory threshold, restarting...
+▲ Next.js 16.2.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
+- Environments: .env
+✓ Ready in 3.5s
+

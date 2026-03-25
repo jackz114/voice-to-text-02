@@ -4,6 +4,26 @@
 import { sql, SQL } from "drizzle-orm";
 import { knowledgeItems } from "@/db/schema";
 
+// Search result types
+export type SearchResult = {
+  id: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  domain: string;
+  tags: string[];
+  source: string | null;
+  createdAt: Date;
+  rank: number;
+};
+
+export type SearchResponse = {
+  results: SearchResult[];
+  query: string;
+  total: number;
+  hasMore: boolean;
+};
+
 /**
  * Convert user query to PostgreSQL tsquery format
  * Uses websearch_to_tsquery for Google-like syntax support
@@ -111,6 +131,3 @@ export function validateQuery(query: string): {
 
   return { valid: true };
 }
-
-// Re-export types for convenience
-export type { SearchResult, SearchResponse } from "@/app/api/search/route";

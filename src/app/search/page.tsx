@@ -1,6 +1,3 @@
-// src/app/search/page.tsx
-// Full search page with advanced filters (D-04)
-
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";

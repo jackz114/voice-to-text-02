@@ -3,7 +3,7 @@
 
 import { Metadata } from "next";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
-import { createClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
@@ -11,23 +11,15 @@ export const metadata: Metadata = {
   description: "管理你的邮件提醒和通知偏好",
 };
 
-async function getUserDomains(): Promise<string[]> {
+async function getUserDomains(userId: string): Promise<string[]> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return [];
+    const supabase = await createServerSupabaseClient();
 
     // Fetch distinct domains from user's knowledge items
     const { data } = await supabase
       .from("knowledge_items")
       .select("domain")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     if (!data) return [];
 
@@ -40,11 +32,8 @@ async function getUserDomains(): Promise<string[]> {
 }
 
 export default async function NotificationsSettingsPage() {
-  // Check authentication
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  // Check authentication with server-side client
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -53,7 +42,7 @@ export default async function NotificationsSettingsPage() {
     redirect("/login?redirect_to=/settings/notifications");
   }
 
-  const domains = await getUserDomains();
+  const domains = await getUserDomains(user.id);
 
   return (
     <div className="min-h-screen bg-gray-50">

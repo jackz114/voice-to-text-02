@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { userPreferences } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { z } from "zod";
 
 // Validation schema for preferences
@@ -34,10 +34,6 @@ export type PreferencesResponse = {
 export async function GET() {
   try {
     // Authenticate user
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
     const {
       data: { user },
       error: authError,
@@ -58,22 +54,15 @@ export async function GET() {
       .limit(1);
 
     if (prefs.length === 0) {
-      // Create default preferences if not exists
-      const defaultPrefs = {
+      // This shouldn't happen due to trigger, but handle gracefully
+      return NextResponse.json({
         emailNotificationsEnabled: true,
         dailyReminderTime: "09:00",
         reminderTimezone: "Asia/Shanghai",
         includedDomains: [],
         saveSearchHistory: true,
         displayName: null,
-      };
-
-      await db.insert(userPreferences).values({
-        userId: user.id,
-        ...defaultPrefs,
-      });
-
-      return NextResponse.json(defaultPrefs satisfies PreferencesResponse);
+      } satisfies PreferencesResponse);
     }
 
     const pref = prefs[0];
@@ -99,10 +88,6 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
     const {
       data: { user },
       error: authError,
@@ -132,59 +117,39 @@ export async function POST(request: NextRequest) {
 
     const data = parseResult.data;
 
-    // Check if preferences exist, create if not
-    const existing = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, user.id))
-      .limit(1);
+    // Update preferences
+    const updateData: Partial<typeof userPreferences.$inferInsert> = {
+      updatedAt: new Date(),
+    };
 
-    if (existing.length === 0) {
-      // Create new preferences with defaults + updates
-      await db.insert(userPreferences).values({
-        userId: user.id,
-        emailNotificationsEnabled: data.emailNotificationsEnabled ?? true,
-        dailyReminderTime: data.dailyReminderTime ?? "09:00",
-        reminderTimezone: data.reminderTimezone ?? "Asia/Shanghai",
-        includedDomains: data.includedDomains ?? [],
-        saveSearchHistory: data.saveSearchHistory ?? true,
-        displayName: data.displayName ?? null,
-      });
-    } else {
-      // Update preferences
-      const updateData: Partial<typeof userPreferences.$inferInsert> = {
-        updatedAt: new Date(),
-      };
-
-      if (data.emailNotificationsEnabled !== undefined) {
-        updateData.emailNotificationsEnabled = data.emailNotificationsEnabled;
-      }
-
-      if (data.dailyReminderTime !== undefined) {
-        updateData.dailyReminderTime = data.dailyReminderTime;
-      }
-
-      if (data.reminderTimezone !== undefined) {
-        updateData.reminderTimezone = data.reminderTimezone;
-      }
-
-      if (data.includedDomains !== undefined) {
-        updateData.includedDomains = data.includedDomains;
-      }
-
-      if (data.saveSearchHistory !== undefined) {
-        updateData.saveSearchHistory = data.saveSearchHistory;
-      }
-
-      if (data.displayName !== undefined) {
-        updateData.displayName = data.displayName;
-      }
-
-      await db
-        .update(userPreferences)
-        .set(updateData)
-        .where(eq(userPreferences.userId, user.id));
+    if (data.emailNotificationsEnabled !== undefined) {
+      updateData.emailNotificationsEnabled = data.emailNotificationsEnabled;
     }
+
+    if (data.dailyReminderTime !== undefined) {
+      updateData.dailyReminderTime = data.dailyReminderTime;
+    }
+
+    if (data.reminderTimezone !== undefined) {
+      updateData.reminderTimezone = data.reminderTimezone;
+    }
+
+    if (data.includedDomains !== undefined) {
+      updateData.includedDomains = data.includedDomains;
+    }
+
+    if (data.saveSearchHistory !== undefined) {
+      updateData.saveSearchHistory = data.saveSearchHistory;
+    }
+
+    if (data.displayName !== undefined) {
+      updateData.displayName = data.displayName;
+    }
+
+    await db
+      .update(userPreferences)
+      .set(updateData)
+      .where(eq(userPreferences.userId, user.id));
 
     console.log(`Preferences updated for user ${user.id}`);
 

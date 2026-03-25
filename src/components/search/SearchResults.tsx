@@ -1,6 +1,3 @@
-// src/components/search/SearchResults.tsx
-// Search results list with result cards
-
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -52,7 +49,7 @@ interface SearchResultCardProps {
   onClick: () => void;
 }
 
-function SearchResultCard({ result, query: _query, onClick }: SearchResultCardProps) {
+function SearchResultCard({ result, query, onClick }: SearchResultCardProps) {
   const formattedDate = new Date(result.createdAt).toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "short",
@@ -106,7 +103,7 @@ function SearchResultCard({ result, query: _query, onClick }: SearchResultCardPr
         {result.source && (
           <div className="flex items-center gap-1">
             <ExternalLink className="h-4 w-4" />
-            <span className="truncate max-w-[200px]" title={result.source}>
+            <span className="max-w-[200px] truncate" title={result.source}>
               {result.source}
             </span>
           </div>

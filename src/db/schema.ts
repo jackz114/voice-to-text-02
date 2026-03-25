@@ -115,20 +115,40 @@ export const subscriptions = pgTable("subscriptions", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// Table 6: user_preferences — notification and user settings (D-01, D-02, D-09)
+// Table 6: user_preferences — notification and user settings (D-01, D-02)
 export const userPreferences = pgTable("user_preferences", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().unique(),
-  emailNotificationsEnabled: boolean("email_notifications_enabled").notNull().default(true),
-  dailyReminderTime: text("daily_reminder_time").notNull().default("09:00"), // HH:mm format
-  reminderTimezone: text("reminder_timezone").notNull().default("Asia/Shanghai"),
-  includedDomains: text("included_domains").array().notNull().default([]), // empty = all domains
-  saveSearchHistory: boolean("save_search_history").notNull().default(true),
-  displayName: text("display_name"), // for email personalization
+
+  // Notification settings (D-01, D-02)
+  emailNotificationsEnabled: boolean("email_notifications_enabled")
+    .notNull()
+    .default(true),
+  dailyReminderTime: text("daily_reminder_time")
+    .notNull()
+    .default("09:00"), // HH:mm format, per D-01
+  reminderTimezone: text("reminder_timezone")
+    .notNull()
+    .default("Asia/Shanghai"),
+
+  // Domain filters (D-02: empty array = all domains)
+  includedDomains: text("included_domains")
+    .array()
+    .notNull()
+    .default([]),
+
+  // Search settings (D-12)
+  saveSearchHistory: boolean("save_search_history")
+    .notNull()
+    .default(true),
+
+  // User profile (D-09)
+  displayName: text("display_name"),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// Export types for all tables
+// Export types for new tables
 export type UserPreference = typeof userPreferences.$inferSelect;
 export type NewUserPreference = typeof userPreferences.$inferInsert;

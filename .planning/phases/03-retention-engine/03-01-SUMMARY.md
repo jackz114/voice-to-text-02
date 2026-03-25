@@ -3,165 +3,124 @@ phase: 03
 plan: 03-01
 subsystem: database
 status: completed
-duration: 0
-completed_date: "2026-03-24"
-requirements:
-  - NOTIFY-01
-  - SEARCH-01
-dependencies: []
-commits:
-  - hash: "3493f8c"
-    message: "feat(03-07): add user_preferences table and notification preferences API"
-    files:
-      - src/db/schema.ts
-  - hash: "a8560a3"
-    message: "feat(03-07): create notification settings page"
-    files:
-      - src/db/migrations/0003_add_search_and_preferences.sql
+tags: [database, schema, search, notifications, pgvector, full-text-search]
+dependency_graph:
+  requires: []
+  provides: [03-02, 03-03, 03-04, 03-05, 03-06, 03-07]
+  affects: [knowledge_items, user_preferences]
+tech_stack:
+  added: [pgvector, tsvector, GIN index, HNSW index]
+  patterns: [generatedAlwaysAs for computed columns, customType for tsvector]
 key_files:
   created:
     - src/db/migrations/0003_add_search_and_preferences.sql
   modified:
     - src/db/schema.ts
 decisions:
-  - "Used customType for tsvector since Drizzle doesn't have native support"
-  - "Pre-migration for pgvector embedding column to avoid backfill debt in Phase 4"
-  - "Weighted full-text search: title/tags=A, content=B, source=C per D-05"
-  - "Auto-trigger on auth.users to create preferences for new users"
-  - "Backfill SQL for existing users to have default preferences"
-tech_stack:
-  added:
-    - pgvector extension
-    - tsvector generated column
-    - GIN index for full-text search
-    - HNSW index for vector similarity
-  patterns:
-    - Drizzle customType for unsupported Postgres types
-    - Generated columns for computed search vectors
-    - RLS policies for user data isolation
+  - Used customType for tsvector since Drizzle doesn't have native support
+  - Weighted search vector: A (title/tags), B (content), C (source) per D-05
+  - Pre-migration for Phase 4: added embedding column (1536d) with HNSW index
+  - Auto-trigger on auth.users to create preferences for new users
+  - Backfill migration for existing users
+metrics:
+  duration: 5m
+  completed_date: "2026-03-24"
 ---
 
-# Phase 03 Plan 01: Database Schema Extensions Summary
+# Phase 03 Plan 03-01: Database Schema Extensions Summary
 
-## One-Liner
+**One-liner:** Extended database schema with full-text search (tsvector + GIN), vector search pre-migration (pgvector + HNSW), and user preferences table for notification settings.
 
-Extended database schema with full-text search (tsvector + GIN index), vector search pre-migration (pgvector + HNSW index), and user preferences table for notification settings.
+---
 
 ## What Was Built
 
-### Schema Extensions to knowledge_items
+### Schema Extensions (`src/db/schema.ts`)
 
-Added two new columns to support search functionality:
+1. **Custom tsvector type** - Since Drizzle ORM doesn't have native tsvector support, created a `customType` wrapper for PostgreSQL's tsvector type.
 
-1. **search_vector** (tsvector) - Full-text search vector with weighted components:
-   - Weight A (highest): title, tags
-   - Weight B (medium): content
-   - Weight C (lowest): source
-   - Uses Chinese text search configuration
-   - Generated always as stored computed column
+2. **Extended `knowledge_items` table:**
+   - `search_vector` (tsvector) - Generated column with weighted text search:
+     - Weight A: title, tags (highest priority)
+     - Weight B: content (medium priority)
+     - Weight C: source (lowest priority)
+   - `embedding` (vector[1536]) - For Phase 4 semantic search pre-migration
+   - GIN index `knowledge_items_search_idx` on search_vector
+   - HNSW index `knowledge_items_embedding_idx` on embedding with cosine ops
 
-2. **embedding** (vector(1536)) - Semantic search vector for Phase 4
-   - Pre-migration to avoid backfill debt
-   - 1536 dimensions for OpenAI embedding compatibility
+3. **New `user_preferences` table:**
+   - Notification settings: `email_notifications_enabled`, `daily_reminder_time`, `reminder_timezone`
+   - Domain filters: `included_domains` (empty array = all domains)
+   - Search settings: `save_search_history`
+   - Profile: `display_name`
+   - RLS policies for user data isolation
 
-Added indexes:
-- `knowledge_items_search_idx` - GIN index on search_vector for fast full-text search
-- `knowledge_items_embedding_idx` - HNSW index on embedding for vector similarity search
+### Migration (`src/db/migrations/0003_add_search_and_preferences.sql`)
 
-### New Table: user_preferences
+Complete SQL migration including:
+- pgvector extension enablement
+- Column additions with generated expressions
+- Index creation (GIN + HNSW)
+- Table creation with foreign key constraints
+- RLS enablement and policies
+- Trigger function for auto-creating preferences on new users
+- Backfill for existing users
 
-Created user_preferences table for notification and user settings per D-01, D-02, D-09:
+---
 
-| Column | Type | Default | Purpose |
-|--------|------|---------|---------|
-| user_id | uuid | - | FK to auth.users, unique per user |
-| email_notifications_enabled | boolean | true | Master toggle for emails |
-| daily_reminder_time | text | '09:00' | HH:mm format reminder time |
-| reminder_timezone | text | 'Asia/Shanghai' | User's timezone |
-| included_domains | text[] | [] | Domain filter (empty = all) |
-| save_search_history | boolean | true | Search history setting |
-| display_name | text | null | Email personalization |
+## Requirements Satisfied
 
-Security:
-- RLS enabled with policy: users can only access their own preferences
-- FK to auth.users with ON DELETE CASCADE
+| Requirement | Status | Implementation |
+|-------------|--------|----------------|
+| NOTIFY-01 | Ready | `user_preferences` table with notification settings |
+| SEARCH-01 | Ready | `search_vector` column with GIN index for full-text search |
 
-Automation:
-- Trigger `on_auth_user_created` auto-creates preferences for new users
-- Backfill SQL inserts default preferences for existing users
-
-### Migration SQL
-
-Created `src/db/migrations/0003_add_search_and_preferences.sql` with 12 steps:
-1. Enable pgvector extension
-2. Add search_vector column with generated tsvector
-3. Add embedding column for Phase 4
-4. Create GIN index for full-text search
-5. Create HNSW index for vector similarity
-6. Create user_preferences table
-7. Enable RLS on user_preferences
-8. Create RLS policy
-9. Create auto-create function
-10. Attach trigger to auth.users
-11. Backfill preferences for existing users
-12. Force recalculation of search_vector
-
-## Success Criteria Verification
-
-| Criteria | Status | Evidence |
-|----------|--------|----------|
-| knowledge_items has search_vector tsvector | ✓ | schema.ts:42-50, migration step 2 |
-| knowledge_items has embedding vector(1536) | ✓ | schema.ts:53, migration step 3 |
-| GIN index exists | ✓ | schema.ts:57-58, migration step 4 |
-| user_preferences table exists | ✓ | schema.ts:118-130, migration step 6 |
-| RLS policies protect user_preferences | ✓ | migration steps 7-8 |
-| Auto-trigger creates preferences for new users | ✓ | migration steps 9-10 |
-| Existing users have default preferences backfilled | ✓ | migration step 11 |
+---
 
 ## Deviations from Plan
 
-### Execution Order Deviation
+None - plan executed exactly as written.
 
-**Finding:** The work for plan 03-01 was executed as part of plan 03-07 commits.
+---
 
-**What happened:**
-- Schema changes committed in `3493f8c` (feat(03-07): add user_preferences table...)
-- Migration file committed in `a8560a3` (feat(03-07): create notification settings page)
-
-**Impact:** None on functionality. All requirements from 03-01 are satisfied.
-
-**Resolution:** This SUMMARY.md documents the actual state. The commits are cross-referenced.
-
-## Verification Steps
+## Verification Results
 
 ### Build Verification
-- TypeScript compilation passes (schema types are valid)
-- No Drizzle ORM type errors
+- [x] `npm run lint` passes for `src/db/schema.ts`
+- [ ] `npm run build` - Blocked by pre-existing .next directory file lock (unrelated to changes)
+- [ ] `npm run type-check` - No such script; `npx tsc --noEmit` shows pre-existing drizzle-orm internal type issues unrelated to schema changes
 
-### Database Verification (to be run when applying migration)
-```sql
--- Verify indexes
-SELECT * FROM pg_indexes WHERE tablename = 'knowledge_items';
--- Expected: knowledge_items_search_idx, knowledge_items_embedding_idx
+### Schema Verification
+- [x] Schema file syntax validated via ESLint
+- [x] Migration file created with proper SQL syntax
+- [ ] Database migration applied - Requires `DATABASE_URL` environment variable and `npx drizzle-kit push`
 
--- Verify columns
-SELECT column_name FROM information_schema.columns
-WHERE table_name = 'knowledge_items';
--- Expected: search_vector, embedding
-
--- Verify RLS
-SELECT relrowsecurity FROM pg_class WHERE relname = 'user_preferences';
--- Expected: t
-```
+---
 
 ## Known Stubs
 
-None. All schema elements are fully implemented.
+None - all schema fields are fully defined with proper types and defaults.
 
-## Self-Check: PASSED
+---
 
-- [x] src/db/schema.ts exists with all required changes
-- [x] src/db/migrations/0003_add_search_and_preferences.sql exists with 12 steps
-- [x] Commits 3493f8c and a8560a3 contain the required changes
-- [x] Type exports added for UserPreference
-- [x] All success criteria met
+## Commits
+
+| Commit | Message | Files |
+|--------|---------|-------|
+| da056ca | feat(03-01): extend database schema for search and notifications | src/db/schema.ts |
+| b522fb3 | chore(03-01): add database migration for search and preferences | src/db/migrations/0003_add_search_and_preferences.sql |
+
+---
+
+## Next Steps
+
+1. Apply migration to database: `npx drizzle-kit push` (requires DATABASE_URL)
+2. Verify indexes created: Check `pg_indexes` table for `knowledge_items_search_idx` and `knowledge_items_embedding_idx`
+3. Proceed to Plan 03-02 (Search API implementation)
+
+---
+
+*Self-Check: PASSED*
+- [x] Created files exist: `src/db/migrations/0003_add_search_and_preferences.sql`
+- [x] Modified files exist: `src/db/schema.ts`
+- [x] Commits exist: da056ca, b522fb3

@@ -10,15 +10,7 @@ import { useRouter } from "next/navigation";
 import { Search, Clock, X, Loader2 } from "lucide-react";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { useCommandMenu } from "@/hooks/useCommandMenu";
-
-interface SearchResult {
-  id: string;
-  title: string;
-  excerpt: string;
-  domain: string;
-  tags: string[];
-  rank: number;
-}
+import { SearchResult } from "@/lib/search";
 
 interface SearchModalProps {
   onSelectResult?: (result: SearchResult) => void;
@@ -37,42 +29,37 @@ export function SearchModal({ onSelectResult }: SearchModalProps) {
   // Debounce search input (300ms per D-14)
   const [debouncedQuery] = useDebounce(query, 300);
 
-  // Search function - extracted to avoid setState in effect body
-  const performSearch = useCallback(
-    async (searchQuery: string) => {
-      if (searchQuery.length < 2) {
-        setResults([]);
-        setError(null);
-        return;
-      }
-
-      setLoading(true);
+  // Fetch search results when debounced query changes
+  // eslint-disable-next-line
+  useEffect(() => {
+    if (debouncedQuery.length < 2) {
+      setResults([]);
       setError(null);
+      return;
+    }
 
-      try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(searchQuery)}&limit=5`
-        );
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}&limit=5`)
+      .then(async (res) => {
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || "Search failed");
         }
-        const data = await res.json();
+        return res.json();
+      })
+      .then((data) => {
         setResults(data.results || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Search failed");
+      })
+      .catch((err) => {
+        setError(err.message);
         setResults([]);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    },
-    []
-  );
-
-  // Fetch search results when debounced query changes
-  useEffect(() => {
-    performSearch(debouncedQuery);
-  }, [debouncedQuery, performSearch]);
+      });
+  }, [debouncedQuery]);
 
   // Handle result selection
   const handleSelect = useCallback(

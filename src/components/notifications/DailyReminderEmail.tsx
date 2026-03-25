@@ -91,7 +91,7 @@ export function DailyReminderEmail({
                 href={`https://bijiassistant.shop/review?session=daily&source=email`}
                 className="mb-4 block w-full rounded-lg bg-blue-600 py-4 text-center text-base font-medium text-white"
               >
-                🚀 立即开始复习
+                立即开始复习
               </Button>
 
               {/* Secondary actions */}

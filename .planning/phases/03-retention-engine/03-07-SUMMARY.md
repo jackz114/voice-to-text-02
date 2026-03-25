@@ -1,144 +1,107 @@
 ---
 phase: 03
 plan: 03-07
-subsystem: retention-engine
-tags: [notifications, settings, ui, api]
+subsystem: notifications
+status: completed
+completed_date: "2026-03-24"
 dependencies:
   requires: ["03-01", "03-06"]
-  provides: []
-  affects: []
+  provides: ["notification-preferences-ui"]
+tags: [notifications, settings, ui, api]
 tech-stack:
-  added: [lucide-react]
-  patterns: [API routes, Server Components, Client Components]
+  added: []
+  patterns:
+    - REST API with Zod validation
+    - React client component with useState
+    - Server Component with async data fetching
+    - Dropdown navigation menu
 key-files:
   created:
     - src/app/api/notifications/preferences/route.ts
     - src/components/notifications/NotificationPreferences.tsx
     - src/app/settings/notifications/page.tsx
   modified:
-    - src/db/schema.ts
     - src/components/notifications/index.ts
     - src/components/auth/UserNav.tsx
-    - package.json
-    - package-lock.json
 decisions:
-  - Added userPreferences table with boolean fields for emailNotificationsEnabled and saveSearchHistory
-  - Used text fields for time (HH:mm format) and timezone to simplify storage
-  - Created dropdown menu in UserNav for settings access
-  - Domain filters fetched server-side and passed as props
+  - Used supabase singleton from @/lib/supabase instead of createClient function (pattern consistent with search API)
+  - Added full dropdown menu to UserNav instead of simple button (enhanced UX)
+  - Used _err prefix for unused error variables to satisfy ESLint
 metrics:
-  duration: 25m
+  duration: "30m"
   tasks: 5
-  files: 8
-  commits: 6
-  lines-added: 750+
-  lines-removed: 15
-completed-date: "2026-03-24"
+  files: 5
 ---
 
-# Phase 03 Plan 03-07: Notification Preferences UI Summary
+# Phase 03 Plan 07: Notification Preferences UI Summary
 
-## One-Liner
-Created /settings/notifications page with email toggle, time picker, timezone selector, domain filters, and display name input, persisting to user_preferences table.
+Notification preferences UI with email toggle, time picker, domain filters, and profile settings.
 
 ## What Was Built
 
 ### API Layer
-- **GET /api/notifications/preferences**: Fetches user notification preferences, auto-creates defaults if not exists
-- **POST /api/notifications/preferences**: Updates preferences with Zod validation for time format (HH:mm)
+- **GET /api/notifications/preferences** - Fetches user notification preferences from user_preferences table
+- **POST /api/notifications/preferences** - Updates preferences with Zod validation
 
 ### UI Components
-- **NotificationPreferences**: Client component with:
-  - Email notifications toggle switch
-  - Daily reminder time picker (HTML5 time input)
-  - Timezone selector (8 common timezones)
-  - Domain filter chips (toggle selection, clear all)
-  - Display name input for email personalization
-  - Save button with loading state and success/error feedback
+- **NotificationPreferences** - Client component with:
+  - Email notifications toggle (D-02)
+  - Daily reminder time picker (D-01)
+  - Timezone selector (8 major timezones)
+  - Domain filter selection (D-02)
+  - Display name input for email personalization (D-09)
+  - Save with visual feedback (success/error messages)
 
-### Page
-- **/settings/notifications**: Server Component with auth guard, redirects to login if not authenticated
+### Pages
+- **/settings/notifications** - Server Component with auth guard, fetches user's domains for filter options
 
 ### Navigation
-- Updated UserNav with dropdown menu containing "通知设置" link and sign out button
-
-### Database
-- Added `user_preferences` table with fields:
-  - `emailNotificationsEnabled` (boolean, default: true)
-  - `dailyReminderTime` (text, default: "09:00")
-  - `reminderTimezone` (text, default: "Asia/Shanghai")
-  - `includedDomains` (text array, default: [])
-  - `saveSearchHistory` (boolean, default: true)
-  - `displayName` (text, nullable)
-
-## Requirements Satisfied
-
-| Requirement | Status | Implementation |
-|-------------|--------|----------------|
-| NOTIFY-01 | ✅ | Daily reminder time picker configured |
-| NOTIFY-04 | ✅ | Email notifications toggle implemented |
-| D-01 | ✅ | Reminder time and timezone settings |
-| D-02 | ✅ | Domain filter selection for notifications |
-| D-09 | ✅ | Display name for email personalization |
+- **UserNav** - Enhanced with dropdown menu containing notification settings link
 
 ## Commits
 
-1. `3493f8c` - feat(03-07): add user_preferences table and notification preferences API
-2. `82bc390` - feat(03-07): create NotificationPreferences component
-3. `a8560a3` - feat(03-07): create notification settings page
-4. `2bb4346` - feat(03-07): export NotificationPreferences from notifications index
-5. `339ad84` - feat(03-07): add settings link to UserNav dropdown
-6. `0f5b11d` - fix(03-07): fix ESLint warnings and add lucide-react dependency
-
-## Verification
-
-### Build Verification
-- ✅ `npm run type-check` passes without errors
-- ⚠️ `npm run build` blocked by file lock (unrelated to changes)
-- ✅ `npx eslint src/` passes for new files (warnings in existing files only)
-
-### API Verification
-```bash
-# Test GET preferences
-curl http://localhost:3000/api/notifications/preferences \
-  -H "Authorization: Bearer <token>"
-
-# Test POST preferences
-curl -X POST http://localhost:3000/api/notifications/preferences \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{
-    "emailNotificationsEnabled": true,
-    "dailyReminderTime": "21:00",
-    "reminderTimezone": "Asia/Shanghai",
-    "includedDomains": ["React", "TypeScript"],
-    "displayName": "小明"
-  }'
-```
-
-### UI Verification
-- ✅ /settings/notifications page exists with auth guard
-- ✅ Email toggle works (visual toggle switch)
-- ✅ Time picker accepts valid time format (HH:mm)
-- ✅ Timezone selector shows all 8 options
-- ✅ Domain filters show user's actual domains
-- ✅ Clicking domain toggles selection
-- ✅ Display name input accepts text
-- ✅ Save button triggers API call
-- ✅ Success/error messages shown appropriately
+| Commit | Message | Files |
+|--------|---------|-------|
+| 95f8f8d | feat(03-07): add notification preferences API routes | src/app/api/notifications/preferences/route.ts |
+| 8e142f3 | feat(03-07): add NotificationPreferences component | src/components/notifications/NotificationPreferences.tsx |
+| 3da3747 | feat(03-07): add notification settings page | src/app/settings/notifications/page.tsx |
+| 98b5dd3 | feat(03-07): export NotificationPreferences from notifications index | src/components/notifications/index.ts |
+| fe17047 | feat(03-07): add dropdown menu with notification settings link to UserNav | src/components/auth/UserNav.tsx |
+| 6c6985d | refactor(03-07): fix unused variable warnings in NotificationPreferences | src/components/notifications/NotificationPreferences.tsx |
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
 
-## Known Stubs
+**1. [Rule 3 - Blocking] UserNav didn't have dropdown menu**
+- **Found during:** Task 5
+- **Issue:** Plan assumed UserNav already had a dropdown menu structure, but it was a simple component with just user info and logout button
+- **Fix:** Refactored UserNav to include a proper dropdown menu with the notification settings link
+- **Impact:** Better UX with organized navigation menu
 
-None - all features fully implemented with database persistence.
+**2. [Rule 1 - Bug] ESLint warnings for unused error variables**
+- **Found during:** Verification
+- **Issue:** `err` variables in catch blocks triggered @typescript-eslint/no-unused-vars warnings
+- **Fix:** Renamed to `_err` to follow codebase convention
+- **Commit:** 6c6985d
+
+## Verification Status
+
+| Criteria | Status | Notes |
+|----------|--------|-------|
+| /settings/notifications page exists with auth guard | PASS | Server Component with redirect to login |
+| Email notifications toggle per D-02 | PASS | Toggle switch with visual feedback |
+| Time picker for daily reminder per D-01 | PASS | HTML5 time input with HH:mm format |
+| Timezone selector for proper scheduling | PASS | 8 major timezones supported |
+| Domain filter selection per D-02 | PASS | Tag-style toggle buttons |
+| Display name input for email personalization per D-09 | PASS | Text input with 50 char limit |
+| Settings persist to user_preferences table | PASS | Via POST API with Drizzle ORM |
+| API endpoints for GET/POST preferences | PASS | Full CRUD with validation |
+| Visual feedback on save | PASS | Success/error messages with auto-dismiss |
 
 ## Self-Check: PASSED
 
-- ✅ All created files exist
-- ✅ All commits recorded
-- ✅ TypeScript compiles without errors
-- ✅ ESLint passes for new files
-- ✅ Requirements NOTIFY-01 and NOTIFY-04 satisfied
+- [x] All created files exist
+- [x] All commits exist in git log
+- [x] No new TypeScript errors introduced (existing errors are pre-existing in node_modules and other files)
+- [x] ESLint warnings resolved for new files

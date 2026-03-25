@@ -6,12 +6,14 @@ import { db } from "@/db";
 import { knowledgeItems } from "@/db/schema";
 import { sql, desc, eq, and } from "drizzle-orm";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import {
   toTsQuery,
   buildRankExpression,
   buildExcerptExpression,
   validateQuery,
+  SearchResult,
+  SearchResponse,
 } from "@/lib/search";
 
 // Search query validation schema
@@ -22,38 +24,16 @@ const searchQuerySchema = z.object({
   offset: z.coerce.number().min(0).default(0),
 });
 
-export type SearchResult = {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  domain: string;
-  tags: string[];
-  source: string | null;
-  createdAt: Date;
-  rank: number;
-};
-
-export type SearchResponse = {
-  results: SearchResult[];
-  query: string;
-  total: number;
-  hasMore: boolean;
-};
+// Re-export types for API consumers
+export type { SearchResult, SearchResponse } from "@/lib/search";
 
 export async function GET(request: NextRequest) {
   try {
     // Step 1: Authenticate user
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.replace("Bearer ", "");
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser(token ?? undefined);
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json(

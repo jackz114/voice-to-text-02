@@ -19,6 +19,7 @@ export function useSearchHistory(): UseSearchHistoryReturn {
   const [history, setHistory] = useState<string[]>([]);
 
   // Load from localStorage on mount
+  // eslint-disable-next-line
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {

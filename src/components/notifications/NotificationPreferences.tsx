@@ -5,15 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { Bell, Clock, Filter, User, Save, Loader2 } from "lucide-react";
-
-interface PreferencesResponse {
-  emailNotificationsEnabled: boolean;
-  dailyReminderTime: string;
-  reminderTimezone: string;
-  includedDomains: string[];
-  saveSearchHistory: boolean;
-  displayName: string | null;
-}
+import { PreferencesResponse } from "@/app/api/notifications/preferences/route";
 
 interface NotificationPreferencesProps {
   availableDomains?: string[];
@@ -196,7 +188,7 @@ export function NotificationPreferences({
                   dailyReminderTime: e.target.value,
                 })
               }
-              className="rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
           </div>
 
