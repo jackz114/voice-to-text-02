@@ -153,7 +153,11 @@ export function AudioRecorder({ onTranscriptReady, authToken }: AudioRecorderPro
         setIsUploading(false);
         return;
       }
-      const { signedUrl: _signedUrl, token, path } = await signedRes.json();
+      const { signedUrl: _signedUrl, token, path } = await signedRes.json() as {
+        signedUrl: string;
+        token: string;
+        path: string;
+      };
 
       // 步骤 2: 浏览器直接上传到 Supabase Storage（音频字节不经过 Cloudflare Worker）
       const supabase = createClient(
