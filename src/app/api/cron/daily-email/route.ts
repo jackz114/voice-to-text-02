@@ -13,11 +13,20 @@ import {
   formatDueDate,
 } from "@/lib/email-templates";
 
-// Initialize Supabase admin client for fetching user emails
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Initialize Supabase admin client for fetching user emails (lazy loading)
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error("Missing Supabase environment variables");
+    }
+    supabaseAdmin = createClient(url, key);
+  }
+  return supabaseAdmin;
+}
 
 interface DueItemsByUser {
   userId: string;
@@ -214,7 +223,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Fetch user email from Supabase
-      const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(
+      const { data: userData, error: userError } = await getSupabaseAdmin().auth.admin.getUserById(
         pref.userId
       );
 
