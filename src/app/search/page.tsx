@@ -58,7 +58,7 @@ function SearchPageContent() {
       const response = await fetch(`/api/search?${params}`);
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { error?: string };
         throw new Error(data.error || "Search failed");
       }
 
