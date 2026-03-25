@@ -4,10 +4,20 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+// Supabase 客户端懒加载（避免构建时因缺少环境变量而报错）
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabaseClient(): ReturnType<typeof createClient> {
+  if (!supabaseInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Missing Supabase environment variables");
+    }
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return supabaseInstance;
+}
 
 export default function AuthCallbackHandler() {
   const router = useRouter();
@@ -17,7 +27,7 @@ export default function AuthCallbackHandler() {
     const handleAuthCallback = async () => {
       try {
         // 处理 OAuth 回调
-        const { error } = await supabase.auth.exchangeCodeForSession(
+        const { error } = await getSupabaseClient().auth.exchangeCodeForSession(
           window.location.hash
         );
 

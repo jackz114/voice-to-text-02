@@ -3,10 +3,20 @@
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+// Supabase 客户端懒加载（避免构建时因缺少环境变量而报错）
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabaseClient(): ReturnType<typeof createClient> {
+  if (!supabaseInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Missing Supabase environment variables");
+    }
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return supabaseInstance;
+}
 
 interface GoogleAuthButtonProps {
   redirectTo?: string;
@@ -22,7 +32,7 @@ export function GoogleAuthButton({
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await getSupabaseClient().auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback?redirect_to=${redirectTo}`,
