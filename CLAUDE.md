@@ -44,9 +44,9 @@ npm run cf:secret:put <SECRET_NAME>
 
 **技术栈**：Next.js 16 App Router + React 19 + TypeScript（严格模式）+ Tailwind CSS v4，通过 `@opennextjs/cloudflare` 部署到 **Cloudflare Workers**。生产域名：`bijiassistant.shop`。
 
-**后端**：Supabase（Auth + Postgres + Storage）。ORM 选用 Drizzle，但**目前尚无任何 Drizzle schema 文件**——数据库表结构仅以 TypeScript interface 的形式定义在 `business_logic.md` 中，数据库集成是下一阶段的工作。
+**后端**：Supabase（Auth + Postgres）+ Cloudflare R2（音频存储）。ORM 选用 Drizzle，但**目前尚无任何 Drizzle schema 文件**——数据库表结构仅以 TypeScript interface 的形式定义在 `business_logic.md` 中，数据库集成是下一阶段的工作。
 
-**当前开发进度**：Auth UI 和 PayPal 支付 UI 已完成。支付 API 路由中的数据库写入操作均已注释（TODO 占位符）。语音转录功能尚未实现。
+**当前开发进度**：Auth UI 和 PayPal 支付 UI 已完成。支付 API 路由中的数据库写入操作均已注释（TODO 占位符）。音频存储使用 Cloudflare R2，转录功能尚未实现。
 
 ---
 
