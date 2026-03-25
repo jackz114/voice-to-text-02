@@ -70,11 +70,11 @@ export function ReviewSession() {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
+          const data = await response.json().catch(() => ({})) as { error?: string };
           setError(data.error ?? "加载失败，请刷新重试。");
           return;
         }
-        const data = await response.json();
+        const data = await response.json() as { items?: ReviewItem[] };
         setItems(data.items ?? []);
       } else {
         // Browse mode: fetch all items from library with optional domain filter
@@ -85,11 +85,11 @@ export function ReviewSession() {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
+          const data = await response.json().catch(() => ({})) as { error?: string };
           setError(data.error ?? "加载失败，请刷新重试。");
           return;
         }
-        const data = await response.json();
+        const data = await response.json() as { items?: BrowseItem[] };
         setBrowseItems(data.items ?? []);
       }
       setCurrentIndex(0);
@@ -111,7 +111,7 @@ export function ReviewSession() {
         console.error("获取领域列表失败");
         return;
       }
-      const data = await response.json();
+      const data = await response.json() as { domains?: string[] };
       setBrowseDomains(data.domains ?? []);
     } catch (err) {
       console.error("获取领域列表失败:", err);
