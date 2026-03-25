@@ -37,7 +37,7 @@ export function DomainFilter({
           throw new Error("Failed to fetch domains");
         }
 
-        const data = await response.json();
+        const data = await response.json() as { domains?: string[] };
         setDomains(data.domains || []);
       } catch (error) {
         console.error("Error fetching domains:", error);
