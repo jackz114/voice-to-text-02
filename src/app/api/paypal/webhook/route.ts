@@ -54,7 +54,7 @@ async function verifyWebhookSignature(
       return false;
     }
 
-    const result = await response.json();
+    const result = await response.json() as { verification_status?: string };
     return result.verification_status === "SUCCESS";
   } catch (error) {
     console.error("Webhook signature verification error:", error);
