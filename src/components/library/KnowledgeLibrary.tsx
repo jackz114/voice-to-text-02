@@ -55,7 +55,7 @@ export function KnowledgeLibrary() {
         return;
       }
 
-      const data = await response.json();
+      const data = await response.json() as { items?: KnowledgeItem[] };
       setItems(data.items ?? []);
     } catch {
       setError("加载失败，请重试");
@@ -120,12 +120,12 @@ export function KnowledgeLibrary() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({})) as { error?: string };
         console.error("获取详情失败:", response.status, errorData);
         return;
       }
 
-      const itemDetail = await response.json();
+      const itemDetail = await response.json() as KnowledgeItemDetail;
       setViewingItem(itemDetail);
     } catch (err) {
       console.error("获取详情失败:", err);
@@ -150,7 +150,11 @@ export function KnowledgeLibrary() {
         return;
       }
 
-      const data = await response.json();
+      const data = await response.json() as {
+        domains?: string[];
+        counts?: Record<string, number>;
+        totalCount?: number;
+      };
       setDomains(data.domains ?? []);
       setDomainCounts(data.counts ?? {});
       setTotalCount(data.totalCount ?? 0);
