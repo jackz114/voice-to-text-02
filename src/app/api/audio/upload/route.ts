@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const key = `audio/${user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
 
     // 步骤 6: 获取 R2 bucket binding
-    // @ts-expect-error - AUDIO_BUCKET is a Cloudflare Workers binding
+    // @ts-ignore - AUDIO_BUCKET is a Cloudflare Workers binding
     const bucket = process.env.AUDIO_BUCKET;
     if (!bucket) {
       return NextResponse.json(

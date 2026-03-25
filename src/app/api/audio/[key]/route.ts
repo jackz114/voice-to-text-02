@@ -42,7 +42,7 @@ export async function GET(
     }
 
     // 步骤 4: 获取 R2 bucket binding
-    // @ts-expect-error - AUDIO_BUCKET is a Cloudflare Workers binding
+    // @ts-ignore - AUDIO_BUCKET is a Cloudflare Workers binding
     const bucket = process.env.AUDIO_BUCKET;
     if (!bucket) {
       return NextResponse.json(
