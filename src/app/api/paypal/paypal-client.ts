@@ -155,7 +155,7 @@ export async function createPayPalOrder(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as { message?: string };
     throw new PayPalError(
       `Failed to create PayPal order: ${errorData.message || response.statusText}`,
       response.status,
@@ -163,7 +163,7 @@ export async function createPayPalOrder(
     );
   }
 
-  return response.json();
+  return response.json() as Promise<PayPalOrder>;
 }
 
 // 获取订单详情
@@ -182,7 +182,7 @@ export async function getOrderDetails(
   );
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as { message?: string };
     throw new PayPalError(
       `Failed to get order details: ${errorData.message || response.statusText}`,
       response.status,
@@ -190,7 +190,7 @@ export async function getOrderDetails(
     );
   }
 
-  return response.json();
+  return response.json() as Promise<PayPalOrder>;
 }
 
 // 捕获订单
@@ -211,7 +211,7 @@ export async function capturePayPalOrder(
   );
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as { message?: string };
     throw new PayPalError(
       `Failed to capture PayPal order: ${errorData.message || response.statusText}`,
       response.status,
@@ -219,7 +219,7 @@ export async function capturePayPalOrder(
     );
   }
 
-  return response.json();
+  return response.json() as Promise<PayPalOrder>;
 }
 
 // 验证订阅
@@ -238,7 +238,7 @@ export async function getSubscriptionDetails(
   );
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as { message?: string };
     throw new PayPalError(
       `Failed to get subscription details: ${errorData.message || response.statusText}`,
       response.status,
