@@ -10,28 +10,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4.0.3
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
+      - name: Clean cache
+        run: |
+          rm -rf .next
+          rm -rf .open-next
+          rm -rf .wrangler
+          rm -f wrangler.toml
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Next.js app
-        run: npm run build
-
-      - name: Build for Cloudflare
-        run: npx opennextjs-cloudflare build
+      - name: Build with OpenNext
+        run: npx @opennextjs/cloudflare build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Deploy to Cloudflare
-        uses: cloudflare/wrangler-action@v3.6.1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: "."
           command: deploy
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_CLIENT_SECRET }}
+          PAYPAL_WEBHOOK_ID: ${{ secrets.PAYPAL_WEBHOOK_ID }}
+          PAYPAL_API_URL: ${{ secrets.PAYPAL_API_URL }}
 
       - name: Create deployment summary
         run: |
