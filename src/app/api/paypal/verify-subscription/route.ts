@@ -25,7 +25,26 @@ export async function POST(request: NextRequest) {
     const subscriptionData = await getSubscriptionDetails(
       accessToken,
       subscriptionId
-    );
+    ) as {
+      status: string;
+      plan_id: string;
+      start_time: string;
+      billing_info?: {
+        next_billing_time?: string;
+        outstanding_balance?: { value?: string };
+        last_payment?: {
+          amount?: { value?: string };
+          time?: string;
+        };
+      };
+      subscriber?: {
+        email_address?: string;
+        name?: {
+          given_name?: string;
+          surname?: string;
+        };
+      };
+    };
 
     // 验证订阅状态
     const validStatuses = ["ACTIVE", "APPROVAL_PENDING"];
