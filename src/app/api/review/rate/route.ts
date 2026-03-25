@@ -28,7 +28,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 步骤 2: 验证请求体
-    const { knowledgeItemId, rating } = await request.json();
+    const { knowledgeItemId, rating } = await request.json() as {
+      knowledgeItemId?: string;
+      rating?: number;
+    };
 
     if (!knowledgeItemId || typeof knowledgeItemId !== "string") {
       return NextResponse.json(
