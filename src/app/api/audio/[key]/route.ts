@@ -41,9 +41,8 @@ export async function GET(
       );
     }
 
-    // 步骤 4: 获取 R2 bucket binding
-    // @ts-ignore - AUDIO_BUCKET is a Cloudflare Workers binding
-    const bucket = process.env.AUDIO_BUCKET;
+    // 步骤 4: 获取 R2 bucket binding (Cloudflare Workers 全局绑定)
+    const bucket = AUDIO_BUCKET;
     if (!bucket) {
       return NextResponse.json(
         { error: "Storage not configured", code: "STORAGE_ERROR" },

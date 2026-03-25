@@ -59,9 +59,8 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split(".").pop() || "webm";
     const key = `audio/${user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
 
-    // 步骤 6: 获取 R2 bucket binding
-    // @ts-ignore - AUDIO_BUCKET is a Cloudflare Workers binding
-    const bucket = process.env.AUDIO_BUCKET;
+    // 步骤 6: 获取 R2 bucket binding (Cloudflare Workers 全局绑定)
+    const bucket = AUDIO_BUCKET;
     if (!bucket) {
       return NextResponse.json(
         { error: "Storage not configured", code: "STORAGE_ERROR" },
