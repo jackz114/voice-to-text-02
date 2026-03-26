@@ -33,14 +33,28 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react"],
   },
 
-  // Webpack 配置：消除 Next.js 内部调试代码中对 node:fs 的引用
-  // 这段代码仅在 NEXT_DEBUG_IMMEDIATES=1 时执行，但 Cloudflare Workers 会静态分析报错
+  // Webpack 配置：消除 Next.js 内部调试代码中对 Node.js 内置模块的引用
+  // Cloudflare Workers 不支持 node:fs 等内置模块，需要重定向到空模块
   webpack: (config, { isServer }) => {
+    // 1. 通过 DefinePlugin 禁用调试代码路径
     config.plugins.push(
       new webpack.DefinePlugin({
         "process.env.NEXT_DEBUG_IMMEDIATES": JSON.stringify("0"),
       })
     );
+
+    // 2. 重定向 Node.js 内置模块到空模块（解决静态分析报错）
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "node:fs": "@/lib/empty-module.ts",
+      "node:util": "@/lib/empty-module.ts",
+      "node:path": "@/lib/empty-module.ts",
+      "node:stream": "@/lib/empty-module.ts",
+      "node:crypto": "@/lib/empty-module.ts",
+      "node:buffer": "@/lib/empty-module.ts",
+    };
+
     return config;
   },
 };
