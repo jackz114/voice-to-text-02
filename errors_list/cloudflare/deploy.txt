@@ -1,39 +1,26 @@
 
 ---
 
-## 2026-03-26 部署后运行时错误
+## 2026-03-26 部署后运行时错误 #2
 
 **错误现象：**
-访问 `bijiassistant.shop` 显示 **Error 1101 - Worker threw exception**
+访问 `bijiassistant.shop` 仍然显示 **Error 1101 - Worker threw exception**
 
 **错误信息：**
-服务器返回 HTTP 500 错误，Worker 无法正常响应请求。
+服务器返回 HTTP 500 错误。
 
 **根本原因：**
-`wrangler.jsonc` 中只定义了部分环境变量，缺少客户端需要的 `NEXT_PUBLIC_*` 变量：
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_PAYPAL_CLIENT_ID`
-- `NEXT_PUBLIC_PAYPAL_PLAN_ID`
-- `NEXT_PUBLIC_APP_URL`
+1. `src/db/index.ts` 在模块加载时就立即执行数据库连接：
+```typescript
+const client = postgres(process.env.DATABASE_URL!, { prepare: false });
+```
+这导致 Worker 启动时如果没有 `DATABASE_URL` 就会立即抛出错误。
 
-代码中通过 `process.env.NEXT_PUBLIC_*` 访问这些变量，但在 Cloudflare Workers 运行时这些变量为 `undefined`，导致 Supabase 客户端初始化时抛出错误：
-```
-throw new Error("Missing Supabase environment variables")
-```
+2. `DATABASE_URL` 和 `RESEND_API_KEY` 环境变量未在 `wrangler.jsonc` 中定义。
 
 **解决方案：**
-在 `wrangler.jsonc` 的 `vars` 部分添加所有 `NEXT_PUBLIC_*` 环境变量：
-```json
-"vars": {
-  "ENVIRONMENT": "production",
-  "NEXT_PUBLIC_SUPABASE_URL": "https://fpwstkjcatajbidwtugy.supabase.co",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_...",
-  "NEXT_PUBLIC_PAYPAL_CLIENT_ID": "AVNwLiNUo8IF7yzU...",
-  "NEXT_PUBLIC_PAYPAL_PLAN_ID": "your_paypal_plan_id",
-  "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop",
-},
-```
+1. 将 `src/db/index.ts` 改为懒加载模式（使用 Proxy 和 getDb() 函数）
+2. 在 `wrangler.jsonc` 中添加 `DATABASE_URL` 环境变量
 
 **状态：** 已修复，已推送 GitHub 等待部署
 
