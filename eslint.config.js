@@ -25,6 +25,8 @@ const config = [
     ignores: [
       "node_modules",
       "dist",
+      ".open-next/**", // 忽略整个 opennext 构建输出目录
+      "worker-configuration.d.ts",
       ".vinxi", // Vinxi 构建目录
       ".wrangler",
       "*.min.js",

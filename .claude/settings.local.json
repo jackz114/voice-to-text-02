@@ -17,7 +17,15 @@
       "mcp__chrome-devtools__take_screenshot",
       "mcp__chrome-devtools__list_console_messages",
       "mcp__chrome-devtools__list_network_requests",
-      "mcp__github__list_commits"
+      "mcp__github__list_commits",
+      "Bash(grep -r \"node:fs\\\\|from ['''']fs[\" ] node_modules/@react-email/components/)",
+      "Bash(git rm:*)",
+      "Bash(grep -r \"node:fs\\\\|from ''fs''\\\\|from \"\"fs\"\"\\\\|require.*fs\" src/ --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.js\")",
+      "Bash(grep -r \"from.*db/schema\\\\|from.*@/db\" src/ --include=*.ts --include=*.tsx)",
+      "Bash(curl:*)",
+      "Bash(wrangler tail:*)",
+      "Bash(grep -l \"node:fs\\\\|drizzle\" .open-next/worker.js .open-next/server-functions/*.js)",
+      "mcp__cloudflare__workers_analytics_search"
     ]
   }
 }

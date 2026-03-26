@@ -37,6 +37,7 @@ npm run cf:secret:put <SECRET_NAME>
 ```
 
 项目目前没有自动化测试。手动测试使用 PayPal Sandbox 环境（测试卡号：4111111111111111 | 12/25 | 123）。
+本项目所在环境是Windows，所以当被要求部署到cloudflare上时，请直接推送代码到github上，由GitHub Actions自动构建并部署。
 
 ---
 
@@ -57,6 +58,7 @@ npm run cf:secret:put <SECRET_NAME>
 **已知重复问题**：`LoginForm`、`GoogleAuthButton`、`AuthCallbackHandler` 三个组件各自在内部直接创建 `supabase` 客户端实例，而未从 `src/lib/supabase.ts` 导入单例。这是一个已知的代码不一致问题。
 
 **Google OAuth 登录流程**：
+
 1. `GoogleAuthButton` 调用 `supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: "${origin}/auth/callback?redirect_to=..." } })`
 2. Google 重定向回来后，`AuthCallbackHandler` 调用 `supabase.auth.exchangeCodeForSession(window.location.hash)` 交换 session
 3. 成功后跳转到 `redirect_to` 参数指定的路径，若无则跳转至 `/`
@@ -78,12 +80,12 @@ npm run cf:secret:put <SECRET_NAME>
 
 所有服务端 PayPal 逻辑均使用 `paypal-client.ts` 中封装的函数，该文件负责 OAuth token 获取（`getPayPalAccessToken`）和 PayPal REST API 调用。
 
-| 路由 | 方法 | 功能说明 |
-|------|------|----------|
-| `create-order` | POST | 验证金额和币种，调用 PayPal Orders v2 API，返回 `orderId`。支持的币种：`USD EUR GBP CNY JPY AUD CAD`。 |
-| `capture-order` | POST | 捕获前先检查订单状态是否为 `APPROVED`（幂等处理：若已为 `COMPLETED` 则提前返回）。提取 `captureId`、`netAmount`、`paypalFee`。数据库写入为 TODO 占位符。 |
-| `verify-subscription` | POST | 从 PayPal 获取订阅详情，校验状态为 `ACTIVE` 或 `APPROVAL_PENDING`。数据库写入为 TODO 占位符。 |
-| `webhook` | POST | 通过回调 `POST /v1/notifications/verify-webhook-signature` 验证 PayPal webhook 签名。处理 8 种事件类型。所有 `handle*` 函数均为仅打印日志的占位存根。 |
+| 路由                  | 方法 | 功能说明                                                                                                                                                 |
+| --------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create-order`        | POST | 验证金额和币种，调用 PayPal Orders v2 API，返回 `orderId`。支持的币种：`USD EUR GBP CNY JPY AUD CAD`。                                                   |
+| `capture-order`       | POST | 捕获前先检查订单状态是否为 `APPROVED`（幂等处理：若已为 `COMPLETED` 则提前返回）。提取 `captureId`、`netAmount`、`paypalFee`。数据库写入为 TODO 占位符。 |
+| `verify-subscription` | POST | 从 PayPal 获取订阅详情，校验状态为 `ACTIVE` 或 `APPROVAL_PENDING`。数据库写入为 TODO 占位符。                                                            |
+| `webhook`             | POST | 通过回调 `POST /v1/notifications/verify-webhook-signature` 验证 PayPal webhook 签名。处理 8 种事件类型。所有 `handle*` 函数均为仅打印日志的占位存根。    |
 
 **注意**：webhook 路由在内部重复实现了 `getPayPalAccessToken`，而未从 `paypal-client.ts` 导入——这是一个重复代码 Bug。
 
@@ -174,6 +176,7 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - [ ] 实现语音录制/上传与转录 API（MediaRecorder、Supabase Storage、Whisper）
 
 <!-- GSD:project-start source:PROJECT.md -->
+
 ## Project
 
 **笔记助手 (bijiassistant)**
@@ -192,16 +195,22 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:codebase/STACK.md -->
+
 ## Technology Stack
 
 ## Languages
+
 - TypeScript 5.x - All source files under `src/`, config files (`next.config.ts`, `tailwind.config.ts`, `eslint.config.mjs`)
 - CSS - Global styles at `src/app/globals.css` (Tailwind utility classes)
+
 ## Runtime
+
 - Node.js 22.22.1 (detected via `node --version`)
 - npm
 - Lockfile: `package-lock.json` (lockfileVersion 3) - present and committed
+
 ## Frameworks
+
 - Next.js 16.2.0 - Full-stack React framework; App Router pattern used throughout `src/app/`
 - React 19.2.4 - UI library; React DOM 19.2.4
 - Tailwind CSS 4.x - Utility-first CSS; configured in `tailwind.config.ts`, PostCSS via `postcss.config.mjs`
@@ -216,7 +225,9 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - `eslint-config-next` 16.2.0 - Next.js-specific ESLint rules
 - `eslint-config-prettier` 10.1.8 - Disables ESLint rules that conflict with Prettier
 - drizzle-kit 0.31.10 - Database migration CLI (dev dependency)
+
 ## Key Dependencies
+
 - `@supabase/supabase-js` 2.99.3 - Database client and auth SDK; used in `src/lib/supabase.ts`, `src/components/auth/AuthProvider.tsx`, `src/components/auth/LoginForm.tsx`, `src/components/auth/GoogleAuthButton.tsx`, `src/app/auth/callback/AuthCallbackHandler.tsx`
 - `@paypal/react-paypal-js` 9.0.2 - PayPal React SDK; used in `src/components/payment/PayPalButton.tsx`
 - `drizzle-orm` 0.45.1 - ORM for database schema and queries (declared; no schema files found in explored source)
@@ -226,7 +237,9 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - `clsx` 2.1.1 - Conditional className merging
 - `tailwind-merge` 3.5.0 - Merges conflicting Tailwind classes
 - Geist Sans and Geist Mono - Google Fonts loaded via Next.js font optimization in `src/app/layout.tsx`
+
 ## Configuration
+
 - `tsconfig.json` - `strict: true`, target `ES2017`, `@/*` path alias mapping to `./src/*`
 - Module resolution: `bundler` mode
 - `next.config.ts` - Remote image patterns for `*.supabase.co` and `bijiassistant.shop`; exposes `NEXT_PUBLIC_APP_URL`
@@ -236,7 +249,9 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - Required public vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_PAYPAL_PLAN_ID`
 - Required secret vars: `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_API_URL`
 - `eslint.config.mjs` - ESLint v9 flat config; TypeScript + React + Hooks + Prettier compatibility; `no-console: off`
+
 ## Platform Requirements
+
 - Node.js 22.x
 - `npm run dev` - Next.js dev server
 - `npm run cf:dev` - Wrangler local dev (Cloudflare Workers emulation)
@@ -247,9 +262,11 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 <!-- GSD:stack-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
+
 ## Conventions
 
 ## Naming Patterns
+
 - React components: PascalCase `.tsx` — e.g., `AuthProvider.tsx`, `LoginForm.tsx`, `GoogleAuthButton.tsx`
 - Next.js routes: lowercase `page.tsx`, `route.ts`, `layout.tsx`
 - Utility/client modules: camelCase `.ts` — e.g., `paypal-client.ts`, `supabase.ts`
@@ -268,7 +285,9 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - Internal API-shape interfaces are file-private (not exported): `PayPalOrderAmount`, `PayPalPaymentCapture`
 - Public types re-exported via `export type { PayPalOrder, PayPalPurchaseUnit }` at file bottom
 - SCREAMING_SNAKE_CASE for module-level config — `PAYPAL_CLIENT_ID`, `PAYPAL_API_URL`
+
 ## Code Style
+
 - Config: `.prettierrc`
 - Double quotes (`"`) for strings
 - Semicolons on
@@ -285,15 +304,21 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - `react/react-in-jsx-scope` is `off` (no `import React` needed)
 - `react/prop-types` is `off` (TypeScript handles type checking)
 - Prettier compat layer applied last, disabling format-conflicting ESLint rules
+
 ## Import Organization
+
 - `@/` maps to `src/` (Next.js default, used in page files)
+
 ## Directive Patterns
+
 - `src/app/page.tsx` — `"use client"` (uses client-side rendering)
 - `src/components/auth/LoginForm.tsx` — `"use client"` (uses `useState`)
 - `src/components/auth/AuthProvider.tsx` — `"use client"` (uses `useContext`, `useEffect`)
 - `src/app/layout.tsx` — no directive (server component)
 - `src/app/api/*/route.ts` — no directive (server-only API routes)
+
 ## Error Handling
+
 - Wrap entire handler body in `try/catch`
 - Validate input first; return `400` with `{ error, code }` shape before processing
 - Check for domain-specific custom error classes (`instanceof PayPalError`) before generic catch
@@ -309,36 +334,49 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - Check `response.ok` after every `fetch` call
 - Parse error body with `.catch(() => ({}))` fallback to avoid double-throw
 - Immediately throw domain error: `throw new PayPalError(..., response.status, errorData)`
+
 ## Logging
+
 - `console.log(label, data)` for success/info events in API routes
 - `console.error(label, error)` in catch blocks
 - Verbose object logging in success path (e.g., logging payment capture summary)
 - `no-console` ESLint rule is disabled — console usage is unrestricted
+
 ## Comments
+
 - Multi-step procedures get numbered step comments: `// 步骤 1: 验证订单状态`
 - Section dividers for logical blocks: `// 接口定义`, `// 错误类`, `// 获取 PayPal 访问令牌`
 - Explanatory notes for non-obvious decisions: `// 官方推荐的最佳实践`
 - No JSDoc/TSDoc annotations on functions (not used in this codebase)
+
 ## Function Design
+
 ## Module Design
+
 - Named exports preferred over default exports for components and utilities
 - Exception: Next.js page/layout files use `export default` (framework requirement)
 - Types re-exported explicitly at file end: `export type { PayPalOrder, PayPalPurchaseUnit }`
 - React context created with `createContext<Type | undefined>(undefined)`
 - Custom hook (`useAuth`) throws descriptive error if used outside provider
 - Provider and hook co-located in the same file (`AuthProvider.tsx`)
+
 ## State Management
+
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
+
 ## Architecture
 
 ## Pattern Overview
+
 - File-system based routing via Next.js App Router (`src/app/`)
 - Client components use React Context for auth state propagation
 - API routes are thin controllers delegating to a shared client module
 - Deployed to Cloudflare Workers via `@opennextjs/cloudflare` adapter
+
 ## Layers
+
 - Purpose: Render user-facing pages, trigger user interactions
 - Location: `src/app/page.tsx`, `src/app/login/page.tsx`, `src/app/payment/page.tsx`, `src/app/auth/callback/page.tsx`
 - Contains: React Server/Client components, page-level layout
@@ -359,10 +397,14 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - Contains: PayPal REST API helpers (`getPayPalAccessToken`, `createPayPalOrder`, `capturePayPalOrder`, `getSubscriptionDetails`), Supabase singleton client
 - Depends on: Environment variables
 - Used by: API routes, AuthProvider
+
 ## Data Flow
+
 - Auth state: React Context (`AuthContext`) provided by `AuthProvider`, consumed via `useAuth()` hook
 - No global client-side state library (no Redux, Zustand, etc.)
+
 ## Key Abstractions
+
 - Purpose: Global authentication state and session management
 - Examples: `src/components/auth/AuthProvider.tsx`
 - Pattern: React Context + `createClient` from `@supabase/supabase-js`; exports `useAuth()` hook and the `supabase` client instance
@@ -372,7 +414,9 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - Purpose: Server-side API endpoints
 - Examples: `src/app/api/paypal/*/route.ts`
 - Pattern: Named export `POST` (or `GET`) functions receiving `NextRequest`, returning `NextResponse.json()`
+
 ## Entry Points
+
 - Location: `src/app/page.tsx`
 - Triggers: HTTP GET `/`
 - Responsibilities: Landing page with navigation to `/login` and `/payment`
@@ -385,29 +429,38 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - Location: `src/app/api/paypal/webhook/route.ts`
 - Triggers: HTTP POST from PayPal servers
 - Responsibilities: Verify signature, dispatch to event-type handlers
+
 ## Error Handling
+
 - API routes catch all errors and return `NextResponse.json({ error: "..." }, { status: 500 })`
 - `PayPalError` custom class carries `statusCode` and `responseData` for upstream context
 - Webhook returns HTTP 400 on invalid signature, HTTP 200 on all successfully received events
+
 ## Cross-Cutting Concerns
+
 <!-- GSD:architecture-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->
+
 ## GSD Workflow Enforcement
 
 Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
 
 Use these entry points:
+
 - `/gsd:quick` for small fixes, doc updates, and ad-hoc tasks
 - `/gsd:debug` for investigation and bug fixing
 - `/gsd:execute-phase` for planned phase work
 
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+
 <!-- GSD:workflow-end -->
 
 <!-- GSD:profile-start -->
+
 ## Developer Profile
 
 > Profile not yet configured. Run `/gsd:profile-user` to generate your developer profile.
 > This section is managed by `generate-claude-profile` -- do not edit manually.
+
 <!-- GSD:profile-end -->

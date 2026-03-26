@@ -31,6 +31,17 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+
+  // Webpack 配置：消除 Next.js 内部调试代码中对 node:fs 的引用
+  // 这段代码仅在 NEXT_DEBUG_IMMEDIATES=1 时执行，但 Cloudflare Workers 会静态分析报错
+  webpack: (config, { isServer }) => {
+    config.plugins.push(
+      new config.constructor.DefinePlugin({
+        "process.env.NEXT_DEBUG_IMMEDIATES": JSON.stringify("0"),
+      })
+    );
+    return config;
+  },
 };
 
 export default nextConfig;
