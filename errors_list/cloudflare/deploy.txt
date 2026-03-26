@@ -47,4 +47,37 @@ Type error: Object literal may only specify known properties, and 'excludeReplay
 **解决方案：**
 移除 `excludeReplayCanvas: true` 配置项。
 
-**状态：** 已修复，等待重新部署
+**状态：** 已修复，但引发了新的错误
+
+## 2026-03-26 部署尝试 #3
+
+**错误信息：**
+```
+Error: This error should only happen for static 404 and 500 page from page router. File server/instrumentation.js does not exist
+```
+
+**根本原因：**
+`instrumentation.ts` 文件与 Cloudflare Workers 不兼容。`@sentry/nextjs` 的 webpack 插件试图在构建时生成 instrumentation 代码，但 Cloudflare Workers 使用 OpenNext 适配器，有自己的入口点 `.open-next/worker.js`，不兼容 Next.js 的 instrumentation 钩子。
+
+**解决方案：**
+1. 完全移除 `instrumentation.ts` 文件
+2. 移除所有 `sentry.*.config.ts` 文件 (client, edge, server)
+3. 从 `next.config.ts` 中移除 `@sentry/nextjs` 的 `withSentryConfig` 包装器
+4. 恢复为标准 Next.js 配置
+
+**状态：** 已修复，已推送 GitHub 等待部署
+
+## 2026-03-26 部署尝试 #4
+
+**错误信息：**
+```
+✘ [ERROR] The `nodejs_compat` and `nodejs_compat_v2` compatibility flags cannot be used in together. Please select just one.
+```
+
+**根本原因：**
+`wrangler.jsonc` 中同时配置了 `nodejs_compat` 和 `nodejs_compat_v2` 两个兼容性标志，这是不允许的。`nodejs_compat_v2` 是 v2 版本的 Node.js 兼容层，包含了 v1 的功能，所以不需要同时使用两者。
+
+**解决方案：**
+从 `wrangler.jsonc` 的 `compatibility_flags` 中移除 `nodejs_compat`，只保留 `nodejs_compat_v2`。
+
+**状态：** 已修复，已推送 GitHub 等待部署
