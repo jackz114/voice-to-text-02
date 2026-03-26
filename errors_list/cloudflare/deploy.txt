@@ -15,3 +15,37 @@ wrangler.jsonc 中的 build.command 设置为 "npm run build"，这只会运行 
 修改 wrangler.jsonc 中的 build.command 为 "npm run build:cloudflare"
 
 **状态：** 已修复
+
+## 2026-03-26 部署尝试 #1
+
+**错误信息：**
+```
+./next.config.ts:44:3
+Type error: Object literal may only specify known properties, but 'hideSourceMaps' does not exist in type 'SentryBuildOptions'. Did you mean to write 'sourcemaps'?
+```
+
+**根本原因：**
+`@sentry/nextjs` 包的配置选项已更改。`hideSourceMaps` 和 `disableLogger` 选项已被弃用，
+需要使用新的 `sourcemaps` 和 `bundleSizeOptimizations` 配置。
+
+**解决方案：**
+将 `next.config.ts` 中的 Sentry 配置从：
+```typescript
+hideSourceMaps: true,
+disableLogger: true,
+```
+改为：
+```typescript
+sourcemaps: {
+  disable: false,
+  deleteSourcemapsAfterUpload: true,
+},
+bundleSizeOptimizations: {
+  excludeDebugStatements: true,
+  excludeReplayCanvas: true,
+  excludeReplayShadowDom: true,
+  excludeReplayIframe: true,
+},
+```
+
+**状态：** 已修复，等待重新部署
