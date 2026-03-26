@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import webpack from "webpack";
 
 const nextConfig: NextConfig = {
   // 图片域名配置（Supabase Storage 等）
@@ -36,7 +37,7 @@ const nextConfig: NextConfig = {
   // 这段代码仅在 NEXT_DEBUG_IMMEDIATES=1 时执行，但 Cloudflare Workers 会静态分析报错
   webpack: (config, { isServer }) => {
     config.plugins.push(
-      new config.constructor.DefinePlugin({
+      new webpack.DefinePlugin({
         "process.env.NEXT_DEBUG_IMMEDIATES": JSON.stringify("0"),
       })
     );
