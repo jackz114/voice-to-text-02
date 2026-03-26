@@ -81,3 +81,26 @@ Error: This error should only happen for static 404 and 500 page from page route
 从 `wrangler.jsonc` 的 `compatibility_flags` 中移除 `nodejs_compat`，只保留 `nodejs_compat_v2`。
 
 **状态：** 已修复，已推送 GitHub 等待部署
+
+## 2026-03-26 部署尝试 #5
+
+**错误信息：**
+```
+✘ [ERROR] Uncaught Error: No such module "node:fs".
+  imported from "worker.js"
+   [code: 10021]
+```
+
+**根本原因：**
+Next.js 16 的内部代码（`fast-set-immediate.external.js`）在调试代码中使用了 `require("node:fs")`。
+这个引用出现在 `writeFileSync` 函数中，仅在 `NEXT_DEBUG_IMMEDIATES` 环境变量为 `"1"` 时才会执行，
+但由于代码被打包进了 bundle，导致 Cloudflare Workers 在启动时无法找到 `node:fs` 模块。
+
+根据 Cloudflare 文档，`node:fs` 需要 `nodejs_compat` 兼容性标志（不是 `nodejs_compat_v2`）。
+`nodejs_compat_v2` 虽然包含了大部分 Node.js API，但可能不包含 `node:fs`。
+
+**解决方案：**
+1. 将 `wrangler.jsonc` 中的 `compatibility_flags` 从 `["nodejs_compat_v2"]` 改为 `["nodejs_compat"]`
+2. 更新 `open-next.config.ts` 以明确设置 `useWorkerdCondition: true`
+
+**状态：** 已修复，已推送 GitHub 等待部署
