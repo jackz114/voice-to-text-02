@@ -1,9 +1,8 @@
 // src/app/api/library/item/route.ts
+// 使用 Supabase REST API 查询单个知识条目详情
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { db } from "@/db/index";
-import { knowledgeItems, reviewState } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,25 +33,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 步骤 3: 查询知识条目（连接 review_state 获取复习时间）
-    const items = await db
-      .select({
-        id: knowledgeItems.id,
-        title: knowledgeItems.title,
-        content: knowledgeItems.content,
-        domain: knowledgeItems.domain,
-        source: knowledgeItems.source,
-        tags: knowledgeItems.tags,
-        createdAt: knowledgeItems.createdAt,
-        nextReviewAt: reviewState.nextReviewAt,
-        reviewCount: reviewState.reviewCount,
-      })
-      .from(knowledgeItems)
-      .leftJoin(reviewState, eq(reviewState.knowledgeItemId, knowledgeItems.id))
-      .where(and(eq(knowledgeItems.id, id), eq(knowledgeItems.userId, user.id)))
-      .limit(1);
+    // 步骤 3: 查询知识条目（使用 Supabase REST API 关联 review_state）
+    const { data: rawItem, error: dbError } = await supabase
+      .from("knowledge_items")
+      .select(
+        `
+        id,
+        title,
+        content,
+        domain,
+        source,
+        tags,
+        created_at,
+        review_state(
+          next_review_at,
+          review_count
+        )
+      `
+      )
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    if (items.length === 0) {
+    if (dbError) {
+      console.error("知识条目查询失败:", dbError);
+      throw dbError;
+    }
+
+    if (!rawItem) {
       return NextResponse.json(
         { error: "知识条目不存在", code: "NOT_FOUND" },
         { status: 404 }
@@ -61,8 +69,25 @@ export async function GET(request: NextRequest) {
 
     console.log("知识条目详情查询成功:", { userId: user.id, itemId: id });
 
-    // 步骤 4: 返回结果
-    return NextResponse.json(items[0]);
+    // 步骤 4: 格式化并返回结果
+    // review_state 是数组类型，取第一个元素（一对一关系）
+    const reviewState = Array.isArray(rawItem.review_state)
+      ? rawItem.review_state[0]
+      : rawItem.review_state;
+
+    const item = {
+      id: rawItem.id,
+      title: rawItem.title,
+      content: rawItem.content,
+      domain: rawItem.domain,
+      source: rawItem.source,
+      tags: rawItem.tags,
+      createdAt: rawItem.created_at,
+      nextReviewAt: reviewState?.next_review_at ?? null,
+      reviewCount: reviewState?.review_count ?? 0,
+    };
+
+    return NextResponse.json(item);
   } catch (error) {
     console.error("知识条目详情错误:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

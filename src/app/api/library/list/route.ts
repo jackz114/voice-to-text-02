@@ -1,9 +1,8 @@
 // src/app/api/library/list/route.ts
+// 使用 Supabase REST API 查询知识库列表
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { db } from "@/db/index";
-import { knowledgeItems, reviewState } from "@/db/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,28 +27,56 @@ export async function GET(request: NextRequest) {
     // 步骤 2: 读取可选的 domain 查询参数
     const domain = request.nextUrl.searchParams.get("domain");
 
-    // 步骤 3: 查询知识条目（连接 review_state 获取复习时间）
-    const items = await db
-      .select({
-        id: knowledgeItems.id,
-        title: knowledgeItems.title,
-        content: knowledgeItems.content,
-        domain: knowledgeItems.domain,
-        source: knowledgeItems.source,
-        tags: knowledgeItems.tags,
-        createdAt: knowledgeItems.createdAt,
-        nextReviewAt: reviewState.nextReviewAt,
-        reviewCount: reviewState.reviewCount,
-        contentPreview: sql<string>`LEFT(${knowledgeItems.content}, 50)`,
-      })
-      .from(knowledgeItems)
-      .innerJoin(reviewState, eq(reviewState.knowledgeItemId, knowledgeItems.id))
-      .where(
-        domain
-          ? and(eq(knowledgeItems.userId, user.id), eq(knowledgeItems.domain, domain))
-          : eq(knowledgeItems.userId, user.id)
+    // 步骤 3: 查询知识条目（使用 Supabase REST API 的 foreign table 查询）
+    // 查询 knowledge_items 表，并通过外键关联 review_state 表
+    let query = supabase
+      .from("knowledge_items")
+      .select(
+        `
+        id,
+        title,
+        content,
+        domain,
+        source,
+        tags,
+        created_at,
+        review_state!inner(
+          next_review_at,
+          review_count
+        )
+      `
       )
-      .orderBy(desc(knowledgeItems.createdAt));
+      .eq("user_id", user.id);
+
+    // 可选的 domain 过滤
+    if (domain) {
+      query = query.eq("domain", domain);
+    }
+
+    // 排序：按创建时间倒序
+    query = query.order("created_at", { ascending: false });
+
+    const { data: rawItems, error: dbError } = await query;
+
+    if (dbError) {
+      console.error("知识库查询失败:", dbError);
+      throw dbError;
+    }
+
+    // 格式化结果（保持与原接口相同的字段名）
+    const items = (rawItems || []).map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      domain: item.domain,
+      source: item.source,
+      tags: item.tags,
+      createdAt: item.created_at,
+      nextReviewAt: item.review_state?.next_review_at,
+      reviewCount: item.review_state?.review_count,
+      // 生成 content 预览（前50个字符）
+      contentPreview: item.content?.slice(0, 50) || "",
+    }));
 
     console.log("知识库列表查询成功:", { userId: user.id, count: items.length, domain });
 

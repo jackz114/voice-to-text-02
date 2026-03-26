@@ -2,10 +2,7 @@
 // GET / POST notification preferences
 
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { userPreferences } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 // Validation schema for preferences
@@ -31,13 +28,19 @@ export type PreferencesResponse = {
 };
 
 // GET /api/notifications/preferences
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Authenticate user
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token ?? undefined);
 
     if (authError || !user) {
       return NextResponse.json(
@@ -47,13 +50,18 @@ export async function GET() {
     }
 
     // Fetch preferences (auto-created by trigger if not exists)
-    const prefs = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, user.id))
-      .limit(1);
+    const { data: prefs, error: dbError } = await supabase
+      .from("user_preferences")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    if (prefs.length === 0) {
+    if (dbError) {
+      console.error("获取偏好设置失败:", dbError);
+      throw dbError;
+    }
+
+    if (!prefs) {
       // This shouldn't happen due to trigger, but handle gracefully
       return NextResponse.json({
         emailNotificationsEnabled: true,
@@ -65,15 +73,13 @@ export async function GET() {
       } satisfies PreferencesResponse);
     }
 
-    const pref = prefs[0];
-
     return NextResponse.json({
-      emailNotificationsEnabled: pref.emailNotificationsEnabled,
-      dailyReminderTime: pref.dailyReminderTime,
-      reminderTimezone: pref.reminderTimezone,
-      includedDomains: pref.includedDomains,
-      saveSearchHistory: pref.saveSearchHistory,
-      displayName: pref.displayName,
+      emailNotificationsEnabled: prefs.email_notifications_enabled,
+      dailyReminderTime: prefs.daily_reminder_time,
+      reminderTimezone: prefs.reminder_timezone,
+      includedDomains: prefs.included_domains,
+      saveSearchHistory: prefs.save_search_history,
+      displayName: prefs.display_name,
     } satisfies PreferencesResponse);
   } catch (error) {
     console.error("Get preferences error:", error);
@@ -88,10 +94,16 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token ?? undefined);
 
     if (authError || !user) {
       return NextResponse.json(
@@ -117,39 +129,44 @@ export async function POST(request: NextRequest) {
 
     const data = parseResult.data;
 
-    // Update preferences
-    const updateData: Partial<typeof userPreferences.$inferInsert> = {
-      updatedAt: new Date(),
+    // Build update object
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
     };
 
     if (data.emailNotificationsEnabled !== undefined) {
-      updateData.emailNotificationsEnabled = data.emailNotificationsEnabled;
+      updateData.email_notifications_enabled = data.emailNotificationsEnabled;
     }
 
     if (data.dailyReminderTime !== undefined) {
-      updateData.dailyReminderTime = data.dailyReminderTime;
+      updateData.daily_reminder_time = data.dailyReminderTime;
     }
 
     if (data.reminderTimezone !== undefined) {
-      updateData.reminderTimezone = data.reminderTimezone;
+      updateData.reminder_timezone = data.reminderTimezone;
     }
 
     if (data.includedDomains !== undefined) {
-      updateData.includedDomains = data.includedDomains;
+      updateData.included_domains = data.includedDomains;
     }
 
     if (data.saveSearchHistory !== undefined) {
-      updateData.saveSearchHistory = data.saveSearchHistory;
+      updateData.save_search_history = data.saveSearchHistory;
     }
 
     if (data.displayName !== undefined) {
-      updateData.displayName = data.displayName;
+      updateData.display_name = data.displayName;
     }
 
-    await db
-      .update(userPreferences)
-      .set(updateData)
-      .where(eq(userPreferences.userId, user.id));
+    const { error: updateError } = await supabase
+      .from("user_preferences")
+      .update(updateData)
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      console.error("更新偏好设置失败:", updateError);
+      throw updateError;
+    }
 
     console.log(`Preferences updated for user ${user.id}`);
 

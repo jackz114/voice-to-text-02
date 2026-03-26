@@ -1,8 +1,5 @@
 // src/lib/search.ts
-// Search query builders and utilities
-
-import { sql, SQL } from "drizzle-orm";
-import { knowledgeItems } from "@/db/schema";
+// Search utilities and types
 
 // Search result types
 export type SearchResult = {
@@ -25,80 +22,80 @@ export type SearchResponse = {
 };
 
 /**
- * Convert user query to PostgreSQL tsquery format
- * Uses websearch_to_tsquery for Google-like syntax support
- * Falls back to plainto_tsquery for simple input
+ * Build search query for Supabase textSearch
+ * Converts user query to tsquery-compatible format
  */
-export function toTsQuery(userQuery: string): SQL {
+export function buildSearchQuery(userQuery: string): string {
   // Escape special characters and normalize
   const normalized = userQuery
     .replace(/[\s]+/g, " ") // Normalize whitespace
     .trim();
 
   if (!normalized) {
-    return sql`''::tsquery`;
+    return "";
   }
 
-  // Use websearch_to_tsquery for advanced syntax support:
-  // - "quoted phrases"
-  // - OR between terms
-  // - -excluded terms
-  return sql`websearch_to_tsquery('chinese', ${normalized})`;
+  // Split into words and add wildcard for prefix matching
+  const words = normalized.split(" ");
+  return words.join(" & ");
 }
 
 /**
- * Build search rank expression using weighted tsvector
- * Title and tags weight A (1.0), content weight B (0.4), source weight C (0.2)
+ * Create excerpt from content with highlighted terms
+ * Simple fallback since Supabase REST doesn't support ts_headline
  */
-export function buildRankExpression(query: string): SQL {
-  const tsquery = toTsQuery(query);
-  return sql`ts_rank(${knowledgeItems.searchVector}, ${tsquery})`;
-}
-
-/**
- * Build highlighted excerpt using ts_headline
- * Shows matching context with <mark> tags
- */
-export function buildExcerptExpression(
+export function createExcerpt(
+  content: string,
   query: string,
   options: {
-    maxWords?: number;
-    minWords?: number;
-    startSel?: string;
-    stopSel?: string;
+    maxLength?: number;
+    highlightStart?: string;
+    highlightEnd?: string;
   } = {}
-): SQL {
+): string {
   const {
-    maxWords = 50,
-    minWords = 10,
-    startSel = "<mark>",
-    stopSel = "</mark>",
+    maxLength = 150,
+    highlightStart = "<mark>",
+    highlightEnd = "</mark>",
   } = options;
 
-  const tsquery = toTsQuery(query);
+  const normalizedQuery = query.toLowerCase().trim();
+  const lowerContent = content.toLowerCase();
 
-  return sql`ts_headline(
-    'chinese',
-    ${knowledgeItems.content},
-    ${tsquery},
-    'StartSel=${sql.raw(startSel)}, StopSel=${sql.raw(stopSel)}, MaxWords=${maxWords}, MinWords=${minWords}'
-  )`;
-}
+  // Find the position of the first match
+  const matchIndex = lowerContent.indexOf(normalizedQuery);
 
-/**
- * Build WHERE clause for search with optional domain filter
- */
-export function buildSearchWhere(
-  query: string,
-  domain?: string
-): SQL {
-  const tsquery = toTsQuery(query);
+  let excerpt: string;
+  if (matchIndex === -1) {
+    // No match found, return start of content
+    excerpt = content.slice(0, maxLength);
+  } else {
+    // Find a good starting point (a bit before the match)
+    const startPos = Math.max(0, matchIndex - 50);
+    const endPos = Math.min(content.length, startPos + maxLength);
+    excerpt = content.slice(startPos, endPos);
 
-  if (domain) {
-    return sql`${knowledgeItems.searchVector} @@ ${tsquery} AND ${knowledgeItems.domain} = ${domain}`;
+    // Add ellipsis if needed
+    if (startPos > 0) {
+      excerpt = "..." + excerpt;
+    }
+    if (endPos < content.length) {
+      excerpt = excerpt + "...";
+    }
+
+    // Simple highlight (case-insensitive replacement)
+    const words = normalizedQuery.split(/\s+/).filter((w) => w.length > 0);
+    for (const word of words) {
+      const regex = new RegExp(`(${escapeRegex(word)})`, "gi");
+      excerpt = excerpt.replace(regex, `${highlightStart}$1${highlightEnd}`);
+    }
   }
 
-  return sql`${knowledgeItems.searchVector} @@ ${tsquery}`;
+  return excerpt;
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /**

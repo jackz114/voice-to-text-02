@@ -1,8 +1,6 @@
 // src/app/api/capture/confirm/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { db } from "@/db/index";
-import { knowledgeItems, reviewState } from "@/db/schema";
 
 interface KnowledgeItemInput {
   title: string;
@@ -43,8 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 步骤 3: 逐条写入数据库 (D-11: 仅在用户确认后写入)
-    // created_at is set automatically by defaultNow() in the Drizzle schema (satisfies EXTRACT-02)
+    // 步骤 3: 逐条写入数据库
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -53,30 +50,39 @@ export async function POST(request: NextRequest) {
       if (!item.title || !item.content || !item.domain) continue;
 
       // 插入 knowledge_items 行
-      const [inserted] = await db
-        .insert(knowledgeItems)
-        .values({
-          userId: user.id,
-          sourceType: "text_paste",
+      const { data: inserted, error: insertError } = await supabase
+        .from("knowledge_items")
+        .insert({
+          user_id: user.id,
+          source_type: "text_paste",
           title: item.title,
           content: item.content,
           source: item.source ?? null,
           domain: item.domain,
           tags: item.tags ?? [],
         })
-        .returning({ id: knowledgeItems.id });
+        .select("id")
+        .single();
 
-      if (!inserted) continue;
+      if (insertError || !inserted) {
+        console.error("插入知识条目失败:", insertError);
+        continue;
+      }
 
       // 插入 review_state 行 — 初始 FSRS 状态，首次复习定为明天
-      await db.insert(reviewState).values({
-        knowledgeItemId: inserted.id,
+      const { error: reviewError } = await supabase.from("review_state").insert({
+        knowledge_item_id: inserted.id,
         stability: 0,
         difficulty: 0,
         retrievability: 0,
-        reviewCount: 0,
-        nextReviewAt: tomorrow,
+        review_count: 0,
+        next_review_at: tomorrow.toISOString(),
       });
+
+      if (reviewError) {
+        console.error("插入复习状态失败:", reviewError);
+        continue;
+      }
 
       savedCount++;
     }

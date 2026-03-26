@@ -2,15 +2,11 @@
 // GET /api/search?q=xxx&domain=xxx&limit=10
 
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { knowledgeItems } from "@/db/schema";
-import { sql, desc, eq, and } from "drizzle-orm";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { supabase } from "@/lib/supabase";
 import {
-  toTsQuery,
-  buildRankExpression,
-  buildExcerptExpression,
+  buildSearchQuery,
+  createExcerpt,
   validateQuery,
   SearchResult,
   SearchResponse,
@@ -30,10 +26,16 @@ export type { SearchResult, SearchResponse } from "@/lib/search";
 export async function GET(request: NextRequest) {
   try {
     // Step 1: Authenticate user
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token ?? undefined);
 
     if (authError || !user) {
       return NextResponse.json(
@@ -73,62 +75,51 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Step 4: Build search query components
-    const tsquery = toTsQuery(query);
-    const rankExpression = buildRankExpression(query);
-    const excerptExpression = buildExcerptExpression(query, {
-      maxWords: 50,
-      minWords: 10,
-      startSel: "<mark>",
-      stopSel: "</mark>",
-    });
+    // Step 4: Build search query
+    const searchQuery = buildSearchQuery(query);
 
-    // Step 5: Build WHERE clause
-    const whereConditions = [
-      // Full-text search match
-      sql`${knowledgeItems.searchVector} @@ ${tsquery}`,
-      // User isolation
-      eq(knowledgeItems.userId, user.id),
-      // Optional domain filter
-      domain ? eq(knowledgeItems.domain, domain) : undefined,
-    ].filter(Boolean);
+    // Step 5: Execute search using Supabase textSearch
+    let dbQuery = supabase
+      .from("knowledge_items")
+      .select(
+        "id, title, content, domain, tags, source, created_at, search_vector",
+        { count: "exact" }
+      )
+      .eq("user_id", user.id)
+      .textSearch("search_vector", searchQuery);
 
-    // Step 6: Execute search query
-    const results = await db
-      .select({
-        id: knowledgeItems.id,
-        title: knowledgeItems.title,
-        content: knowledgeItems.content,
-        excerpt: excerptExpression,
-        domain: knowledgeItems.domain,
-        tags: knowledgeItems.tags,
-        source: knowledgeItems.source,
-        createdAt: knowledgeItems.createdAt,
-        rank: rankExpression,
-      })
-      .from(knowledgeItems)
-      .where(and(...whereConditions))
-      .orderBy(desc(rankExpression))
-      .limit(limit)
-      .offset(offset);
+    // Optional domain filter
+    if (domain) {
+      dbQuery = dbQuery.eq("domain", domain);
+    }
 
-    // Step 7: Get total count for pagination
-    const countResult = await db
-      .select({
-        count: sql<number>`count(*)::int`,
-      })
-      .from(knowledgeItems)
-      .where(and(...whereConditions));
+    // Execute query with pagination
+    const { data: rawResults, error: searchError, count } = await dbQuery
+      .range(offset, offset + limit - 1)
+      .order("created_at", { ascending: false });
 
-    const total = countResult[0]?.count || 0;
+    if (searchError) {
+      console.error("Search query failed:", searchError);
+      throw searchError;
+    }
 
-    // Step 8: Format response
+    // Step 6: Format results
+    const results: SearchResult[] = (rawResults || []).map((item) => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      excerpt: createExcerpt(item.content, query),
+      domain: item.domain,
+      tags: item.tags,
+      source: item.source,
+      createdAt: new Date(item.created_at),
+      rank: 1, // Supabase textSearch doesn't return rank directly
+    }));
+
+    const total = count || 0;
+
     const response: SearchResponse = {
-      results: results.map((r) => ({
-        ...r,
-        excerpt: String(r.excerpt),
-        rank: Number(r.rank),
-      })),
+      results,
       query,
       total,
       hasMore: offset + results.length < total,

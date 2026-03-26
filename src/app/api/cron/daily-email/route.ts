@@ -2,9 +2,6 @@
 // Cloudflare Cron Trigger handler for daily reminder emails
 
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { reviewState, knowledgeItems, userPreferences } from "@/db/schema";
-import { eq, lte, and, sql, inArray } from "drizzle-orm";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import {
@@ -37,6 +34,24 @@ interface DueItemsByUser {
   reminderTime: string; // HH:mm
   reminderTimezone: string;
   includedDomains: string[];
+}
+
+interface DueItem {
+  id: string;
+  next_review_at: string;
+  knowledge_items: {
+    user_id: string;
+    domain: string;
+  };
+}
+
+interface UserPreference {
+  user_id: string;
+  email_notifications_enabled: boolean;
+  daily_reminder_time: string;
+  reminder_timezone: string;
+  included_domains: string[];
+  display_name: string | null;
 }
 
 /**
@@ -128,26 +143,27 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const currentUtcHour = now.getUTCHours();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayStr = today.toISOString();
 
     console.log(`Cron triggered at UTC hour: ${currentUtcHour}`);
 
-    // Step 3: Find users with due items and notification preferences
-    const dueItemsQuery = await db
-      .select({
-        userId: knowledgeItems.userId,
-        domain: knowledgeItems.domain,
-        nextReviewAt: reviewState.nextReviewAt,
-      })
-      .from(reviewState)
-      .innerJoin(knowledgeItems, eq(reviewState.knowledgeItemId, knowledgeItems.id))
-      .where(
-        and(
-          // Due today or earlier
-          lte(reviewState.nextReviewAt, now),
-          // Only items that haven't been reviewed today
-          sql`${reviewState.nextReviewAt} >= ${today}`
-        )
-      );
+    const supabase = getSupabaseAdmin();
+
+    // Step 3: Find users with due items using Supabase REST
+    const { data: dueItems, error: dueError } = await supabase
+      .from("review_state")
+      .select(`
+        id,
+        next_review_at,
+        knowledge_items!inner(user_id, domain)
+      `)
+      .lte("next_review_at", now.toISOString())
+      .gte("next_review_at", todayStr);
+
+    if (dueError) {
+      console.error("查询到期复习条目失败:", dueError);
+      throw dueError;
+    }
 
     // Aggregate by user
     const userMap = new Map<
@@ -155,14 +171,16 @@ export async function POST(request: NextRequest) {
       { domains: Set<string>; count: number }
     >();
 
-    for (const item of dueItemsQuery) {
-      const existing = userMap.get(item.userId);
+    for (const item of (dueItems || []) as DueItem[]) {
+      const userId = item.knowledge_items.user_id;
+      const domain = item.knowledge_items.domain;
+      const existing = userMap.get(userId);
       if (existing) {
-        existing.domains.add(item.domain);
+        existing.domains.add(domain);
         existing.count++;
       } else {
-        userMap.set(item.userId, {
-          domains: new Set([item.domain]),
+        userMap.set(userId, {
+          domains: new Set([domain]),
           count: 1,
         });
       }
@@ -180,32 +198,37 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const preferences = await db
-      .select()
-      .from(userPreferences)
-      .where(inArray(userPreferences.userId, userIdsWithDueItems));
+    const { data: preferences, error: prefError } = await supabase
+      .from("user_preferences")
+      .select("*")
+      .in("user_id", userIdsWithDueItems);
+
+    if (prefError) {
+      console.error("查询用户偏好失败:", prefError);
+      throw prefError;
+    }
 
     // Step 5: Filter users who should receive emails now
     const usersToNotify: DueItemsByUser[] = [];
 
-    for (const pref of preferences) {
+    for (const pref of (preferences || []) as UserPreference[]) {
       // Skip if email notifications disabled (D-02)
-      if (!pref.emailNotificationsEnabled) {
-        console.log(`User ${pref.userId}: notifications disabled`);
+      if (!pref.email_notifications_enabled) {
+        console.log(`User ${pref.user_id}: notifications disabled`);
         continue;
       }
 
       // Check if it's the right time for this user (D-01)
       if (!shouldSendReminder(
-        pref.dailyReminderTime,
-        pref.reminderTimezone,
+        pref.daily_reminder_time,
+        pref.reminder_timezone,
         currentUtcHour
       )) {
-        console.log(`User ${pref.userId}: not their reminder time`);
+        console.log(`User ${pref.user_id}: not their reminder time`);
         continue;
       }
 
-      const dueInfo = userMap.get(pref.userId);
+      const dueInfo = userMap.get(pref.user_id);
       if (!dueInfo || dueInfo.count === 0) {
         continue;
       }
@@ -213,34 +236,34 @@ export async function POST(request: NextRequest) {
       // Filter domains by user preference (D-02)
       const filteredDomains = filterDomainsByPreference(
         Array.from(dueInfo.domains),
-        pref.includedDomains
+        pref.included_domains
       );
 
       // Skip if no domains match after filtering
       if (filteredDomains.length === 0) {
-        console.log(`User ${pref.userId}: no matching domains`);
+        console.log(`User ${pref.user_id}: no matching domains`);
         continue;
       }
 
       // Fetch user email from Supabase
-      const { data: userData, error: userError } = await getSupabaseAdmin().auth.admin.getUserById(
-        pref.userId
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+        pref.user_id
       );
 
       if (userError || !userData.user?.email) {
-        console.error(`Failed to get email for user ${pref.userId}:`, userError);
+        console.error(`Failed to get email for user ${pref.user_id}:`, userError);
         continue;
       }
 
       usersToNotify.push({
-        userId: pref.userId,
+        userId: pref.user_id,
         email: userData.user.email,
-        displayName: pref.displayName,
+        displayName: pref.display_name,
         count: dueInfo.count,
         domains: filteredDomains,
-        reminderTime: pref.dailyReminderTime,
-        reminderTimezone: pref.reminderTimezone,
-        includedDomains: pref.includedDomains,
+        reminderTime: pref.daily_reminder_time,
+        reminderTimezone: pref.reminder_timezone,
+        includedDomains: pref.included_domains,
       });
     }
 
