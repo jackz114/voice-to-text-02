@@ -1,106 +1,40 @@
-# Cloudflare 部署错误记录
 
-## 2026-03-25 错误
+---
 
-**错误信息：**
-```
-ERROR Could not find compiled Open Next config, did you run the build command?
-```
+## 2026-03-26 部署后运行时错误
 
-**根本原因：**
-wrangler.jsonc 中的 build.command 设置为 "npm run build"，这只会运行 "next build"。
-但部署到 Cloudflare Workers 需要运行 "opennextjs-cloudflare build" 来生成 .open-next/worker.js。
-
-**解决方案：**
-修改 wrangler.jsonc 中的 build.command 为 "npm run build:cloudflare"
-
-**状态：** 已修复
-
-## 2026-03-26 部署尝试 #1
+**错误现象：**
+访问 `bijiassistant.shop` 显示 **Error 1101 - Worker threw exception**
 
 **错误信息：**
-```
-./next.config.ts:44:3
-Type error: Object literal may only specify known properties, but 'hideSourceMaps' does not exist in type 'SentryBuildOptions'. Did you mean to write 'sourcemaps'?
-```
+服务器返回 HTTP 500 错误，Worker 无法正常响应请求。
 
 **根本原因：**
-`@sentry/nextjs` 包的配置选项已更改。`hideSourceMaps` 和 `disableLogger` 选项已被弃用。
+`wrangler.jsonc` 中只定义了部分环境变量，缺少客户端需要的 `NEXT_PUBLIC_*` 变量：
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_PAYPAL_CLIENT_ID`
+- `NEXT_PUBLIC_PAYPAL_PLAN_ID`
+- `NEXT_PUBLIC_APP_URL`
+
+代码中通过 `process.env.NEXT_PUBLIC_*` 访问这些变量，但在 Cloudflare Workers 运行时这些变量为 `undefined`，导致 Supabase 客户端初始化时抛出错误：
+```
+throw new Error("Missing Supabase environment variables")
+```
 
 **解决方案：**
-更新 Sentry 配置使用新的 `sourcemaps` 和 `bundleSizeOptimizations` 选项。
-
-**状态：** 已修复
-
-## 2026-03-26 部署尝试 #2
-
-**错误信息：**
+在 `wrangler.jsonc` 的 `vars` 部分添加所有 `NEXT_PUBLIC_*` 环境变量：
+```json
+"vars": {
+  "ENVIRONMENT": "production",
+  "NEXT_PUBLIC_SUPABASE_URL": "https://fpwstkjcatajbidwtugy.supabase.co",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_...",
+  "NEXT_PUBLIC_PAYPAL_CLIENT_ID": "AVNwLiNUo8IF7yzU...",
+  "NEXT_PUBLIC_PAYPAL_PLAN_ID": "your_paypal_plan_id",
+  "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop",
+},
 ```
-./next.config.ts:50:5
-Type error: Object literal may only specify known properties, and 'excludeReplayCanvas' does not exist in type '{ excludeDebugStatements?: boolean | undefined; excludeTracing?: boolean | undefined; excludeReplayShadowDom?: boolean | undefined; excludeReplayIframe?: boolean | undefined; excludeReplayWorker?: boolean | undefined; }'.
-```
-
-**根本原因：**
-`bundleSizeOptimizations.excludeReplayCanvas` 不是有效的选项。根据 TypeScript 类型定义，
-有效的选项是：excludeDebugStatements, excludeTracing, excludeReplayShadowDom, excludeReplayIframe, excludeReplayWorker。
-
-**解决方案：**
-移除 `excludeReplayCanvas: true` 配置项。
-
-**状态：** 已修复，但引发了新的错误
-
-## 2026-03-26 部署尝试 #3
-
-**错误信息：**
-```
-Error: This error should only happen for static 404 and 500 page from page router. File server/instrumentation.js does not exist
-```
-
-**根本原因：**
-`instrumentation.ts` 文件与 Cloudflare Workers 不兼容。`@sentry/nextjs` 的 webpack 插件试图在构建时生成 instrumentation 代码，但 Cloudflare Workers 使用 OpenNext 适配器，有自己的入口点 `.open-next/worker.js`，不兼容 Next.js 的 instrumentation 钩子。
-
-**解决方案：**
-1. 完全移除 `instrumentation.ts` 文件
-2. 移除所有 `sentry.*.config.ts` 文件 (client, edge, server)
-3. 从 `next.config.ts` 中移除 `@sentry/nextjs` 的 `withSentryConfig` 包装器
-4. 恢复为标准 Next.js 配置
 
 **状态：** 已修复，已推送 GitHub 等待部署
 
-## 2026-03-26 部署尝试 #4
-
-**错误信息：**
-```
-✘ [ERROR] The `nodejs_compat` and `nodejs_compat_v2` compatibility flags cannot be used in together. Please select just one.
-```
-
-**根本原因：**
-`wrangler.jsonc` 中同时配置了 `nodejs_compat` 和 `nodejs_compat_v2` 两个兼容性标志，这是不允许的。`nodejs_compat_v2` 是 v2 版本的 Node.js 兼容层，包含了 v1 的功能，所以不需要同时使用两者。
-
-**解决方案：**
-从 `wrangler.jsonc` 的 `compatibility_flags` 中移除 `nodejs_compat`，只保留 `nodejs_compat_v2`。
-
-**状态：** 已修复，已推送 GitHub 等待部署
-
-## 2026-03-26 部署尝试 #5
-
-**错误信息：**
-```
-✘ [ERROR] Uncaught Error: No such module "node:fs".
-  imported from "worker.js"
-   [code: 10021]
-```
-
-**根本原因：**
-Next.js 16 的内部代码（`fast-set-immediate.external.js`）在调试代码中使用了 `require("node:fs")`。
-这个引用出现在 `writeFileSync` 函数中，仅在 `NEXT_DEBUG_IMMEDIATES` 环境变量为 `"1"` 时才会执行，
-但由于代码被打包进了 bundle，导致 Cloudflare Workers 在启动时无法找到 `node:fs` 模块。
-
-根据 Cloudflare 文档，`node:fs` 需要 `nodejs_compat` 兼容性标志（不是 `nodejs_compat_v2`）。
-`nodejs_compat_v2` 虽然包含了大部分 Node.js API，但可能不包含 `node:fs`。
-
-**解决方案：**
-1. 将 `wrangler.jsonc` 中的 `compatibility_flags` 从 `["nodejs_compat_v2"]` 改为 `["nodejs_compat"]`
-2. 更新 `open-next.config.ts` 以明确设置 `useWorkerdCondition: true`
-
-**状态：** 已修复，已推送 GitHub 等待部署
+---
