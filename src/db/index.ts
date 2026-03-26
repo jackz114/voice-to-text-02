@@ -3,7 +3,10 @@
 // 替代原来的 postgres-js（不兼容 Workers）
 
 import { getSupabaseServiceClient } from "@/lib/db-client";
-export * from "./schema";
+
+// 注意：schema.ts 中的 Drizzle ORM 定义仅用于 drizzle-kit 迁移
+// 不要在 Cloudflare Workers 运行时导入 schema，因为 pg-core 包含 Node.js 特定代码
+// import * from "./schema"; // 已移除 - 避免打包 node:fs 等模块
 
 // 导出 Supabase 服务客户端
 export const db = getSupabaseServiceClient();
