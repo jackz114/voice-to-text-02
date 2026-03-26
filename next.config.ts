@@ -43,7 +43,18 @@ const nextConfig: NextConfig = {
       })
     );
 
-    // 2. 重定向 Node.js 内置模块到空模块（解决静态分析报错）
+    // 2. 排除 drizzle-orm 和相关模块（避免打包 node:fs）
+    config.externals = config.externals || [];
+    if (Array.isArray(config.externals)) {
+      config.externals.push(
+        "drizzle-orm",
+        "drizzle-orm/pg-core",
+        "drizzle-orm/migrator",
+        "drizzle-kit"
+      );
+    }
+
+    // 3. 重定向 Node.js 内置模块到空模块（解决静态分析报错）
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,

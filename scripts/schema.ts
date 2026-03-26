@@ -1,4 +1,7 @@
-// src/db/schema.ts
+// scripts/schema.ts
+// 此文件仅用于 drizzle-kit 迁移，不要在应用代码中导入！
+// Cloudflare Workers 不支持 node:fs，而 drizzle-orm/pg-core 依赖它
+
 import {
   pgTable,
   uuid,
