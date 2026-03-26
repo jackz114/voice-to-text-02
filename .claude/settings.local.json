@@ -10,7 +10,14 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(npm run:*)",
+      "mcp__cloudflare-docs__search_cloudflare_documentation",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__github__list_commits"
     ]
   }
 }
