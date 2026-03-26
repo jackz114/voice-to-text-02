@@ -1,0 +1,17 @@
+# Cloudflare 部署错误记录
+
+## 2026-03-25 错误
+
+**错误信息：**
+```
+ERROR Could not find compiled Open Next config, did you run the build command?
+```
+
+**根本原因：**
+wrangler.jsonc 中的 build.command 设置为 "npm run build"，这只会运行 "next build"。
+但部署到 Cloudflare Workers 需要运行 "opennextjs-cloudflare build" 来生成 .open-next/worker.js。
+
+**解决方案：**
+修改 wrangler.jsonc 中的 build.command 为 "npm run build:cloudflare"
+
+**状态：** 已修复

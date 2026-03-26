@@ -3,48 +3,47 @@
   "name": "voice-to-text-02",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-03-21",
-  "compatibility_flags": ["nodejs_compat_v2"],
+  "compatibility_flags": ["nodejs_compat_v2", "nodejs_compat"],
 
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
+    "SENTRY_DSN": "https://51e8b55f1b3735cfa6a72efe8a84b81a@o4511104328990720.ingest.us.sentry.io/4511104331808768",
   },
 
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
-    "not_found_handling": "none"
+    "not_found_handling": "none",
   },
 
   "routes": [
     {
       "pattern": "bijiassistant.shop",
-      "custom_domain": true
+      "custom_domain": true,
     },
     {
       "pattern": "www.bijiassistant.shop",
-      "custom_domain": true
-    }
+      "custom_domain": true,
+    },
   ],
 
   "build": {
-    "command": "npm run build"
+    "command": "npm run build:cloudflare",
   },
 
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1
+    "head_sampling_rate": 1,
   },
 
   "triggers": {
-    "crons": [
-      "0 * * * *"
-    ]
+    "crons": ["0 * * * *"],
   },
 
   "r2_buckets": [
     {
       "binding": "AUDIO_BUCKET",
-      "bucket_name": "voice-to-text-audio"
-    }
-  ]
+      "bucket_name": "voice-to-text-audio",
+    },
+  ],
 }
