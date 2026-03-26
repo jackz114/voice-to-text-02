@@ -4,7 +4,10 @@
       "Read(//c/Users/郑/.claude/**)",
       "Bash(ls .claude/mcp*)",
       "mcp__cloudflare__worker_list",
-      "mcp__cloudflare__version_list"
+      "mcp__cloudflare__version_list",
+      "Bash(npx wrangler:*)",
+      "Bash(ls -la sentry.*.config.ts instrumentation.ts)",
+      "Bash(git add:*)"
     ]
   }
 }
