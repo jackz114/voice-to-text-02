@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
-// 1. 引入 Polyfill 插件
-import NodePolyfillPlugin from "node-polyfill-webpack-plugin";
+
+// ⚠️ 注意：不要在这里直接 import NodePolyfillPlugin
+// 因为在 Server Components / Edge Runtime 环境下，某些 Node API 可能不可用
+// 我们将在 webpack 函数内部动态 require
 
 const nextConfig: NextConfig = {
   images: {
@@ -17,19 +19,25 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react"],
   },
   webpack: (config, { isServer }) => {
-    // 2. 配置 Polyfill
-    if (!config.resolve) config.resolve = {};
-    if (!config.resolve.plugins) config.resolve.plugins = [];
+    // 1. 仅在构建服务器端代码时执行（避免 Edge Runtime 报错）
+    if (isServer) {
+      // 2. 动态引入插件，防止 OpenNext 构建时顶层报错
+      // @ts-ignore - 忽略动态导入的类型检查
+      const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
-    // 添加 Node.js Polyfill 插件
-    // 这会自动处理 fs, path, crypto 等常见模块
-    config.resolve.plugins.push(new NodePolyfillPlugin());
+      // 3. 初始化插件
+      const plugin = new NodePolyfillPlugin({
+        // 明确指定需要 polyfill 的模块
+        excludeAliases: ["console"],
+      });
 
-    // 3. 额外保险：如果插件没覆盖到，手动 fallback
-    if (!config.resolve.fallback) config.resolve.fallback = {};
-    config.resolve.fallback.fs = false; // 或者 require.resolve("browserify-fs") 如果你需要读写模拟文件系统
-    config.resolve.fallback.path = false;
-    config.resolve.fallback.crypto = false;
+      // 4. 检查 resolve.plugins 是否已存在，否则初始化
+      if (!config.resolve) config.resolve = {};
+      if (!config.resolve.plugins) config.resolve.plugins = [];
+
+      // 5. 将插件推入 resolve.plugins 数组
+      config.resolve.plugins.push(plugin);
+    }
 
     return config;
   },
