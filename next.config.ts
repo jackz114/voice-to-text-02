@@ -15,15 +15,17 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react"],
   },
   webpack: (config, { isServer }) => {
-    // 关键修复：仅在服务器端构建时动态加载插件
     if (isServer) {
+      // 修复：强制获取 default 属性，兼容 ESM/CJS 混合情况
       // @ts-ignore
-      const NodePolyfillPlugin = require("node-polyfill-webpack-plugin").default;
+      const NodePolyfillPlugin = require("node-polyfill-webpack-plugin").default; 
+      
       if (!config.resolve) config.resolve = {};
       if (!config.resolve.plugins) config.resolve.plugins = [];
+      
       config.resolve.plugins.push(
         new NodePolyfillPlugin({
-          excludeAliases: ["console"], // 排除 console 避免冲突
+          excludeAliases: ["console"],
         })
       );
     }

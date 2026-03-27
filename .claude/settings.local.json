@@ -25,7 +25,13 @@
       "Bash(curl:*)",
       "Bash(wrangler tail:*)",
       "Bash(grep -l \"node:fs\\\\|drizzle\" .open-next/worker.js .open-next/server-functions/*.js)",
-      "mcp__cloudflare__workers_analytics_search"
+      "mcp__cloudflare__workers_analytics_search",
+      "WebFetch(domain:developers.cloudflare.com)",
+      "Bash(grep -r edgeExternals node_modules/@opennextjs/cloudflare --include=*.ts --include=*.d.ts)",
+      "Bash(grep -r defineCloudflareConfig node_modules/@opennextjs/cloudflare --include=*.d.ts)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(npm install:*)"
     ]
   }
 }
