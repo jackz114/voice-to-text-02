@@ -16,20 +16,45 @@ const nextConfig: NextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // 强制兼容所有版本的引入方式
-      // @ts-ignore
-      const plugin = require("node-polyfill-webpack-plugin");
-      // 不管它是 default 还是 module.exports，直接把函数本体拿出来
-      const NodePolyfillPlugin = plugin.default || plugin;
-
-      if (!config.resolve) config.resolve = {};
-      if (!config.resolve.plugins) config.resolve.plugins = [];
-
-      config.resolve.plugins.push(
-        new NodePolyfillPlugin({
-          excludeAliases: ["console"],
-        })
-      );
+      // 使用原生 fallback 配置，替代插件
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        buffer: false,
+        http: false,
+        https: false,
+        net: false,
+        tls: false,
+        zlib: false,
+        url: false,
+        querystring: false,
+        os: false,
+        punycode: false,
+        dgram: false,
+        dns: false,
+        cluster: false,
+        module: false,
+        process: false,
+        "node:fs": false,
+        "node:path": false,
+        "node:crypto": false,
+        "node:stream": false,
+        "node:util": false,
+        "node:buffer": false,
+        "node:http": false,
+        "node:https": false,
+        "node:net": false,
+        "node:tls": false,
+        "node:zlib": false,
+        "node:url": false,
+        "node:querystring": false,
+        "node:os": false,
+        "node:punycode": false,
+      };
     }
     return config;
   },
