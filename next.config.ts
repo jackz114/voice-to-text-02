@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  // 👇 新增部分：告诉 Webpack 忽略 Node.js 内置模块
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      // 排除所有 node: 前缀的内置模块 (如 node:fs, node:path 等)
+      config.externals.push(/^node:/);
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
