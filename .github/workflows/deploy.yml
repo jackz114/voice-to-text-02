@@ -16,19 +16,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          # 开启 npm 缓存，加快安装速度
           cache: "npm"
 
-      - name: Clean cache
-        run: |
-          rm -rf .next
-          rm -rf .open-next
-          rm -rf .wrangler
-          rm -f wrangler.toml
-          rm -rf node_modules
-          rm -f package-lock.json
+      # 【修改点】删除了之前的 "Clean cache" 步骤，不要删除 package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        # 【修改点】添加了 --legacy-peer-deps 以解决依赖冲突问题
+        run: npm install --legacy-peer-deps
 
       - name: Build and Deploy
         run: npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy
