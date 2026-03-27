@@ -1,9 +1,17 @@
 import type { OpenNextConfig } from "@opennextjs/cloudflare";
 
 const config: OpenNextConfig = {
-  default: {},
+  default: {
+    override: {
+      wrapper: "cloudflare-node",
+      converter: "edge",
+      proxyExternalRequest: "fetch",
+      incrementalCache: "dummy",
+      tagCache: "dummy",
+      queue: "dummy",
+    },
+  },
   // 确保 drizzle-orm 相关包不被打包到 Workers 中
-  // 这些包只在本地 drizzle-kit 迁移时使用
   edgeExternals: [
     "drizzle-orm",
     "drizzle-orm/pg-core",
@@ -11,9 +19,6 @@ const config: OpenNextConfig = {
     "drizzle-kit",
     "drizzle-zod",
   ],
-  cloudflare: {
-    // Cloudflare 特定配置
-  },
 };
 
 export default config;
