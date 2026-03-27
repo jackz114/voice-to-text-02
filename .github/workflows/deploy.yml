@@ -24,9 +24,11 @@ jobs:
           rm -rf .open-next
           rm -rf .wrangler
           rm -f wrangler.toml
+          rm -rf node_modules
+          rm -f package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build and Deploy
         run: npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy
