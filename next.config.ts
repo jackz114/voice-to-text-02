@@ -16,13 +16,15 @@ const nextConfig: NextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // 修复：强制获取 default 属性，兼容 ESM/CJS 混合情况
+      // 强制兼容所有版本的引入方式
       // @ts-ignore
-      const NodePolyfillPlugin = require("node-polyfill-webpack-plugin").default; 
-      
+      const plugin = require("node-polyfill-webpack-plugin");
+      // 不管它是 default 还是 module.exports，直接把函数本体拿出来
+      const NodePolyfillPlugin = plugin.default || plugin;
+
       if (!config.resolve) config.resolve = {};
       if (!config.resolve.plugins) config.resolve.plugins = [];
-      
+
       config.resolve.plugins.push(
         new NodePolyfillPlugin({
           excludeAliases: ["console"],
