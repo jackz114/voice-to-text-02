@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+// 1. 引入 Polyfill 插件
+import NodePolyfillPlugin from "node-polyfill-webpack-plugin";
 
 const nextConfig: NextConfig = {
   images: {
@@ -14,13 +16,21 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
-  // 👇 新增部分：告诉 Webpack 忽略 Node.js 内置模块
   webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals = config.externals || [];
-      // 排除所有 node: 前缀的内置模块 (如 node:fs, node:path 等)
-      config.externals.push(/^node:/);
-    }
+    // 2. 配置 Polyfill
+    if (!config.resolve) config.resolve = {};
+    if (!config.resolve.plugins) config.resolve.plugins = [];
+
+    // 添加 Node.js Polyfill 插件
+    // 这会自动处理 fs, path, crypto 等常见模块
+    config.resolve.plugins.push(new NodePolyfillPlugin());
+
+    // 3. 额外保险：如果插件没覆盖到，手动 fallback
+    if (!config.resolve.fallback) config.resolve.fallback = {};
+    config.resolve.fallback.fs = false; // 或者 require.resolve("browserify-fs") 如果你需要读写模拟文件系统
+    config.resolve.fallback.path = false;
+    config.resolve.fallback.crypto = false;
+
     return config;
   },
 };
