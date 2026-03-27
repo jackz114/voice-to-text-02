@@ -45,7 +45,7 @@ npm run cf:secret:put <SECRET_NAME>
 
 **技术栈**：Next.js 16 App Router + React 19 + TypeScript（严格模式）+ Tailwind CSS v4，通过 `@opennextjs/cloudflare` 部署到 **Cloudflare Workers**。生产域名：`bijiassistant.shop`。
 
-**后端**：Supabase（Auth + Postgres）+ Cloudflare R2（音频存储）。ORM 选用 Drizzle，但**目前尚无任何 Drizzle schema 文件**——数据库表结构仅以 TypeScript interface 的形式定义在 `business_logic.md` 中，数据库集成是下一阶段的工作。
+**后端**：Supabase（Auth + Postgres）+ Cloudflare R2（音频存储）。数据库表结构以 TypeScript interface 的形式定义在 `business_logic.md` 中，使用 Supabase 客户端直接操作数据库。
 
 **当前开发进度**：Auth UI 和 PayPal 支付 UI 已完成。支付 API 路由中的数据库写入操作均已注释（TODO 占位符）。音频存储使用 Cloudflare R2，转录功能尚未实现。
 
@@ -168,7 +168,7 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 
 - [ ] 替换 `LoginForm.tsx:127` 中的 Turnstile 测试 sitekey
 - [ ] 将 `PAYPAL_API_URL` 切换为 `https://api-m.paypal.com`
-- [ ] 创建 Drizzle schema 文件并为全部 5 张表执行数据库迁移
+- [ ] 创建数据库 schema 并为全部 5 张表执行数据库迁移
 - [ ] 为所有数据库表启用 Supabase RLS 策略
 - [ ] 在 `capture-order`、`verify-subscription` 及 webhook 处理函数中实现数据库写入逻辑
 - [ ] 在 PayPal Dashboard 中配置 Webhook 回调 URL
@@ -188,7 +188,7 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 ### Constraints
 
 - **技术栈**：Next.js 16 + React 19 + TypeScript + Tailwind CSS v4，部署到 Cloudflare Workers — 保持一致，不引入不兼容的运行时
-- **数据库**：Supabase Postgres + Drizzle ORM — 需先建 schema 文件
+- **数据库**：Supabase Postgres — 使用 Supabase 客户端直接操作，不引入 ORM 以减少 Cloudflare Workers 兼容性问题
 - **音频存储**：Supabase Storage — 已有账号和集成基础
 - **转写 API**：优先 OpenAI Whisper API — 成熟稳定，Cloudflare Workers AI 作为备选
 - **依赖**：现有 Auth 系统必须先打通（数据库层），才能关联用户数据
@@ -224,13 +224,11 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - ESLint 9.x - Linting with flat config (`eslint.config.mjs`)
 - `eslint-config-next` 16.2.0 - Next.js-specific ESLint rules
 - `eslint-config-prettier` 10.1.8 - Disables ESLint rules that conflict with Prettier
-- drizzle-kit 0.31.10 - Database migration CLI (dev dependency)
 
 ## Key Dependencies
 
 - `@supabase/supabase-js` 2.99.3 - Database client and auth SDK; used in `src/lib/supabase.ts`, `src/components/auth/AuthProvider.tsx`, `src/components/auth/LoginForm.tsx`, `src/components/auth/GoogleAuthButton.tsx`, `src/app/auth/callback/AuthCallbackHandler.tsx`
 - `@paypal/react-paypal-js` 9.0.2 - PayPal React SDK; used in `src/components/payment/PayPalButton.tsx`
-- `drizzle-orm` 0.45.1 - ORM for database schema and queries (declared; no schema files found in explored source)
 - `react-turnstile` 1.1.5 - Cloudflare Turnstile CAPTCHA widget; used in `src/components/auth/LoginForm.tsx`
 - `@radix-ui/react-slot` 1.2.4 - Primitive slot component for composable UI
 - `class-variance-authority` 0.7.1 - Variant-based className management
