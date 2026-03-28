@@ -6,7 +6,7 @@
   "compatibility_flags": [
     "nodejs_compat_v2",
     "global_fetch_strictly_public",
-    "enable_nodejs_fs_module", // <-- 加上这一行，这是让 fs 模块生效的关键！
+    "enable_nodejs_fs_module"
   ],
 
   "vars": {
@@ -15,46 +15,46 @@
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_jFwmh7VQcHSe78dSnSSVNw_tOsFc-UM",
     "NEXT_PUBLIC_PAYPAL_CLIENT_ID": "AVNwLiNUo8IF7yzU4miGKhcS1V76x8Uhd166cSnpCvMFXKxIB6P2fBnxbGf5dI2MAAxZgtYVsfake1gI",
     "NEXT_PUBLIC_PAYPAL_PLAN_ID": "your_paypal_plan_id",
-    "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop",
+    "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop"
   },
 
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
-    "not_found_handling": "none",
+    "not_found_handling": "none"
   },
 
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "voice-to-text-02",
-    },
+      "service": "voice-to-text-02"
+    }
   ],
 
   "routes": [
     {
       "pattern": "bijiassistant.shop",
-      "custom_domain": true,
+      "custom_domain": true
     },
     {
       "pattern": "www.bijiassistant.shop",
-      "custom_domain": true,
-    },
+      "custom_domain": true
+    }
   ],
 
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1,
+    "head_sampling_rate": 1
   },
 
   "triggers": {
-    "crons": ["0 * * * *"],
+    "crons": ["0 * * * *"]
   },
 
   "r2_buckets": [
     {
       "binding": "AUDIO_BUCKET",
-      "bucket_name": "voice-to-text-audio",
-    },
-  ],
+      "bucket_name": "voice-to-text-audio"
+    }
+  ]
 }
