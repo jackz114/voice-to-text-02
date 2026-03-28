@@ -2,16 +2,8 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "voice-to-text-02",
   "main": ".open-next/worker.js",
-  "compatibility_date": "2026-03-21",
-  "compatibility_flags": [
-    "nodejs_compat_v2",
-    "global_fetch_strictly_public",
-    "enable_nodejs_fs_module",
-    "enable_nodejs_vm_module",
-    "enable_nodejs_http_module",
-    "enable_nodejs_https_module",
-    "enable_nodejs_net_module"
-  ],
+  "compatibility_date": "2025-12-31",
+  "compatibility_flags": ["nodejs_compat_v2"],
 
   "vars": {
     "ENVIRONMENT": "production",
