@@ -26,7 +26,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Verify build output (Debug)
+      - name: Verify build output
         run: |
           echo "=== Listing .open-next contents ==="
           ls -la .open-next
@@ -36,42 +36,25 @@ jobs:
             exit 1
           fi
 
-      - name: Copy Wrangler Config (关键步骤)
+      - name: Fix Wrangler Config Path
         run: |
-          cp wrangler.json .open-next/wrangler.json
-          echo "Copied wrangler.json to .open-next/"
+          # 直接修改 .open-next/wrangler.json 中的 assets.directory
+          sed -i 's|".open-next/assets"|"'$GITHUB_WORKSPACE'/.open-next/assets"|' .open-next/wrangler.json
 
-          # 验证关键配置是否存在
-          grep "enable_nodejs_fs_module" .open-next/wrangler.json && echo "FS Flag Found!" || echo "Warning: Flag Missing!"
+          # 验证修改结果
+          echo "=== Fixed assets path ==="
+          grep "directory" .open-next/wrangler.json
 
-      - name: Preprocess Wrangler Config (官方推荐路径修复)
-        run: |
-          # 官方文档明确建议：将所有相对路径替换为绝对路径
-          # 使用 $GITHUB_WORKSPACE 构建绝对路径（GitHub Actions 官方推荐方法）
-          sed -i "s|\"assets\": \".*\"|\"assets\": \"$GITHUB_WORKSPACE/.open-next/assets\"|" .open-next/wrangler.json
-
-          # 确保兼容性日期格式正确（官方要求 YYYY-MM-DD）
-          sed -i "s|\"compatibility_date\": \".*\"|\"compatibility_date\": \"2026-03-28\"|" .open-next/wrangler.json
-
-          # 验证修改后的配置
-          cat .open-next/wrangler.json
-
-      - name: Deploy to Cloudflare (官方标准方式)
+      - name: Deploy to Cloudflare
         run: |
           echo "Current Directory: $(pwd)"
-
-          # 列出 .open-next 目录内容（用于调试）
           echo "Files in .open-next:"
           ls -la .open-next/
 
-          # 使用绝对路径部署（Cloudflare 官方推荐方法）
+          # 使用绝对路径部署
           npx wrangler deploy "$GITHUB_WORKSPACE/.open-next/wrangler.json"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-          # 强制启用 Node.js 兼容模式（官方要求）
           WRANGLER_COMPATIBILITY_FLAGS: nodejs_compat_v2
-
-          # 确保兼容性日期与配置文件一致
           WRANGLER_COMPATIBILITY_DATE: 2026-03-28
