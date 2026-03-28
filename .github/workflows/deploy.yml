@@ -5,121 +5,47 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
-env:
-  NODE_VERSION: "22"
-
-# 👇 新增：解决 Node.js 20 弃用警告
-env:
-  # 强制 Actions 使用 Node.js 24 运行时
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      # ⚠️ 修改点 1: 移除了缓存 .open-next 的步骤
-      # 构建产物不要缓存，防止旧代码覆盖新构建
-      # 原有的 "Cache OpenNext build" 步骤请直接删除
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Next.js
-        run: npm run build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
-          NEXT_PUBLIC_PAYPAL_PLAN_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_PLAN_ID }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-
-      - name: Build Cloudflare Workers
-        run: npx opennextjs-cloudflare build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
-          NEXT_PUBLIC_PAYPAL_PLAN_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_PLAN_ID }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-
-      # ⚠️ 修改点 2: 确保构建成功后再上传
-      # 增加一个检查步骤，防止上传空文件夹
-      - name: Verify Build Output
-        run: |
-          if [ ! -d ".open-next" ]; then
-            echo "❌ Error: Build output directory .open-next not found!"
-            exit 1
-          fi
-          echo "✅ Build output verified, proceeding to upload."
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: opennext-build
-          path: .open-next/
-          # ⚠️ 修改点 3: 增加保留时间（可选，主要是为了调试）
-          retention-days: 2
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: opennext-build
-          path: .open-next/
-
-      # 👇 新增：调试步骤，检查下载的文件是否存在
-      - name: Debug: List Files
-        run: |
-          echo "Listing files in .open-next:"
-          find .open-next -type f | head -n 20 # 只显示前20个，防止日志过长
-          if [ ! -f ".open-next/worker.js" ]; then
-            echo "❌ Error: Critical file worker.js not found in artifact!"
-            exit 1
-          fi
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
-      - name: Deploy to Cloudflare
-        id: deploy
-        run: |
-          OUTPUT=$(npx opennextjs-cloudflare deploy 2>&1)
-          echo "$OUTPUT"
-          WORKER_URL=$(echo "$OUTPUT" | grep -oE 'https://[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+\.workers\.dev' || true)
-          if [ -n "$WORKER_URL" ]; then
-            echo "worker_url=$WORKER_URL" >> $GITHUB_OUTPUT
-          fi
+      - name: Build Cloudflare Worker
+        run: npx opennextjs-cloudflare build --output-dir .open-next
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
+          NEXT_PUBLIC_PAYPAL_PLAN_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_PLAN_ID }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_CLIENT_SECRET }}
+          PAYPAL_WEBHOOK_ID: ${{ secrets.PAYPAL_WEBHOOK_ID }}
+          PAYPAL_API_URL: ${{ secrets.PAYPAL_API_URL }}
 
-      - name: Create deployment summary
+      - name: Verify build output
         run: |
-          echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
-          if [ -n "${{ steps.deploy.outputs.worker_url }}" ]; then
-            echo "| Workers URL | ${{ steps.deploy.outputs.worker_url }} |" >> $GITHUB_STEP_SUMMARY
+          ls -la .open-next
+          if [ ! -f .open-next/worker.js ]; then
+            echo "ERROR: worker.js not found in .open-next directory"
+            exit 1
           fi
+
+      - name: Deploy to Cloudflare
+        run: npx opennextjs-cloudflare deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
