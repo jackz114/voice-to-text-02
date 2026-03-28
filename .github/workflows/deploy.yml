@@ -24,6 +24,8 @@ jobs:
         run: npx opennextjs-cloudflare build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       # --- 新增的调试步骤：验证 wrangler.toml 内容 ---
       - name: Verify Wrangler Config
