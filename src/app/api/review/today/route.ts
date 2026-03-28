@@ -4,6 +4,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+// 类型定义
+interface KnowledgeItem {
+  id: string;
+  title: string;
+  content: string;
+  domain: string;
+  source: string;
+  tags: string[];
+}
+
+interface ReviewState {
+  id: string;
+  next_review_at: string;
+  stability: number;
+  difficulty: number;
+  review_count: number;
+  last_reviewed_at: string | null;
+  knowledge_items: KnowledgeItem;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // 步骤 1: 验证用户身份
@@ -57,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 格式化结果
-    const dueItems = (rawItems || []).map((item: any) => ({
+    const dueItems = (rawItems || []).map((item: ReviewState) => ({
       itemId: item.knowledge_items.id,
       title: item.knowledge_items.title,
       content: item.knowledge_items.content,
