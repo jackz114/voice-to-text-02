@@ -161,7 +161,7 @@ Workers Static Assets: A read-only store for the incremental cache, serving buil
 
 The prefix used by the R2 bucket can be configured with the NEXT_INC_CACHE_R2_PREFIX environment variable, and defaults to incremental-cache.
 
-// wrangler.jsonc
+// wrangler.toml
 {
 // ...
 "name": "<WORKER_NAME>",
@@ -230,7 +230,7 @@ export default defineCloudflareConfig({
 incrementalCache: r2IncrementalCache,
 queue: doQueue,
 });
-You will also need to add some binding to your wrangler.jsonc file.
+You will also need to add some binding to your wrangler.toml file.
 
 "durable_objects": {
 "bindings": [
@@ -300,7 +300,7 @@ Create a D1 database and Service Binding
 
 The binding name used in your app's worker is NEXT_TAG_CACHE_D1. The WORKER_SELF_REFERENCE service binding should be a self reference to your worker where <WORKER_NAME> is the name in your wrangler configuration file.
 
-// wrangler.jsonc
+// wrangler.toml
 {
 // ...
 "d1_databases": [
@@ -372,7 +372,7 @@ enableCacheInterception: true,
 // you can also use the `durableObject` option to use a durable object as a cache purge
 cachePurge: purgeCache({ type: "direct" }),
 });
-If you want to use the durable object option, you will need to add the following binding to your wrangler.jsonc file:
+If you want to use the durable object option, you will need to add the following binding to your wrangler.toml file:
 
 {
 "durable_objects": {

@@ -205,16 +205,16 @@ In order to make this work, you need to deploy each worker separately using the 
 
 The steps to deploy without causing downtime to the already deployed ones are as follows:
 
-First you'll need to upload a new version of the server worker wrangler versions upload --config ./path-to/serverWrangler.jsonc
+First you'll need to upload a new version of the server worker wrangler versions upload --config ./path-to/serverwrangler.toml
 Then you'll need to extract the new version id of the server from the previous command's output. The value you need is displayed as Worker Version ID: <ID> in the console output. This value is referred to as NEW_SERVER_VERSION_ID in step 8.
 Before uploading the middleware, you'll need to replace the WORKER_VERSION_ID variable in the middleware wrangler configuration with the new server version id from the previous step.
-You then need to upload a new version of the middleware worker wrangler versions upload --config ./path-to/middlewareWrangler.jsonc. Retrieve the version id, you'll need it in step 9 (NEW_MIDDLEWARE_ID).
+You then need to upload a new version of the middleware worker wrangler versions upload --config ./path-to/middlewarewrangler.toml. Retrieve the version id, you'll need it in step 9 (NEW_MIDDLEWARE_ID).
 And extract the new version id of the middleware from the previous command's output. The value you need is displayed as Worker Version ID: <ID> in the console output.
-Use wrangler deployments status --config ./path-to/server-wrangler.jsonc to get the currently deployed version id of the server
+Use wrangler deployments status --config ./path-to/server-wrangler.toml to get the currently deployed version id of the server
 Extract the version id of the server from the previous command's output. This value is referred to as CURRENT_SERVER_ID in step 8.
-You then use gradual deployment to deploy the server uploaded at step 1 to 0% wrangler versions deploy <CURRENT_SERVER_ID>@100% <NEW_SERVER_VERSION_ID>@0% -y --config ./path-to/server-wrangler.jsonc
-You then deploy the middleware at 100% wrangler versions deploy <NEW_MIDDLEWARE_ID>@100% -y --config ./path-to/middlewareWrangler.jsonc. At this stage you are already serving the new version of the website in production.
-To finish it off you deploy the server at 100% wrangler versions deploy <NEW_SERVER_VERSION_ID>@100% -y --config ./path-to/server-wrangler.jsonc.
+You then use gradual deployment to deploy the server uploaded at step 1 to 0% wrangler versions deploy <CURRENT_SERVER_ID>@100% <NEW_SERVER_VERSION_ID>@0% -y --config ./path-to/server-wrangler.toml
+You then deploy the middleware at 100% wrangler versions deploy <NEW_MIDDLEWARE_ID>@100% -y --config ./path-to/middlewarewrangler.toml. At this stage you are already serving the new version of the website in production.
+To finish it off you deploy the server at 100% wrangler versions deploy <NEW_SERVER_VERSION_ID>@100% -y --config ./path-to/server-wrangler.toml.
 You can find actual implementations of such a deployment in the GitBook repo using GitHub actions here.
 
 Version Affinity Explained

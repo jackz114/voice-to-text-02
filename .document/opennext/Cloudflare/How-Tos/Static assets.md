@@ -10,7 +10,7 @@ Note that run_worker_first could also be set to a list of patterns - this is a g
 run_worker_first=false
 When run_worker_first is set to false, requests are intercepted before reaching the worker and are not billed:
 
-// wrangler.jsonc
+// wrangler.toml
 {
 "name": "my-app",
 // ...
@@ -29,7 +29,7 @@ When run_worker_first=false you can still configure headers and redirects via Wo
 run_worker_first=true
 When run_worker_first is set to true, all the requests will reach the Worker and be billed:
 
-// wrangler.jsonc
+// wrangler.toml
 {
 "name": "my-app",
 // ...

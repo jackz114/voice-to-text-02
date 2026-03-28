@@ -156,7 +156,7 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 
 ## 部署
 
-**Cloudflare Workers 配置**：`wrangler.jsonc`。入口文件：`.open-next/worker.js`。兼容日期：`2026-03-21`，兼容标志：`nodejs_compat_v2`。自定义域名路由：`bijiassistant.shop/*`。
+**Cloudflare Workers 配置**：`wrangler.toml`。入口文件：`.open-next/worker.js`。兼容日期：`2026-03-21`，兼容标志：`nodejs_compat_v2`。自定义域名路由：`bijiassistant.shop/*`。
 
 **CI/CD**（`.github/workflows/deploy.yml`）：push 到 main/master 分支时触发。步骤：`npm ci` → `npm run build` → `opennextjs-cloudflare build` → `wrangler deploy`。
 
@@ -242,7 +242,7 @@ Cloudflare Workers 部署时，服务端 Secret 需通过 `wrangler secret put` 
 - Module resolution: `bundler` mode
 - `next.config.ts` - Remote image patterns for `*.supabase.co` and `bijiassistant.shop`; exposes `NEXT_PUBLIC_APP_URL`
 - `tailwind.config.ts` - Content scoped to `src/app/**` and `src/components/**`
-- `wrangler.jsonc` - Worker named `voice-to-text-02`, entry `".open-next/worker.js"`, compatibility date `2026-03-21`, `nodejs_compat_v2` flag, custom domain `bijiassistant.shop/*`, observability enabled
+- `wrangler.toml` - Worker named `voice-to-text-02`, entry `".open-next/worker.js"`, compatibility date `2026-03-21`, `nodejs_compat_v2` flag, custom domain `bijiassistant.shop/*`, observability enabled
 - `.env` and `.env.local` files present (contents not read)
 - Required public vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_PAYPAL_PLAN_ID`
 - Required secret vars: `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_API_URL`

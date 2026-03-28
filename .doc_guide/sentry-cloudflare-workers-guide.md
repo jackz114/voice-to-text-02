@@ -9,6 +9,7 @@
 本指南介绍如何在 Cloudflare Workers 环境中集成 Sentry 错误监控和性能追踪。
 
 **重要提示**：
+
 - 使用 `@sentry/cloudflare` 包（不是 `@sentry/nextjs`）
 - Cloudflare Workers 不支持 `@sentry/nextjs` 的自动注入机制
 - 需要通过 `withSentry` 手动包装 Worker handler
@@ -17,10 +18,10 @@
 
 ## 方案对比
 
-| 方案 | 适用场景 | 复杂度 |
-|------|----------|--------|
-| `@sentry/cloudflare` + `withSentry` | Next.js + OpenNext → Cloudflare Workers | 中等 |
-| `@sentry/nextjs` + `instrumentation.ts` | Next.js → Vercel/Node.js | 低（不适用于 Workers） |
+| 方案                                    | 适用场景                                | 复杂度                 |
+| --------------------------------------- | --------------------------------------- | ---------------------- |
+| `@sentry/cloudflare` + `withSentry`     | Next.js + OpenNext → Cloudflare Workers | 中等                   |
+| `@sentry/nextjs` + `instrumentation.ts` | Next.js → Vercel/Node.js                | 低（不适用于 Workers） |
 
 ---
 
@@ -32,9 +33,9 @@
 npm install @sentry/cloudflare --save
 ```
 
-### 2. 配置 wrangler.jsonc
+### 2. 配置 wrangler.toml
 
-在 `wrangler.jsonc` 中添加 `nodejs_compat` 兼容标志（SDK 需要 `AsyncLocalStorage` API）：
+在 `wrangler.toml` 中添加 `nodejs_compat` 兼容标志（SDK 需要 `AsyncLocalStorage` API）：
 
 ```jsonc
 {
@@ -42,11 +43,11 @@ npm install @sentry/cloudflare --save
   "name": "voice-to-text-02",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-03-21",
-  "compatibility_flags": ["nodejs_compat"],  // 添加此项
+  "compatibility_flags": ["nodejs_compat"], // 添加此项
 
   // 可选：启用版本元数据（自动检测 release 版本）
   "version_metadata": {
-    "binding": "CF_VERSION_METADATA"
+    "binding": "CF_VERSION_METADATA",
   },
 
   // 可选：启用 source map 上传
@@ -54,7 +55,7 @@ npm install @sentry/cloudflare --save
 
   // 环境变量
   "vars": {
-    "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop"
+    "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop",
   },
 
   // Sentry DSN 建议通过 secret 设置
@@ -101,7 +102,7 @@ const sentryWrappedWorker = {
           // 调用原始的 OpenNext worker
           return worker.fetch(request, env, ctx);
         },
-      },
+      }
     ).fetch(request, env, ctx);
   },
 };
@@ -134,12 +135,12 @@ export default sentryWrappedWorker;
 }
 ```
 
-**替代方案**：直接在构建后修改 `wrangler.jsonc` 的入口指向：
+**替代方案**：直接在构建后修改 `wrangler.toml` 的入口指向：
 
 ```jsonc
 {
   // 构建后修改为 sentry 包装后的入口
-  "main": ".open-next/worker-sentry.js"
+  "main": ".open-next/worker-sentry.js",
 }
 ```
 
@@ -165,7 +166,7 @@ npm install -D @sentry/cli
 npx sentry-cli sourcemaps upload --release=<version> .open-next/assets
 ```
 
-或者在 `wrangler.jsonc` 中设置 `upload_source_maps: true` 并运行 Sentry Wizard：
+或者在 `wrangler.toml` 中设置 `upload_source_maps: true` 并运行 Sentry Wizard：
 
 ```bash
 npx @sentry/wizard@latest -i sourcemaps
@@ -244,7 +245,7 @@ async function slowOperation() {
 
 2. **Source Map 上传**
    - 需要在构建流程中额外配置
-   - 可以使用 `wrangler.jsonc` 中的 `upload_source_maps: true` 或 Sentry CLI
+   - 可以使用 `wrangler.toml` 中的 `upload_source_maps: true` 或 Sentry CLI
 
 3. **Next.js 自动仪器化不可用**
    - `@sentry/nextjs` 的自动 API route 包装在 Workers 环境下不工作
@@ -256,16 +257,18 @@ async function slowOperation() {
 
 ### 错误："AsyncLocalStorage is not available"
 
-确保 `wrangler.jsonc` 中设置了 `compatibility_flags: ["nodejs_compat"]`。
+确保 `wrangler.toml` 中设置了 `compatibility_flags: ["nodejs_compat"]`。
 
 ### 错误未上报到 Sentry
 
 1. 检查 `SENTRY_DSN` secret 是否正确设置：
+
    ```bash
    wrangler secret list
    ```
 
 2. 检查 DSN 格式是否正确：
+
    ```
    https://<public_key>@<host>/<project_id>
    ```
@@ -297,6 +300,7 @@ async function slowOperation() {
 **注意**：Cloudflare Dashboard 中的原生 Sentry 集成已于 2025 年 6 月被移除。
 
 如需配置，请直接使用 `wrangler secret put` 设置以下环境变量：
+
 - `SENTRY_DSN`: Sentry 项目 DSN
 - `BLOCKED_HEADERS`: 要排除的 header（逗号分隔）
 - `EXCEPTION_SAMPLING_RATE`: 采样率（0-100）
@@ -304,5 +308,5 @@ async function slowOperation() {
 
 ---
 
-*文档版本：2025-03-28*
-*基于 Sentry SDK v9.x 和 @opennextjs/cloudflare v1.x*
+_文档版本：2025-03-28_
+_基于 Sentry SDK v9.x 和 @opennextjs/cloudflare v1.x_

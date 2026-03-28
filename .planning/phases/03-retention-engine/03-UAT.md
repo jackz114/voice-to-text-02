@@ -17,7 +17,6 @@ updated: 2026-03-24T12:00:00Z
 
 [testing complete]
 
-
 ## Tests
 
 ### 1. Cold Start Smoke Test
@@ -195,7 +194,7 @@ expected: |
 ### 23. Cron Trigger - Daily Email
 
 expected: |
-(Developer verification) wrangler.jsonc includes cron trigger "0 \* \* \* \*".
+(Developer verification) wrangler.toml includes cron trigger "0 \* \* \* \*".
 POST /api/cron/daily-email with CRON_SECRET returns processed user count.
 Endpoint protected by Bearer token authorization.
 result: pass
@@ -218,12 +217,12 @@ fixed: 2
 
 ## Fixes Applied
 
-| Issue          | File                                      | Change                                                       |
-| -------------- | ----------------------------------------- | ------------------------------------------------------------ |
-| Cmd+K 冲突     | `src/hooks/useCommandMenu.ts`             | 移除了 Cmd+K 快捷键监听，保留 ESC 关闭功能                   |
-| 缺少搜索按钮   | `src/app/page.tsx`                        | 添加 SearchTrigger 和 SearchModal 到导航栏                   |
-| Cmd+K 提示残留 | `src/components/search/SearchTrigger.tsx` | 移除了按钮上的 Cmd+K 提示文字                                |
-| 登录循环       | `src/lib/supabase.ts`                     | 添加 `createServerSupabaseClient()` 函数使用 `@supabase/ssr` |
-| 登录循环       | `src/app/settings/notifications/page.tsx` | 改用服务端 supabase 客户端处理认证                           |
-| 依赖           | `package.json`                            | 安装 `@supabase/ssr@latest`                                  |
-| 时间选择器颜色 | `src/components/notifications/NotificationPreferences.tsx` | 为时间输入框添加 `text-gray-900` 类改善可见性 |
+| Issue          | File                                                       | Change                                                       |
+| -------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| Cmd+K 冲突     | `src/hooks/useCommandMenu.ts`                              | 移除了 Cmd+K 快捷键监听，保留 ESC 关闭功能                   |
+| 缺少搜索按钮   | `src/app/page.tsx`                                         | 添加 SearchTrigger 和 SearchModal 到导航栏                   |
+| Cmd+K 提示残留 | `src/components/search/SearchTrigger.tsx`                  | 移除了按钮上的 Cmd+K 提示文字                                |
+| 登录循环       | `src/lib/supabase.ts`                                      | 添加 `createServerSupabaseClient()` 函数使用 `@supabase/ssr` |
+| 登录循环       | `src/app/settings/notifications/page.tsx`                  | 改用服务端 supabase 客户端处理认证                           |
+| 依赖           | `package.json`                                             | 安装 `@supabase/ssr@latest`                                  |
+| 时间选择器颜色 | `src/components/notifications/NotificationPreferences.tsx` | 为时间输入框添加 `text-gray-900` 类改善可见性                |

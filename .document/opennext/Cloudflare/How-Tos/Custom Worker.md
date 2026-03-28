@@ -28,7 +28,7 @@ export { DOQueueHandler, DOShardedTagCache } from "./.open-next/worker.js";
 See an example in the adapter repository.
 
 Update the entry point in your wrangler configuration
-// wrangler.jsonc
+// wrangler.toml
 {
 
 - "main": "./.open-next/worker.js"

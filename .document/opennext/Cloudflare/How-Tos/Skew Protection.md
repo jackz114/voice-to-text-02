@@ -27,7 +27,7 @@ Wrangler configuration
 
 The Worker needs to serve the correct version of the app assets. For that it need be be executed before incoming requests are matched against the assets. Set run_worker_first to true in your wrangler configuration to enable this behavior:
 
-// wrangler.jsonc
+// wrangler.toml
 {
 "name": "my-app",
 // ...

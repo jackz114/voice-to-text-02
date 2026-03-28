@@ -19,7 +19,7 @@ You must use Wrangler version 3.99.0 or later to deploy Next.js apps using @open
 
 A wrangler configuration file is needed for your application to be previewed and deployed, it is also where you configure your Worker and define what resources it can access via bindings.
 
-You can create one yourself in the root directory of your Next.js app with the name wrangler.jsonc and the following content:
+You can create one yourself in the root directory of your Next.js app with the name wrangler.toml and the following content:
 
 {
 "$schema": "node_modules/wrangler/config-schema.json",

@@ -8,7 +8,7 @@ The currently supported commands are build, populateCache, preview, deploy, uplo
 
 You can list the commands by invoking pnpm opennextjs-cloudflare and get help with a given command by invoking pnpm opennextjs-cloudflare <command> --help.
 
-Most commands take command specific options (i.e. pnpm opennextjs-cloudflare build --skipNextBuild --noMinify) and also accept wrangler options (i.e. pnpm opennextjs-cloudflare build --config=/path/to/wrangler.jsonc --env=prod).
+Most commands take command specific options (i.e. pnpm opennextjs-cloudflare build --skipNextBuild --noMinify) and also accept wrangler options (i.e. pnpm opennextjs-cloudflare build --config=/path/to/wrangler.toml --env=prod).
 
 build command
 It first builds the Next.js application by invoking the build script of the package.json - which typically execute next build. It then runs the Cloudflare specific build step to update the built files to run on the Cloudflare runtime.
@@ -38,7 +38,7 @@ migrate command
 Converts a standard Next.js project into an OpenNext-compatible one. This command automates the setup steps described in the Get Started guide, including:
 
 Installing required dependencies (@opennextjs/cloudflare and wrangler)
-Creating a wrangler.jsonc configuration file
+Creating a wrangler.toml configuration file
 Creating an open-next.config.ts file
 Adding a .dev.vars file
 Updating the package.json scripts

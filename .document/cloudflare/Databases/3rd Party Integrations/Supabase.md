@@ -151,7 +151,7 @@ npx wrangler hyperdrive create <NAME_OF_HYPERDRIVE_CONFIG> --connection-string="
 ```
 
 2. This command outputs a binding for the [Wrangler configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/):
-   - [ wrangler.jsonc ](#tab-panel-7108)
+   - [ wrangler.toml ](#tab-panel-7108)
    - [ wrangler.toml ](#tab-panel-7109)
 
 ```
@@ -228,9 +228,9 @@ yarn add -D @types/pg
 pnpm add -D @types/pg
 ```
 
-Add the required Node.js compatibility flags and Hyperdrive binding to your `wrangler.jsonc` file:
+Add the required Node.js compatibility flags and Hyperdrive binding to your `wrangler.toml` file:
 
-- [ wrangler.jsonc ](#tab-panel-7112)
+- [ wrangler.toml ](#tab-panel-7112)
 - [ wrangler.toml ](#tab-panel-7113)
 
 ```

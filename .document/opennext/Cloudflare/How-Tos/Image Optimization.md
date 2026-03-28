@@ -6,7 +6,7 @@ The Cloudflare adapter provides a Next.js-compatible image optimization API usin
 
 The IMAGES binding must be defined to enable image optimization:
 
-// wrangler.jsonc
+// wrangler.toml
 {
 "images": {
 "binding": "IMAGES",

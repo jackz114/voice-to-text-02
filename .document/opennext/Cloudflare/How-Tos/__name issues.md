@@ -5,14 +5,14 @@ Uncaught ReferenceError: **name is not defined
 Note that depending on your minification settings, the **name identifier might be minified, making the error message less clear and potentially not explicitly mentioning \_\_name in such cases.
 
 How to fix such issues
-To fix the issue you can simply set the keep_names option to false in your wrangler.jsonc file, like in the following example:
+To fix the issue you can simply set the keep_names option to false in your wrangler.toml file, like in the following example:
 
 {
-"$schema": "node_modules/wrangler/config-schema.json",
+"$schema": "node*modules/wrangler/config-schema.json",
 "main": ".open-next/worker.js",
 "name": "my-app",
 "keep_names": false,
-/_ ... _/
+/* ... \_/
 }
 One potential drawback of this solution is that, depending on your minification settings, you may lose the ability to view the original function names in debugging tools.
 

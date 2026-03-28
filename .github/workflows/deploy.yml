@@ -25,22 +25,22 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-      # --- 新增的调试步骤：验证 wrangler.json 内容 ---
+      # --- 新增的调试步骤：验证 wrangler.toml 内容 ---
       - name: Verify Wrangler Config
         run: |
           echo "📄 Current Directory:"
           ls -la
-          echo "\n📄 Contents of wrangler.json:"
-          cat wrangler.json
+          echo "\n📄 Contents of wrangler.toml:"
+          cat wrangler.toml
           echo "\n\n✅ Ensure the file contains 'nodejs_compat_v2' in compatibility_flags"
         # 这一步是为了防止因为文件没提交或路径不对导致配置丢失
 
       - name: Deploy to Cloudflare
         run: |
           echo "🚀 Starting Deployment..."
-          # 关键点1：不再使用命令行 flag，而是依赖 wrangler.json 中的配置
-          # 关键点2：显式指定配置文件路径 --config wrangler.json
-          npx wrangler deploy --config wrangler.json
+          # 关键点1：不再使用命令行 flag，而是依赖 wrangler.toml 中的配置
+          # 关键点2：显式指定配置文件路径 --config wrangler.toml
+          npx wrangler deploy --config wrangler.toml
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

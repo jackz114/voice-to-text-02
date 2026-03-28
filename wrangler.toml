@@ -1,10 +1,14 @@
 {
-  "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "voice-to-text-02",
   "main": ".open-next/worker.js",
-  "compatibility_date": "2025-12-31",
-  "compatibility_flags": ["nodejs_compat_v2"],
-
+  "compatibility_date": "2025-11-14",
+  "compatibility_flags": [
+    "nodejs_compat_v2",
+    "global_fetch_strictly_public",
+    "enable_nodejs_fs_module",
+    "enable_nodejs_vm_module",
+    "enable_nodejs_zlib_module"
+  ],
   "vars": {
     "ENVIRONMENT": "production",
     "NEXT_PUBLIC_SUPABASE_URL": "https://fpwstkjcatajbidwtugy.supabase.co",
@@ -13,44 +17,28 @@
     "NEXT_PUBLIC_PAYPAL_PLAN_ID": "your_paypal_plan_id",
     "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop"
   },
-
   "assets": {
-    "directory": ".open-next/assets",
+    "bucket": ".open-next/assets",
     "binding": "ASSETS",
     "not_found_handling": "none"
   },
-
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "voice-to-text-02"
     }
   ],
-
-  "routes": [
-    {
-      "pattern": "bijiassistant.shop",
-      "custom_domain": true
-    },
-    {
-      "pattern": "www.bijiassistant.shop",
-      "custom_domain": true
-    }
-  ],
-
-  "observability": {
-    "enabled": true,
-    "head_sampling_rate": 1
-  },
-
-  "triggers": {
-    "crons": ["0 * * * *"]
-  },
-
   "r2_buckets": [
     {
       "binding": "AUDIO_BUCKET",
       "bucket_name": "voice-to-text-audio"
     }
-  ]
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0
+  },
+  "triggers": {
+    "crons": ["0 * * * *"]
+  }
 }

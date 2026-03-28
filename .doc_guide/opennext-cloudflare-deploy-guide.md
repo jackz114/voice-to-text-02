@@ -81,7 +81,7 @@ npx @opennextjs/cloudflare migrate
 `migrate` 命令会自动完成以下设置：
 
 - 安装依赖（`@opennextjs/cloudflare` 和 `wrangler`）
-- 创建 `wrangler.jsonc` 配置文件
+- 创建 `wrangler.toml` 配置文件
 - 创建 `open-next.config.ts` 文件
 - 创建 `.dev.vars` 文件
 - 更新 `package.json` 脚本
@@ -103,7 +103,7 @@ npm install --save-dev wrangler@latest
 
 > 需要 Wrangler 3.99.0 或更高版本
 
-#### 创建 wrangler.jsonc
+#### 创建 wrangler.toml
 
 ```json
 {
@@ -203,7 +203,7 @@ initOpenNextCloudflareForDev();
 
 ## 配置文件详解
 
-### wrangler.jsonc
+### wrangler.toml
 
 | 字段                  | 说明                                           |
 | --------------------- | ---------------------------------------------- |
@@ -352,7 +352,7 @@ opennextjs-cloudflare deploy -- --keep-vars
 适用于使用 ISR 的小型站点：
 
 ```json
-// wrangler.jsonc
+// wrangler.toml
 {
   "name": "my-app",
   "services": [
@@ -410,7 +410,7 @@ export default defineCloudflareConfig({
 适用于高流量站点：
 
 ```json
-// wrangler.jsonc
+// wrangler.toml
 {
   "durable_objects": {
     "bindings": [

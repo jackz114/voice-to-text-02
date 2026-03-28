@@ -19,7 +19,7 @@ key-files:
     - src/app/api/cron/daily-email/route.ts
     - src/app/api/notifications/send-daily/route.ts
   modified:
-    - wrangler.jsonc
+    - wrangler.toml
 metrics:
   duration: 15m
   tasks: 3
@@ -36,10 +36,12 @@ Configured Cloudflare Cron Trigger (hourly) and implemented daily reminder email
 ## What Was Built
 
 ### Cloudflare Cron Configuration
-- Added `"triggers": { "crons": ["0 * * * *"] }` to `wrangler.jsonc`
+
+- Added `"triggers": { "crons": ["0 * * * *"] }` to `wrangler.toml`
 - Runs every hour at minute 0 to check for users whose reminder time has arrived
 
 ### Daily Email Cron Handler (`src/app/api/cron/daily-email/route.ts`)
+
 - **Security**: Protected by `CRON_SECRET` Bearer token verification
 - **Timezone Logic**: Converts user local reminder time to UTC for accurate scheduling
   - Uses `Intl.DateTimeFormat` to calculate timezone offsets
@@ -54,32 +56,36 @@ Configured Cloudflare Cron Trigger (hourly) and implemented daily reminder email
 - **Logging**: Comprehensive console logging for debugging
 
 ### Manual Trigger API (`src/app/api/notifications/send-daily/route.ts`)
+
 - Admin-only endpoint protected by `ADMIN_SECRET`
 - Forwards to cron handler for manual testing
 - Useful for testing without waiting for cron schedule
 
 ## Requirements Satisfied
 
-| Requirement | Implementation |
-|-------------|----------------|
-| NOTIFY-01 | Cron runs hourly; users receive emails at their preferred local time |
-| NOTIFY-02 | Only sends when due items exist; respects `emailNotificationsEnabled` flag |
-| NOTIFY-03 | Email includes count and domain list via `renderDailyReminderEmail` |
+| Requirement | Implementation                                                             |
+| ----------- | -------------------------------------------------------------------------- |
+| NOTIFY-01   | Cron runs hourly; users receive emails at their preferred local time       |
+| NOTIFY-02   | Only sends when due items exist; respects `emailNotificationsEnabled` flag |
+| NOTIFY-03   | Email includes count and domain list via `renderDailyReminderEmail`        |
 
 ## Key Design Decisions
 
 ### Timezone Conversion Strategy
+
 - Calculate current hour in user's timezone vs UTC
 - Determine offset dynamically (handles DST automatically via Intl API)
 - Compare expected UTC hour with current UTC hour
 - 1-hour sending window ensures emails don't get missed due to timing skew
 
 ### Security Model
+
 - `CRON_SECRET` protects cron endpoint from unauthorized access
 - `ADMIN_SECRET` protects manual trigger endpoint
 - Both secrets configured via Cloudflare wrangler secrets (not in code)
 
 ### Error Handling
+
 - Per-user email failures don't block other users
 - Failed sends logged with error details
 - Summary returned with sent/failed/skipped counts
@@ -137,7 +143,7 @@ None - plan executed exactly as written.
 
 ## Verification Checklist
 
-- [x] `wrangler.jsonc` includes cron trigger `"0 * * * *"`
+- [x] `wrangler.toml` includes cron trigger `"0 * * * *"`
 - [x] POST `/api/cron/daily-email` endpoint implemented
 - [x] Timezone conversion logic implemented
 - [x] User preference filtering (notifications enabled, reminder time, domains)

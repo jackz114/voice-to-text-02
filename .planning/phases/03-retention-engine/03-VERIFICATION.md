@@ -40,20 +40,20 @@ All 7 sub-plans (03-01 through 03-07) have been successfully implemented. The co
 
 ## Observable Truths Verification
 
-| # | Truth | Status | Evidence |
-|---|-------|--------|----------|
-| 1 | User can search knowledge with natural language | VERIFIED | `src/lib/search.ts` implements websearch_to_tsquery, `src/app/api/search/route.ts` handles search requests |
-| 2 | Search results ranked by relevance | VERIFIED | `buildRankExpression()` uses weighted ts_rank (A=title/tags, B=content, C=source) |
-| 3 | Search shows highlighted excerpts | VERIFIED | `buildExcerptExpression()` uses ts_headline with `<mark>` tags |
-| 4 | Cmd+K opens global search modal | VERIFIED | `useCommandMenu.ts` implements Cmd/Ctrl+K keyboard shortcut |
-| 5 | Search history persisted locally | VERIFIED | `useSearchHistory.ts` uses localStorage with max 8 items |
-| 6 | Email service can send daily reminders | VERIFIED | `src/lib/email.ts` wraps Resend SDK with batch support |
-| 7 | Email templates have HTML and plain text | VERIFIED | `DailyReminderEmail.tsx` + `email-templates.ts` generate both formats |
-| 8 | Cron trigger runs hourly | VERIFIED | `wrangler.jsonc` has `"crons": ["0 * * * *"]` configured |
-| 9 | Users can configure reminder time | VERIFIED | `NotificationPreferences.tsx` has time picker and timezone selector |
-| 10 | Users can filter domains for notifications | VERIFIED | Domain filter chips in notification settings |
-| 11 | User preferences persisted to database | VERIFIED | `userPreferences` table with API routes for GET/POST |
-| 12 | Search page has filters and pagination | VERIFIED | `/search` page with DomainFilter and pagination controls |
+| #   | Truth                                           | Status   | Evidence                                                                                                   |
+| --- | ----------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| 1   | User can search knowledge with natural language | VERIFIED | `src/lib/search.ts` implements websearch_to_tsquery, `src/app/api/search/route.ts` handles search requests |
+| 2   | Search results ranked by relevance              | VERIFIED | `buildRankExpression()` uses weighted ts_rank (A=title/tags, B=content, C=source)                          |
+| 3   | Search shows highlighted excerpts               | VERIFIED | `buildExcerptExpression()` uses ts_headline with `<mark>` tags                                             |
+| 4   | Cmd+K opens global search modal                 | VERIFIED | `useCommandMenu.ts` implements Cmd/Ctrl+K keyboard shortcut                                                |
+| 5   | Search history persisted locally                | VERIFIED | `useSearchHistory.ts` uses localStorage with max 8 items                                                   |
+| 6   | Email service can send daily reminders          | VERIFIED | `src/lib/email.ts` wraps Resend SDK with batch support                                                     |
+| 7   | Email templates have HTML and plain text        | VERIFIED | `DailyReminderEmail.tsx` + `email-templates.ts` generate both formats                                      |
+| 8   | Cron trigger runs hourly                        | VERIFIED | `wrangler.toml` has `"crons": ["0 * * * *"]` configured                                                    |
+| 9   | Users can configure reminder time               | VERIFIED | `NotificationPreferences.tsx` has time picker and timezone selector                                        |
+| 10  | Users can filter domains for notifications      | VERIFIED | Domain filter chips in notification settings                                                               |
+| 11  | User preferences persisted to database          | VERIFIED | `userPreferences` table with API routes for GET/POST                                                       |
+| 12  | Search page has filters and pagination          | VERIFIED | `/search` page with DomainFilter and pagination controls                                                   |
 
 ---
 
@@ -61,12 +61,13 @@ All 7 sub-plans (03-01 through 03-07) have been successfully implemented. The co
 
 ### 03-01: Database Schema Extensions
 
-| Artifact | Status | Lines | Verification |
-|----------|--------|-------|--------------|
-| `src/db/schema.ts` | VERIFIED | 135 | Contains knowledgeItems with searchVector (tsvector) and embedding (vector), userPreferences table |
-| `src/db/migrations/0003_add_search_and_preferences.sql` | VERIFIED | 78 | 12-step migration with pgvector, indexes, RLS, triggers |
+| Artifact                                                | Status   | Lines | Verification                                                                                       |
+| ------------------------------------------------------- | -------- | ----- | -------------------------------------------------------------------------------------------------- |
+| `src/db/schema.ts`                                      | VERIFIED | 135   | Contains knowledgeItems with searchVector (tsvector) and embedding (vector), userPreferences table |
+| `src/db/migrations/0003_add_search_and_preferences.sql` | VERIFIED | 78    | 12-step migration with pgvector, indexes, RLS, triggers                                            |
 
 **Key Features Verified:**
+
 - `searchVector` column with weighted tsvector (A=title/tags, B=content, C=source)
 - `embedding` column with vector(1536) for Phase 4
 - GIN index `knowledge_items_search_idx`
@@ -76,12 +77,13 @@ All 7 sub-plans (03-01 through 03-07) have been successfully implemented. The co
 
 ### 03-02: Search API Implementation
 
-| Artifact | Status | Lines | Verification |
-|----------|--------|-------|--------------|
-| `src/lib/search.ts` | VERIFIED | 117 | toTsQuery, buildRankExpression, buildExcerptExpression, validateQuery |
-| `src/app/api/search/route.ts` | VERIFIED | 168 | GET endpoint with auth, pagination, domain filter, ts_rank ordering |
+| Artifact                      | Status   | Lines | Verification                                                          |
+| ----------------------------- | -------- | ----- | --------------------------------------------------------------------- |
+| `src/lib/search.ts`           | VERIFIED | 117   | toTsQuery, buildRankExpression, buildExcerptExpression, validateQuery |
+| `src/app/api/search/route.ts` | VERIFIED | 168   | GET endpoint with auth, pagination, domain filter, ts_rank ordering   |
 
 **Key Features Verified:**
+
 - `websearch_to_tsquery` for Google-like search syntax
 - Weighted ranking (title/tags=A, content=B, source=C)
 - `ts_headline` for highlighted excerpts with `<mark>` tags
@@ -90,37 +92,38 @@ All 7 sub-plans (03-01 through 03-07) have been successfully implemented. The co
 
 ### 03-03: Global Search UI
 
-| Artifact | Status | Lines | Verification |
-|----------|--------|-------|--------------|
-| `src/hooks/useSearchHistory.ts` | VERIFIED | 58 | localStorage persistence, max 8 items, add/remove/clear |
-| `src/hooks/useCommandMenu.ts` | VERIFIED | 41 | Cmd/Ctrl+K toggle, ESC close |
-| `src/components/search/SearchModal.tsx` | VERIFIED | 294 | cmdk integration, 300ms debounce, history, results |
-| `src/components/search/SearchTrigger.tsx` | VERIFIED | 50 | Icon, button, input variants |
-| `src/components/search/index.ts` | VERIFIED | 7 | Exports all search components |
+| Artifact                                  | Status   | Lines | Verification                                            |
+| ----------------------------------------- | -------- | ----- | ------------------------------------------------------- |
+| `src/hooks/useSearchHistory.ts`           | VERIFIED | 58    | localStorage persistence, max 8 items, add/remove/clear |
+| `src/hooks/useCommandMenu.ts`             | VERIFIED | 41    | Cmd/Ctrl+K toggle, ESC close                            |
+| `src/components/search/SearchModal.tsx`   | VERIFIED | 294   | cmdk integration, 300ms debounce, history, results      |
+| `src/components/search/SearchTrigger.tsx` | VERIFIED | 50    | Icon, button, input variants                            |
+| `src/components/search/index.ts`          | VERIFIED | 7     | Exports all search components                           |
 
 **Dependencies Added:** `cmdk@^1.1.1`, `use-debounce@^10.1.0`
 
 ### 03-04: Full Search Page
 
-| Artifact | Status | Lines | Verification |
-|----------|--------|-------|--------------|
-| `src/components/search/SearchResults.tsx` | VERIFIED | 108 | Result cards with title, excerpt, domain badge, tags, source, date |
-| `src/components/search/SearchEmptyState.tsx` | VERIFIED | 108 | Guidance, suggestions, popular tags, create note button |
-| `src/components/search/DomainFilter.tsx` | VERIFIED | 75 | Dropdown filter with user's domains |
-| `src/app/search/page.tsx` | VERIFIED | 220 | Full page with URL sync, pagination, filters |
+| Artifact                                     | Status   | Lines | Verification                                                       |
+| -------------------------------------------- | -------- | ----- | ------------------------------------------------------------------ |
+| `src/components/search/SearchResults.tsx`    | VERIFIED | 108   | Result cards with title, excerpt, domain badge, tags, source, date |
+| `src/components/search/SearchEmptyState.tsx` | VERIFIED | 108   | Guidance, suggestions, popular tags, create note button            |
+| `src/components/search/DomainFilter.tsx`     | VERIFIED | 75    | Dropdown filter with user's domains                                |
+| `src/app/search/page.tsx`                    | VERIFIED | 220   | Full page with URL sync, pagination, filters                       |
 
 ### 03-05: Email Template & Service
 
-| Artifact | Status | Lines | Verification |
-|----------|--------|-------|--------------|
-| `src/lib/email.ts` | VERIFIED | 90 | Resend wrapper, sendEmail, sendBatchEmails |
-| `src/lib/email-templates.ts` | VERIFIED | 122 | generateUsername, formatDueDate, renderDailyReminderEmail |
-| `src/components/notifications/DailyReminderEmail.tsx` | VERIFIED | 120 | React Email template with Tailwind |
-| `src/components/notifications/index.ts` | VERIFIED | 2 | Exports DailyReminderEmail |
+| Artifact                                              | Status   | Lines | Verification                                              |
+| ----------------------------------------------------- | -------- | ----- | --------------------------------------------------------- |
+| `src/lib/email.ts`                                    | VERIFIED | 90    | Resend wrapper, sendEmail, sendBatchEmails                |
+| `src/lib/email-templates.ts`                          | VERIFIED | 122   | generateUsername, formatDueDate, renderDailyReminderEmail |
+| `src/components/notifications/DailyReminderEmail.tsx` | VERIFIED | 120   | React Email template with Tailwind                        |
+| `src/components/notifications/index.ts`               | VERIFIED | 2     | Exports DailyReminderEmail                                |
 
 **Dependencies Added:** `resend@^6.9.4`, `@react-email/components@^1.0.10`
 
 **Features Verified:**
+
 - 3-level username fallback (displayName > formatted email > "Learner")
 - Deep link to `/review?session=daily&source=email`
 - Domain badges shown (no content preview per D-07)
@@ -129,13 +132,14 @@ All 7 sub-plans (03-01 through 03-07) have been successfully implemented. The co
 
 ### 03-06: Cron Trigger & Daily Email
 
-| Artifact | Status | Lines | Verification |
-|----------|--------|-------|--------------|
-| `src/app/api/cron/daily-email/route.ts` | VERIFIED | 311 | Hourly cron handler with timezone conversion, domain filtering |
-| `src/app/api/notifications/send-daily/route.ts` | VERIFIED | 40 | Manual trigger endpoint with admin auth |
-| `wrangler.jsonc` | VERIFIED | 33 | Cron trigger `"0 * * * *"` configured |
+| Artifact                                        | Status   | Lines | Verification                                                   |
+| ----------------------------------------------- | -------- | ----- | -------------------------------------------------------------- |
+| `src/app/api/cron/daily-email/route.ts`         | VERIFIED | 311   | Hourly cron handler with timezone conversion, domain filtering |
+| `src/app/api/notifications/send-daily/route.ts` | VERIFIED | 40    | Manual trigger endpoint with admin auth                        |
+| `wrangler.toml`                                 | VERIFIED | 33    | Cron trigger `"0 * * * *"` configured                          |
 
 **Key Features Verified:**
+
 - Timezone conversion from user local time to UTC
 - Domain filtering (empty array = all domains)
 - Notification toggle check
@@ -144,13 +148,14 @@ All 7 sub-plans (03-01 through 03-07) have been successfully implemented. The co
 
 ### 03-07: Notification Preferences UI
 
-| Artifact | Status | Lines | Verification |
-|----------|--------|-------|--------------|
-| `src/app/api/notifications/preferences/route.ts` | VERIFIED | 200 | GET/POST with Zod validation, auto-create defaults |
-| `src/components/notifications/NotificationPreferences.tsx` | VERIFIED | 320 | Toggle, time picker, timezone selector, domain filters |
-| `src/app/settings/notifications/page.tsx` | VERIFIED | 77 | Server component with auth guard |
+| Artifact                                                   | Status   | Lines | Verification                                           |
+| ---------------------------------------------------------- | -------- | ----- | ------------------------------------------------------ |
+| `src/app/api/notifications/preferences/route.ts`           | VERIFIED | 200   | GET/POST with Zod validation, auto-create defaults     |
+| `src/components/notifications/NotificationPreferences.tsx` | VERIFIED | 320   | Toggle, time picker, timezone selector, domain filters |
+| `src/app/settings/notifications/page.tsx`                  | VERIFIED | 77    | Server component with auth guard                       |
 
 **Features Verified:**
+
 - Email notifications toggle
 - Daily reminder time picker (HH:mm)
 - Timezone selector (8 options)
@@ -162,39 +167,40 @@ All 7 sub-plans (03-01 through 03-07) have been successfully implemented. The co
 
 ## Key Link Verification
 
-| From | To | Via | Status |
-|------|-----|-----|--------|
-| SearchModal | /api/search | fetch GET | WIRED |
-| SearchResults | /library?highlight={id} | router.push | WIRED |
-| DailyReminderEmail | /review?session=daily | Button href | WIRED |
-| Cron handler | Resend API | sendEmail() | WIRED |
-| NotificationPreferences | /api/notifications/preferences | fetch GET/POST | WIRED |
-| DomainFilter | /api/library/domains | fetch GET | WIRED |
-| Search page | URL params | window.history.replaceState | WIRED |
+| From                    | To                             | Via                         | Status |
+| ----------------------- | ------------------------------ | --------------------------- | ------ |
+| SearchModal             | /api/search                    | fetch GET                   | WIRED  |
+| SearchResults           | /library?highlight={id}        | router.push                 | WIRED  |
+| DailyReminderEmail      | /review?session=daily          | Button href                 | WIRED  |
+| Cron handler            | Resend API                     | sendEmail()                 | WIRED  |
+| NotificationPreferences | /api/notifications/preferences | fetch GET/POST              | WIRED  |
+| DomainFilter            | /api/library/domains           | fetch GET                   | WIRED  |
+| Search page             | URL params                     | window.history.replaceState | WIRED  |
 
 ---
 
 ## Requirements Coverage
 
-| Requirement | Plan | Status | Evidence |
-|-------------|------|--------|----------|
-| **NOTIFY-01**: 系统在复习节点到达时主动提醒用户 | 03-06, 03-07 | SATISFIED | Cron job queries due items, sends emails at user-configured time |
-| **NOTIFY-02**: 每日最多一次提醒，仅当有复习条目时发送 | 03-06 | SATISFIED | Cron checks for due items before sending, hourly with 1-hour window |
-| **NOTIFY-03**: 提醒消息包含当天需要复习的条目数量和领域 | 03-05, 03-06 | SATISFIED | Email template shows count and domain badges |
-| **NOTIFY-04**: 支持邮件作为提醒渠道 | 03-05, 03-06 | SATISFIED | Resend SDK integrated, email service wrapper with batch support |
-| **SEARCH-01**: 用户可以用自然语言搜索自己的知识库 | 03-02, 03-03, 03-04 | SATISFIED | websearch_to_tsquery, Cmd+K modal, /search page |
-| **SEARCH-02**: 搜索结果按相关性排序 | 03-02 | SATISFIED | ts_rank with weighted fields (A/B/C) |
-| **SEARCH-03**: 搜索结果显示知识条目的预览和来源 | 03-02, 03-04 | SATISFIED | ts_headline excerpts, source displayed in result cards |
+| Requirement                                             | Plan                | Status    | Evidence                                                            |
+| ------------------------------------------------------- | ------------------- | --------- | ------------------------------------------------------------------- |
+| **NOTIFY-01**: 系统在复习节点到达时主动提醒用户         | 03-06, 03-07        | SATISFIED | Cron job queries due items, sends emails at user-configured time    |
+| **NOTIFY-02**: 每日最多一次提醒，仅当有复习条目时发送   | 03-06               | SATISFIED | Cron checks for due items before sending, hourly with 1-hour window |
+| **NOTIFY-03**: 提醒消息包含当天需要复习的条目数量和领域 | 03-05, 03-06        | SATISFIED | Email template shows count and domain badges                        |
+| **NOTIFY-04**: 支持邮件作为提醒渠道                     | 03-05, 03-06        | SATISFIED | Resend SDK integrated, email service wrapper with batch support     |
+| **SEARCH-01**: 用户可以用自然语言搜索自己的知识库       | 03-02, 03-03, 03-04 | SATISFIED | websearch_to_tsquery, Cmd+K modal, /search page                     |
+| **SEARCH-02**: 搜索结果按相关性排序                     | 03-02               | SATISFIED | ts_rank with weighted fields (A/B/C)                                |
+| **SEARCH-03**: 搜索结果显示知识条目的预览和来源         | 03-02, 03-04        | SATISFIED | ts_headline excerpts, source displayed in result cards              |
 
 ---
 
 ## Anti-Patterns Scan
 
-| File | Pattern | Severity | Notes |
-|------|---------|----------|-------|
-| None found | - | - | No TODO/FIXME/placeholder comments found in implementation files |
+| File       | Pattern | Severity | Notes                                                            |
+| ---------- | ------- | -------- | ---------------------------------------------------------------- |
+| None found | -       | -        | No TODO/FIXME/placeholder comments found in implementation files |
 
 **Scan Results:**
+
 - No `TODO` or `FIXME` comments in implementation code
 - No placeholder implementations
 - No empty handlers (all functions have substantive logic)
@@ -240,11 +246,11 @@ The following items require manual testing that cannot be verified programmatica
 
 ## Build Verification
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| TypeScript compilation | PASSED | `npx tsc --noEmit` passes for all new files |
-| ESLint | PASSED | No errors in new files (pre-existing warnings in other files) |
-| Dependencies | VERIFIED | All required packages in package.json |
+| Check                  | Status   | Notes                                                         |
+| ---------------------- | -------- | ------------------------------------------------------------- |
+| TypeScript compilation | PASSED   | `npx tsc --noEmit` passes for all new files                   |
+| ESLint                 | PASSED   | No errors in new files (pre-existing warnings in other files) |
+| Dependencies           | VERIFIED | All required packages in package.json                         |
 
 ---
 
@@ -271,7 +277,7 @@ ADMIN_SECRET=
 
 1. **Database Migration:** Run `src/db/migrations/0003_add_search_and_preferences.sql` in Supabase SQL Editor
 2. **Wrangler Secrets:** Set `RESEND_API_KEY`, `CRON_SECRET`, `ADMIN_SECRET` via `wrangler secret put`
-3. **Cron Trigger:** Already configured in `wrangler.jsonc` - will activate on next deploy
+3. **Cron Trigger:** Already configured in `wrangler.toml` - will activate on next deploy
 
 ---
 
