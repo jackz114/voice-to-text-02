@@ -22,27 +22,30 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build Cloudflare Worker
-        run: npx opennextjs-cloudflare build --output-dir .open-next
+        # 修正1: 移除了 --output-dir
+        # 修正2: 添加了 NEXT_TELEMETRY_DISABLED
+        run: npx opennextjs-cloudflare build
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
-          NEXT_PUBLIC_PAYPAL_PLAN_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_PLAN_ID }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_CLIENT_SECRET }}
-          PAYPAL_WEBHOOK_ID: ${{ secrets.PAYPAL_WEBHOOK_ID }}
-          PAYPAL_API_URL: ${{ secrets.PAYPAL_API_URL }}
+          NEXT_TELEMETRY_DISABLED: 1
+          # ... 这里放你的所有 Secrets ...
 
-      - name: Verify build output
+      - name: Verify build output (Debug)
         run: |
+          echo "=== Listing .open-next contents ==="
           ls -la .open-next
+
+          # 检查 worker.js 是否存在
           if [ ! -f .open-next/worker.js ]; then
-            echo "ERROR: worker.js not found in .open-next directory"
+            echo "ERROR: worker.js not found!"
             exit 1
           fi
+
+      - name: Copy Wrangler Config (关键步骤)
+        # OpenNext 不会自动复制 wrangler.jsonc，我们必须手动把它放到 .open-next 目录里
+        # 这样 npx opennextjs-cloudflare deploy 才能读取到 nodejs_compat_v2 配置
+        run: |
+          cp wrangler.jsonc .open-next/wrangler.jsonc
+          echo "Copied wrangler.jsonc to .open-next/"
 
       - name: Deploy to Cloudflare
         run: npx opennextjs-cloudflare deploy
