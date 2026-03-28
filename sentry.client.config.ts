@@ -7,6 +7,5 @@ Sentry.init({
   // 开发环境不发送
   enabled: process.env.NODE_ENV === "production",
   // Cloudflare Workers 支持
-  // @ts-expect-error
   integrations: [],
 });
