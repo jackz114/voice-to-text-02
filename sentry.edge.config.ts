@@ -1,11 +1,7 @@
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from "@sentry/cloudflare";
 
-Sentry.init({
+export const onRequest = Sentry.sentryPagesPlugin(() => ({
   dsn: process.env.SENTRY_DSN,
-
-  // 调整采样率
   tracesSampleRate: 1.0,
-
-  // 开发环境不发送
   enabled: process.env.NODE_ENV === "production",
-});
+}));
