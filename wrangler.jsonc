@@ -1,9 +1,13 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "voice-to-text-02",
-  "main": ".open-next/worker.js",
+  "main": "worker.js",
   "compatibility_date": "2026-03-21",
-  "compatibility_flags": ["nodejs_compat_v2"],
+  "compatibility_flags": [
+    "nodejs_compat_v2",
+    "global_fetch_strictly_public",
+    "enable_nodejs_fs_module", // <-- 加上这一行，这是让 fs 模块生效的关键！
+  ],
 
   "vars": {
     "ENVIRONMENT": "production",

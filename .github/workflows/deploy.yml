@@ -47,10 +47,11 @@ jobs:
           cp wrangler.jsonc .open-next/wrangler.jsonc
           echo "Copied wrangler.jsonc to .open-next/"
 
+          grep "enable_nodejs_fs_module" .open-next/wrangler.jsonc && echo "FS Flag Found!" || echo "Warning: Flag Missing!"
+
       - name: Deploy to Cloudflare (Direct)
         run: |
-          cd .open-next
-          npx wrangler deploy
+          npx wrangler deploy .open-next/wrangler.jsonc
         env:
           # 必须将环境变量传递给 wrangler
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
