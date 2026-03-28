@@ -22,8 +22,6 @@ compatibility_flags = [
 [vars]
 ENVIRONMENT = "production"
 NEXT_PUBLIC_SUPABASE_URL = "https://fpwstkjcatajbidwtugy.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_jFwmh7VQcHSe78dSnSSVNw_tOsFc-UM"
-NEXT_PUBLIC_PAYPAL_CLIENT_ID = "AVNwLiNUo8IF7yzU4miGKhcS1V76x8Uhd166cSnpCvMFXKxIB6P2fBnxbGf5dI2MAAxZgtYVsfake1gI"
 NEXT_PUBLIC_PAYPAL_PLAN_ID = "your_paypal_plan_id"
 NEXT_PUBLIC_APP_URL = "https://bijiassistant.shop"
 
