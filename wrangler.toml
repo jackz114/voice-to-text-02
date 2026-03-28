@@ -4,18 +4,17 @@ main = ".open-next/worker.js"
 
 # 📌 关键点 1：日期必须锁定在 v2 发布日
 # 根据 Cloudflare 官方文档，nodejs_compat_v2 在 2025-11-14 才正式稳定
-compatibility_date = "2025-11-14"
+compatibility_date = "2026-03-27"
 
-node_compat = true
 
 # 📌 关键点 2：这是官方文档明确允许的 Flags 列表
 # OpenNext 要求 fs 和 vm 必须手动开启
 # 注意：绝对不要加 http, net, https，官方文档规定 v2 已包含
 compatibility_flags = [
-  "nodejs_compat_v2",
-  "global_fetch_strictly_public",
+  "nodejs_compat",
   "enable_nodejs_fs_module",
   "enable_nodejs_vm_module",
+  "enable_nodejs_http_modules"
 ]
 
 # === 环境变量 (Vars) ===
