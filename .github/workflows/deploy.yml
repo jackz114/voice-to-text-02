@@ -26,50 +26,89 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Verify build output
+      - name: Verify Build Output
         run: |
-          echo "=== Listing .open-next contents ==="
+          echo "=== Checking .open-next directory ==="
           ls -la .open-next
-
           if [ ! -f .open-next/worker.js ]; then
             echo "ERROR: worker.js not found!"
             exit 1
           fi
 
-          # 确认 wrangler.json 文件是否存在
-          if [ ! -f .open-next/wrangler.json ]; then
-            echo "ERROR: .open-next/wrangler.json not found!"
-            exit 1
-          fi
-
-      - name: Fix Wrangler Config Path
+      - name: Generate Wrangler Config
         run: |
-          # 使用绝对路径确保文件可读
-          ABS_PATH="$GITHUB_WORKSPACE/.open-next/wrangler.json"
+          # 定义绝对路径（GitHub Actions 推荐做法）
+          ASSETS_ABS_PATH="$GITHUB_WORKSPACE/.open-next/assets"
 
-          # 确认文件存在
-          if [ ! -f "$ABS_PATH" ]; then
-            echo "ERROR: $ABS_PATH not found!"
-            exit 1
-          fi
+          # 创建 .open-next 目录（如果不存在）
+          mkdir -p .open-next
 
-          # 使用更精确的 sed 命令替换路径
-          sed -i 's|".open-next/assets"|"'$GITHUB_WORKSPACE'/.open-next/assets"|' "$ABS_PATH"
+          # 使用 Here Document 写入配置文件
+          # 注意：我们将 assets.directory 改为了绝对路径
+          cat > .open-next/wrangler.json << EOF
+          {
+            "name": "voice-to-text-02",
+            "main": ".open-next/worker.js",
+            "compatibility_date": "2026-03-28",
+            "compatibility_flags": [
+              "nodejs_compat_v2",
+              "global_fetch_strictly_public",
+              "enable_nodejs_fs_module"
+            ],
+            "vars": {
+              "ENVIRONMENT": "production",
+              "NEXT_PUBLIC_SUPABASE_URL": "https://fpwstkjcatajbidwtugy.supabase.co",
+              "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_jFwmh7VQcHSe78dSnSSVNw_tOsFc-UM",
+              "NEXT_PUBLIC_PAYPAL_CLIENT_ID": "AVNwLiNUo8IF7yzU4miGKhcS1V76x8Uhd166cSnpCvMFXKxIB6P2fBnxbGf5dI2MAAxZgtYVsfake1gI",
+              "NEXT_PUBLIC_PAYPAL_PLAN_ID": "your_paypal_plan_id",
+              "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop"
+            },
+            "assets": {
+              "directory": "$ASSETS_ABS_PATH",
+              "binding": "ASSETS",
+              "not_found_handling": "none"
+            },
+            "services": [
+              {
+                "binding": "WORKER_SELF_REFERENCE",
+                "service": "voice-to-text-02"
+              }
+            ],
+            "routes": [
+              {
+                "pattern": "bijiassistant.shop",
+                "custom_domain": true
+              },
+              {
+                "pattern": "www.bijiassistant.shop",
+                "custom_domain": true
+              }
+            ],
+            "observability": {
+              "enabled": true,
+              "head_sampling_rate": 1
+            },
+            "triggers": {
+              "crons": ["0 * * * *"]
+            },
+            "r2_buckets": [
+              {
+                "binding": "AUDIO_BUCKET",
+                "bucket_name": "voice-to-text-audio"
+              }
+            ]
+          }
+          EOF
 
-          # 验证修改结果
-          echo "=== Fixed assets path ==="
-          grep "directory" "$ABS_PATH"
+          echo "✅ Successfully generated .open-next/wrangler.json"
+          echo "📄 Assets Path Set To: $ASSETS_ABS_PATH"
 
       - name: Deploy to Cloudflare
         run: |
-          echo "Current Directory: $(pwd)"
-          echo "Files in .open-next:"
-          ls -la .open-next/
-
-          # 使用绝对路径部署
-          npx wrangler deploy "$GITHUB_WORKSPACE/.open-next/wrangler.json"
+          echo "🚀 Starting Deployment..."
+          npx wrangler deploy .open-next/wrangler.json
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          WRANGLER_COMPATIBILITY_FLAGS: nodejs_compat_v2
+          # 环境变量也可以在这里覆盖，但推荐写在 wrangler.json 的 vars 中
           WRANGLER_COMPATIBILITY_DATE: 2026-03-28
