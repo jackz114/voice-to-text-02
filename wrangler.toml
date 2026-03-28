@@ -14,7 +14,6 @@ compatibility_flags = [
   "global_fetch_strictly_public",
   "enable_nodejs_fs_module",
   "enable_nodejs_vm_module",
-  "enable_nodejs_zlib_module" # OpenNext 通常需要 zlib 处理压缩
 ]
 
 # === 环境变量 (Vars) ===
