@@ -1,44 +1,57 @@
-{
-  "name": "voice-to-text-02",
-  "main": ".open-next/worker.js",
-  "compatibility_date": "2025-11-14",
-  "compatibility_flags": [
-    "nodejs_compat_v2",
-    "global_fetch_strictly_public",
-    "enable_nodejs_fs_module",
-    "enable_nodejs_vm_module",
-    "enable_nodejs_zlib_module"
-  ],
-  "vars": {
-    "ENVIRONMENT": "production",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://fpwstkjcatajbidwtugy.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_jFwmh7VQcHSe78dSnSSVNw_tOsFc-UM",
-    "NEXT_PUBLIC_PAYPAL_CLIENT_ID": "AVNwLiNUo8IF7yzU4miGKhcS1V76x8Uhd166cSnpCvMFXKxIB6P2fBnxbGf5dI2MAAxZgtYVsfake1gI",
-    "NEXT_PUBLIC_PAYPAL_PLAN_ID": "your_paypal_plan_id",
-    "NEXT_PUBLIC_APP_URL": "https://bijiassistant.shop"
-  },
-  "assets": {
-    "bucket": ".open-next/assets",
-    "binding": "ASSETS",
-    "not_found_handling": "none"
-  },
-  "services": [
-    {
-      "binding": "WORKER_SELF_REFERENCE",
-      "service": "voice-to-text-02"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "AUDIO_BUCKET",
-      "bucket_name": "voice-to-text-audio"
-    }
-  ],
-  "observability": {
-    "enabled": true,
-    "head_sampling_rate": 1.0
-  },
-  "triggers": {
-    "crons": ["0 * * * *"]
-  }
-}
+# === 基础配置 ===
+name = "voice-to-text-02"
+main = ".open-next/worker.js"
+
+# 📌 关键点 1：日期必须锁定在 v2 发布日
+# 根据 Cloudflare 官方文档，nodejs_compat_v2 在 2025-11-14 才正式稳定
+compatibility_date = "2025-11-14"
+
+# 📌 关键点 2：这是官方文档明确允许的 Flags 列表
+# OpenNext 要求 fs 和 vm 必须手动开启
+# 注意：绝对不要加 http, net, https，官方文档规定 v2 已包含
+compatibility_flags = [
+  "nodejs_compat_v2",
+  "global_fetch_strictly_public",
+  "enable_nodejs_fs_module",
+  "enable_nodejs_vm_module",
+  "enable_nodejs_zlib_module" # OpenNext 通常需要 zlib 处理压缩
+]
+
+# === 环境变量 (Vars) ===
+# 官方文档规定：Vars 在 TOML 中用 [vars] 表格定义
+[vars]
+ENVIRONMENT = "production"
+NEXT_PUBLIC_SUPABASE_URL = "https://fpwstkjcatajbidwtugy.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_jFwmh7VQcHSe78dSnSSVNw_tOsFc-UM"
+NEXT_PUBLIC_PAYPAL_CLIENT_ID = "AVNwLiNUo8IF7yzU4miGKhcS1V76x8Uhd166cSnpCvMFXKxIB6P2fBnxbGf5dI2MAAxZgtYVsfake1gI"
+NEXT_PUBLIC_PAYPAL_PLAN_ID = "your_paypal_plan_id"
+NEXT_PUBLIC_APP_URL = "https://bijiassistant.shop"
+
+# === 静态资源 (Assets) ===
+# 官方文档规定：Assets 配置
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+not_found_handling = "none"# 对应 JSON 中的 none
+
+# === 服务绑定 (Services) ===
+# 官方文档规定：Services 是一个数组
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "voice-to-text-02"
+
+# === R2 存储桶 (R2 Buckets) ===
+# 官方文档规定：R2 Buckets 是一个数组
+[[r2_buckets]]
+binding = "AUDIO_BUCKET"
+bucket_name = "voice-to-text-audio"
+
+# === 观测性 (Observability) ===
+[observability]
+enabled = true
+head_sampling_rate = 1.0 # TOML 中浮点数写法
+
+# === 触发器 (Triggers) ===
+# 官方文档规定：Cron Triggers 在 [triggers] 下
+[triggers]
+crons = ["0 * * * *"]
