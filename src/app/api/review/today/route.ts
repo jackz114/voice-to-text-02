@@ -21,7 +21,7 @@ interface ReviewState {
   difficulty: number;
   review_count: number;
   last_reviewed_at: string | null;
-  knowledge_items: KnowledgeItem;
+  knowledge_items: KnowledgeItem[];
 }
 
 export async function GET(request: NextRequest) {
@@ -78,12 +78,12 @@ export async function GET(request: NextRequest) {
 
     // 格式化结果
     const dueItems = (rawItems || []).map((item: ReviewState) => ({
-      itemId: item.knowledge_items.id,
-      title: item.knowledge_items.title,
-      content: item.knowledge_items.content,
-      domain: item.knowledge_items.domain,
-      source: item.knowledge_items.source,
-      tags: item.knowledge_items.tags,
+      itemId: item.knowledge_items[0]?.id,
+      title: item.knowledge_items[0]?.title,
+      content: item.knowledge_items[0]?.content,
+      domain: item.knowledge_items[0]?.domain,
+      source: item.knowledge_items[0]?.source,
+      tags: item.knowledge_items[0]?.tags,
       reviewStateId: item.id,
       nextReviewAt: item.next_review_at,
       stability: item.stability,

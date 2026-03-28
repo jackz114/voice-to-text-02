@@ -2,6 +2,7 @@
   "name": "voice-to-txt-02",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -44,14 +45,15 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260317.1",
     "@opennextjs/cloudflare": "1.17.1",
-    "@tailwindcss/postcss": "^4",
+    "autoprefixer": "^10.4.21",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.9",
     "eslint-config-prettier": "^10.1.8",
-    "tailwindcss": "^4",
+    "tailwindcss": "^3.4.17",
+    "postcss": "^8.5.3",
     "typescript": "^5",
     "wrangler": "^4.76.0"
   },

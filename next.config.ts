@@ -25,54 +25,6 @@ const nextConfig: NextConfig = {
     "@react-email/components",
   ],
 
-  // Turbopack 配置（Next.js 16 默认使用 Turbopack）
-  turbopack: {
-    resolveAlias: {
-      // 为浏览器环境将所有 Node.js 原生模块映射到空文件
-      fs: { browser: "./src/lib/empty-polyfill.ts" },
-      path: { browser: "./src/lib/empty-polyfill.ts" },
-      crypto: { browser: "./src/lib/empty-polyfill.ts" },
-      stream: { browser: "./src/lib/empty-polyfill.ts" },
-      util: { browser: "./src/lib/empty-polyfill.ts" },
-      buffer: { browser: "./src/lib/empty-polyfill.ts" },
-      http: { browser: "./src/lib/empty-polyfill.ts" },
-      https: { browser: "./src/lib/empty-polyfill.ts" },
-      net: { browser: "./src/lib/empty-polyfill.ts" },
-      tls: { browser: "./src/lib/empty-polyfill.ts" },
-      zlib: { browser: "./src/lib/empty-polyfill.ts" },
-      url: { browser: "./src/lib/empty-polyfill.ts" },
-      querystring: { browser: "./src/lib/empty-polyfill.ts" },
-      os: { browser: "./src/lib/empty-polyfill.ts" },
-      punycode: { browser: "./src/lib/empty-polyfill.ts" },
-      dgram: { browser: "./src/lib/empty-polyfill.ts" },
-      dns: { browser: "./src/lib/empty-polyfill.ts" },
-      cluster: { browser: "./src/lib/empty-polyfill.ts" },
-      module: { browser: "./src/lib/empty-polyfill.ts" },
-      process: { browser: "./src/lib/empty-polyfill.ts" },
-      // 明确指定 node: 前缀的模块
-      "node:fs": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:path": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:crypto": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:stream": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:util": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:buffer": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:http": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:https": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:net": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:tls": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:zlib": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:url": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:querystring": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:os": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:punycode": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:dgram": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:dns": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:cluster": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:module": { browser: "./src/lib/empty-polyfill.ts" },
-      "node:process": { browser: "./src/lib/empty-polyfill.ts" },
-    },
-  },
-
   webpack: (config, { isServer }) => {
     // 为所有环境（客户端和服务端）都添加 fallback
     config.resolve.fallback = {
