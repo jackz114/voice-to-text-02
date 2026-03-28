@@ -36,14 +36,29 @@ jobs:
             exit 1
           fi
 
+          # 确认 wrangler.json 文件是否存在
+          if [ ! -f .open-next/wrangler.json ]; then
+            echo "ERROR: .open-next/wrangler.json not found!"
+            exit 1
+          fi
+
       - name: Fix Wrangler Config Path
         run: |
-          # 直接修改 .open-next/wrangler.json 中的 assets.directory
-          sed -i 's|".open-next/assets"|"'$GITHUB_WORKSPACE'/.open-next/assets"|' .open-next/wrangler.json
+          # 使用绝对路径确保文件可读
+          ABS_PATH="$GITHUB_WORKSPACE/.open-next/wrangler.json"
+
+          # 确认文件存在
+          if [ ! -f "$ABS_PATH" ]; then
+            echo "ERROR: $ABS_PATH not found!"
+            exit 1
+          fi
+
+          # 使用更精确的 sed 命令替换路径
+          sed -i 's|".open-next/assets"|"'$GITHUB_WORKSPACE'/.open-next/assets"|' "$ABS_PATH"
 
           # 验证修改结果
           echo "=== Fixed assets path ==="
-          grep "directory" .open-next/wrangler.json
+          grep "directory" "$ABS_PATH"
 
       - name: Deploy to Cloudflare
         run: |
