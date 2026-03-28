@@ -18,7 +18,7 @@ interface KnowledgeItem {
   source: string;
   tags: string[];
   created_at: string;
-  review_state: ReviewState | null;
+  review_state: ReviewState[] | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -89,8 +89,8 @@ export async function GET(request: NextRequest) {
       source: item.source,
       tags: item.tags,
       createdAt: item.created_at,
-      nextReviewAt: item.review_state?.next_review_at,
-      reviewCount: item.review_state?.review_count,
+      nextReviewAt: item.review_state?.[0]?.next_review_at,
+      reviewCount: item.review_state?.[0]?.review_count,
       // 生成 content 预览（前50个字符）
       contentPreview: item.content?.slice(0, 50) || "",
     }));
