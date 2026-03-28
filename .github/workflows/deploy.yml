@@ -51,6 +51,8 @@ jobs:
 
       - name: Deploy to Cloudflare (Direct)
         run: |
+          cd .open-next
+          ln -s ../assets assets
           npx wrangler deploy .open-next/wrangler.json
         env:
           # 必须将环境变量传递给 wrangler
