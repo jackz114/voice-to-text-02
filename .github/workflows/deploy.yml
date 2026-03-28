@@ -51,9 +51,14 @@ jobs:
 
       - name: Deploy to Cloudflare (Direct)
         run: |
-          cd .open-next
-          ln -s ../assets assets
-          npx wrangler deploy .open-next/wrangler.json
+          echo "Current Directory: $(pwd)"
+
+          echo "Files in .open-next:"
+          ls -la .open-next/
+
+          ABSOLUTE_PATH="$GITHUB_WORKSPACE/.open-next/wrangler.json"
+
+          npx wrangler deploy "$ABSOLUTE_PATH"
         env:
           # 必须将环境变量传递给 wrangler
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
