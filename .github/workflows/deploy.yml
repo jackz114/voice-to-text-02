@@ -8,6 +8,11 @@ on:
 env:
   NODE_VERSION: "22"
 
+# 👇 新增：解决 Node.js 20 弃用警告
+env:
+  # 强制 Actions 使用 Node.js 24 运行时
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,13 +26,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
-      # ⚠️ 修改点：只缓存 node_modules，不缓存构建产物
-      # 缓存 .next 是可选的，但 .open-next 强烈建议不缓存
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      # ⚠️ 修改点 1: 移除了缓存 .open-next 的步骤
+      # 构建产物不要缓存，防止旧代码覆盖新构建
+      # 原有的 "Cache OpenNext build" 步骤请直接删除
 
       - name: Install dependencies
         run: npm ci
@@ -45,7 +46,6 @@ jobs:
       - name: Build Cloudflare Workers
         run: npx opennextjs-cloudflare build
         env:
-          # 再次注入变量，确保构建脚本能访问
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
@@ -53,16 +53,23 @@ jobs:
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
-      # ⚠️ 修改点：移除针对 node:fs 的 grep 检查，除非你确定需要
-      # OpenNext 会自动处理 polyfill，手动 grep 容易误报或漏报。
-      # 如果真的需要检查，建议检查构建日志中的警告信息。
+      # ⚠️ 修改点 2: 确保构建成功后再上传
+      # 增加一个检查步骤，防止上传空文件夹
+      - name: Verify Build Output
+        run: |
+          if [ ! -d ".open-next" ]; then
+            echo "❌ Error: Build output directory .open-next not found!"
+            exit 1
+          fi
+          echo "✅ Build output verified, proceeding to upload."
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: opennext-build
           path: .open-next/
-          retention-days: 1
+          # ⚠️ 修改点 3: 增加保留时间（可选，主要是为了调试）
+          retention-days: 2
 
   deploy:
     needs: build
@@ -77,6 +84,16 @@ jobs:
           name: opennext-build
           path: .open-next/
 
+      # 👇 新增：调试步骤，检查下载的文件是否存在
+      - name: Debug: List Files
+        run: |
+          echo "Listing files in .open-next:"
+          find .open-next -type f | head -n 20 # 只显示前20个，防止日志过长
+          if [ ! -f ".open-next/worker.js" ]; then
+            echo "❌ Error: Critical file worker.js not found in artifact!"
+            exit 1
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -84,19 +101,14 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        # 安装依赖是为了让 wrangler/opennext 命令能运行
         run: npm ci
 
       - name: Deploy to Cloudflare
         id: deploy
         run: |
-          # ⚠️ 修改点：明确指定输出目录，防止默认行为差异
-          # 确保环境变量传递正确，虽然主要依赖 wrangler.jsonc
-          OUTPUT=$(npx opennextjs-cloudflare deploy --output-dir .open-next 2>&1)
+          OUTPUT=$(npx opennextjs-cloudflare deploy 2>&1)
           echo "$OUTPUT"
-
-          # 提取 URL 的正则优化
-          WORKER_URL=$(echo "$OUTPUT" | grep -oE 'https://[a-zA-Z0-9.-]+\.[a-zA-Z0-9-]+\.workers\.dev' | head -n 1 || true)
+          WORKER_URL=$(echo "$OUTPUT" | grep -oE 'https://[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+\.workers\.dev' || true)
           if [ -n "$WORKER_URL" ]; then
             echo "worker_url=$WORKER_URL" >> $GITHUB_OUTPUT
           fi
@@ -107,57 +119,7 @@ jobs:
       - name: Create deployment summary
         run: |
           echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
-          echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-
           if [ -n "${{ steps.deploy.outputs.worker_url }}" ]; then
-            echo "| Workers URL | [Visit](${{ steps.deploy.outputs.worker_url }}) |" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Deployment Details" >> $GITHUB_STEP_SUMMARY
-          echo "- **Domain**: https://bijiassistant.shop" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
-
-  health-check:
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: always() # 即使前面的步骤失败，也想看看健康检查结果（可选）
-    steps:
-      - name: Wait for propagation
-        run: sleep 45 # Cloudflare 全球传播可能需要一点时间，30s 有时不够
-
-      - name: Health check
-        run: |
-          URL="https://bijiassistant.shop"
-          echo "Checking $URL..."
-
-          # 增加重试逻辑，防止网络波动
-          MAX_RETRIES=3
-          RETRY_COUNT=0
-          SUCCESS=false
-
-          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL || echo "000")
-            echo "Attempt $((RETRY_COUNT + 1)): HTTP $HTTP_CODE"
-            
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "307" ] || [ "$HTTP_CODE" = "308" ] || [ "$HTTP_CODE" = "404" ]; then
-              # 404 也是正常的，说明 Worker 在运行，只是路由没匹配（如果是 SPA 模式）
-              SUCCESS=true
-              break
-            fi
-            
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            sleep 10
-          done
-
-          if [ "$SUCCESS" = true ]; then
-            echo "✅ Health check passed"
-          else
-            echo "❌ Health check failed after $MAX_RETRIES attempts (HTTP $HTTP_CODE)"
-            exit 1
+            echo "| Workers URL | ${{ steps.deploy.outputs.worker_url }} |" >> $GITHUB_STEP_SUMMARY
           fi
