@@ -47,8 +47,18 @@ jobs:
           cp wrangler.jsonc .open-next/wrangler.jsonc
           echo "Copied wrangler.jsonc to .open-next/"
 
-      - name: Deploy to Cloudflare
-        run: npx @opennextjs/cloudflare deploy --compatibility-flags nodejs_compat_v2
+      - name: Deploy to Cloudflare (Direct)
+        run: |
+          cd .open-next
+          npx wrangler deploy
         env:
+          # 必须将环境变量传递给 wrangler
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+          # 关键：强制 Wrangler 开启兼容模式
+          # 这会覆盖 wrangler.jsonc 中的设置
+          WRANGLER_COMPATIBILITY_FLAGS: nodejs_compat_v2
+
+          # 确保兼容性日期是最新的
+          WRANGLER_COMPATIBILITY_DATE: 2026-3-26
