@@ -1,0 +1,54 @@
+opennextjs-cloudflare CLI
+The Cloudflare adapter provides a opennextjs-cloudflare CLI to develop, build, and deploy your application. You should not use wrangler commands directly unless documented otherwise or if you know what you are doing.
+
+commands
+opennextjs-cloudflare support multiple commands, invoked via opennextjs-cloudflare <command>.
+
+The currently supported commands are build, populateCache, preview, deploy, upload, and migrate.
+
+You can list the commands by invoking pnpm opennextjs-cloudflare and get help with a given command by invoking pnpm opennextjs-cloudflare <command> --help.
+
+Most commands take command specific options (i.e. pnpm opennextjs-cloudflare build --skipNextBuild --noMinify) and also accept wrangler options (i.e. pnpm opennextjs-cloudflare build --config=/path/to/wrangler.jsonc --env=prod).
+
+build command
+It first builds the Next.js application by invoking the build script of the package.json - which typically execute next build. It then runs the Cloudflare specific build step to update the built files to run on the Cloudflare runtime.
+
+populateCache command
+It populates the configured Open Next cache components so that caching works at runtime. It can populate the local bindings (populateCache local) used during development on your local machine or the remote bindings (populateCache remote) used by the deployed application. Note that this command is implicitly called by the preview, deploy, and upload commands so there is no need to explicitly call populateCache when one of those is used.
+
+From version 1.13.0 of the Cloudflare adapter, R2 batch uploads are supported out of the box for preview and deploy without any additional setup.
+
+Before version 1.13.0 of the Cloudflare adapter, the populateCache command was supporting R2 batch uploads via rclone which required the following additional setup:
+
+The populateCache command supports R2 batching to speed up the upload of large number of files. To enable R2 batching, you need to create an R2 Account API token as described in the docs and provide the following environment variables:
+
+R2_ACCESS_KEY_ID: The access key ID of the R2 API token
+R2_SECRET_ACCESS_KEY: The secret access key of the R2 API token
+CLOUDFLARE_ACCOUNT_ID: The account ID where the R2 bucket is located
+preview command
+It starts by populating the local cache and then launches a local development server (via wrangler dev) so that you can preview the application locally.
+
+deploy command
+It starts by populating the remote cache and then deploys your application to Cloudflare (via wrangler deploy). The application will start serving as soon as it is deployed.
+
+upload command
+It starts by populating the remote cache and then uploads a version of your application to Cloudflare (via wrangler versions upload). Note that the application will not automatically be served on uploads. See Gradual deployments to learn more about how to serve an uploaded version.
+
+migrate command
+Converts a standard Next.js project into an OpenNext-compatible one. This command automates the setup steps described in the Get Started guide, including:
+
+Installing required dependencies (@opennextjs/cloudflare and wrangler)
+Creating a wrangler.jsonc configuration file
+Creating an open-next.config.ts file
+Adding a .dev.vars file
+Updating the package.json scripts
+Adding static asset caching headers (public/\_headers)
+Adding .open-next to .gitignore
+Setting up local development with initOpenNextCloudflareForDev() in your Next.js config
+Additionally, the command creates an R2 bucket and configures it for caching.
+
+The R2 bucket for caching is only created if R2 is enabled on your Cloudflare account. If R2 is not enabled, no caching setup is performed by the migrate command. See the Caching docs for information on manually configuring caching.
+
+Run the command in your existing Next.js project:
+
+npx @opennextjs/cloudflare migrate

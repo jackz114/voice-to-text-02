@@ -20,6 +20,13 @@
     "not_found_handling": "none",
   },
 
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "voice-to-text-02",
+    },
+  ],
+
   "routes": [
     {
       "pattern": "bijiassistant.shop",

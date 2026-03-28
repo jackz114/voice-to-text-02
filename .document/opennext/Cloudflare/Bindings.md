@@ -1,0 +1,67 @@
+Bindings
+Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform. When you declare a binding on your Worker, you grant it a specific capability, such as being able to read and write files to an R2 bucket.
+
+How to configure your Next.js app so it can access bindings
+Install @opennextjs/cloudflare, and then add a wrangler configuration file in the root directory of your Next.js app, as described in Get Started.
+
+How to access bindings in your Next.js app
+You can access bindings from any route of your Next.js app via getCloudflareContext:
+
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+export async function GET(request) {
+const myKv = getCloudflareContext().env.MY_KV_NAMESPACE;
+await myKv.put("foo", "bar");
+const foo = await myKv.get("foo");
+
+return new Response(foo);
+}
+getCloudflareContext can only be used in SSG routes in "async mode" (making it return a promise), to run the function in such a way simply provide an options argument with async set to true:
+
+const context = await getCloudflareContext({ async: true });
+WARNING: During SSG caution is advised since secrets (stored in .dev.vars files) and local development values from bindings (like values saved in a local KV) will be used for the pages static generation.
+
+How to add bindings to your Worker
+Add bindings to your Worker by adding them to your wrangler configuration file.
+
+TypeScript type declarations for bindings
+To ensure that the env object from getCloudflareContext().env above has accurate TypeScript types, run the following Wrangler command to generate types that match your Worker's configuration:
+
+npx wrangler types --env-interface CloudflareEnv
+This will generate a d.ts file and save it to worker-configuration.d.ts.
+
+To ensure that your types are always up-to-date, make sure to run wrangler types --env-interface CloudflareEnv after any changes to your config file.
+
+Local access to bindings
+As presented in the getting started your application can be both developed (next dev) and previewed locally, in both cases bindings will be accessible from your application's code.
+
+Such bindings are by default local simulation that mimic the behavior of the actual Cloudflare resources.
+
+Remote bindings
+As mentioned above, by default local emulations of the bindings are used.
+
+However remote bindings can also be used, allowing your application code, while still running locally, to connect to remote resources associated to your Cloudflare account.
+
+All you then need to do to enable remote mode for any of your bindings is to set the remote configuration field to true, just as documented in the remote bindings documentation.
+
+The remote bindings APIs have been stabilized in wrangler 4.36.0, so if you're using an earlier version of wrangler in order to use remote bindings you need to enabled it in your next.config.ts file:
+
+- initOpenNextCloudflareForDev();
+
+* initOpenNextCloudflareForDev({
+* experimental: { remoteBindings: true }
+* });
+  And instead of setting remote to bindings configuration options you need to set experimental_remote.
+
+Note that remote bindings will also be used during build, this can be very useful for example when using features such ISR so that read production data can be used for the site's static generation
+
+Other Cloudflare APIs (cf, ctx)
+You can access context about the incoming request from the cf object, as well as lifecycle methods from the ctx object from the return value of getCloudflareContext():
+
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+export async function GET(request) {
+const { env, cf, ctx } = getCloudflareContext();
+
+// ...
+}

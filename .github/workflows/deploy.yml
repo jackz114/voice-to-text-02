@@ -5,8 +5,11 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+env:
+  NODE_VERSION: "22"
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,36 +18,149 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          # 开启 npm 缓存，加快安装速度
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
-      # 【修改点】删除了之前的 "Clean cache" 步骤，不要删除 package-lock.json
+      # 缓存 OpenNext 构建产物
+      - name: Cache OpenNext build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .open-next
+            .next
+          key: ${{ runner.os }}-opennext-${{ hashFiles('**/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-opennext-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-opennext-
 
       - name: Install dependencies
-        # 【修改点】添加了 --legacy-peer-deps 以解决依赖冲突问题
-        run: npm install --legacy-peer-deps
+        # 使用 npm ci 而不是 npm install，确保使用 package-lock.json 中的精确版本
+        run: npm ci
 
-      - name: Build and Deploy
-        run: npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy
+      - name: Build Next.js
+        run: npm run build
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Next.js build environment variables
+          # 构建时需要的公开环境变量
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
           NEXT_PUBLIC_PAYPAL_PLAN_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_PLAN_ID }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          # Server-side secrets
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_CLIENT_SECRET }}
-          PAYPAL_WEBHOOK_ID: ${{ secrets.PAYPAL_WEBHOOK_ID }}
-          PAYPAL_API_URL: ${{ secrets.PAYPAL_API_URL }}
+          # Sentry DSN（可选）
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
+      - name: Build Cloudflare Workers
+        run: npx opennextjs-cloudflare build
+        env:
+          # 构建时需要的公开环境变量
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
+          NEXT_PUBLIC_PAYPAL_PLAN_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_PLAN_ID }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
+      # 检查构建产物中是否包含 Node.js 特定模块引用
+      - name: Check for Node.js specific modules
+        run: |
+          echo "Checking for node:fs references in build output..."
+          if grep -r "from \"node:fs\"" .open-next/ --include="*.js" --include="*.mjs" 2>/dev/null; then
+            echo "❌ Error: Found node:fs references in build output!"
+            exit 1
+          fi
+
+          echo "Checking for node:timers references in build output..."
+          if grep -r "from \"node:timers\"" .open-next/ --include="*.js" --include="*.mjs" 2>/dev/null; then
+            echo "❌ Error: Found node:timers references in build output!"
+            exit 1
+          fi
+
+          echo "✅ No Node.js specific modules found in build output"
+
+      # 上传构建产物供部署步骤使用
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: opennext-build
+          path: .open-next/
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 下载构建产物
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: opennext-build
+          path: .open-next/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy to Cloudflare
+        id: deploy
+        run: |
+          # 捕获部署输出以提取 URL
+          OUTPUT=$(npx opennextjs-cloudflare deploy 2>&1)
+          echo "$OUTPUT"
+
+          # 尝试从输出中提取 Workers URL
+          WORKER_URL=$(echo "$OUTPUT" | grep -oE 'https://[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+\.workers\.dev' || true)
+          if [ -n "$WORKER_URL" ]; then
+            echo "worker_url=$WORKER_URL" >> $GITHUB_OUTPUT
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # 部署时 Wrangler 需要的变量（用于替换 wrangler.jsonc 中的变量）
+          # 这些变量会被 wrangler 读取并注入到 Worker 中
 
       - name: Create deployment summary
         run: |
-          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Successfully deployed to Cloudflare Workers" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit Message | ${{ github.event.head_commit.message }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ steps.deploy.outputs.worker_url }}" ]; then
+            echo "| Workers URL | ${{ steps.deploy.outputs.worker_url }} |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Domain**: https://bijiassistant.shop" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+
+  # 可选：部署后健康检查
+  health-check:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for deployment to propagate
+        run: sleep 30
+
+      - name: Health check
+        run: |
+          echo "Checking https://bijiassistant.shop..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://bijiassistant.shop || echo "000")
+
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "307" ] || [ "$HTTP_CODE" = "308" ]; then
+            echo "✅ Health check passed (HTTP $HTTP_CODE)"
+          else
+            echo "⚠️ Health check returned HTTP $HTTP_CODE (might be OK if redirecting to login)"
+          fi

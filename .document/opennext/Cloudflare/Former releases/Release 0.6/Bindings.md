@@ -1,0 +1,49 @@
+Bindings
+Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform. When you declare a binding on your Worker, you grant it a specific capability, such as being able to read and write files to an R2 bucket.
+
+How to configure your Next.js app so it can access bindings
+Install @opennextjs/cloudflare, and then add a wrangler configuration file in the root directory of your Next.js app, as described in Get Started.
+
+How to access bindings in your Next.js app
+You can access bindings from any route of your Next.js app via getCloudflareContext:
+
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+export async function GET(request) {
+let responseText = "Hello World";
+
+const myKv = getCloudflareContext().env.MY_KV_NAMESPACE;
+await myKv.put("foo", "bar");
+const foo = await myKv.get("foo");
+
+return new Response(foo);
+}
+getCloudflareContext can only be used in SSG routes in "async mode" (making it return a promise), to run the function in such a way simply provide an options argument with async set to true:
+
+const context = await getCloudflareContext({ async: true });
+WARNING: During SSG caution is advised since secrets (stored in .dev.vars files) and local development values from bindings (like values saved in a local KV) will be used for the pages static generation.
+
+How to add bindings to your Worker
+Add bindings to your Worker by adding them to your wrangler configuration file.
+
+TypeScript type declarations for bindings
+To ensure that the env object from getCloudflareContext().env above has accurate TypeScript types, run the following Wrangler command to generate types that match your Worker's configuration:
+
+npx wrangler types --experimental-include-runtime
+This will generate a d.ts file and (by default) save it to .wrangler/types/runtime.d.ts. You will be prompted in the command's output to add that file to your tsconfig.json's compilerOptions.types array.
+
+If you would like to commit the file to git, you can provide a custom path. Here, for instance, the runtime.d.ts file will be saved to the root of your project:
+
+npx wrangler types --experimental-include-runtime="./runtime.d.ts"
+To ensure that your types are always up-to-date, make sure to run wrangler types --experimental-include-runtime after any changes to your config file.
+
+Other Cloudflare APIs (cf, ctx)
+You can access context about the incoming request from the cf object, as well as lifecycle methods from the ctx object from the return value of getCloudflareContext():
+
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+export async function GET(request) {
+const { env, cf, ctx } = getCloudflareContext();
+
+// ...
+}
