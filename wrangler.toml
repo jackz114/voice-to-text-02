@@ -6,6 +6,8 @@ main = ".open-next/worker.js"
 # 根据 Cloudflare 官方文档，nodejs_compat_v2 在 2025-11-14 才正式稳定
 compatibility_date = "2025-11-14"
 
+node_compat = true
+
 # 📌 关键点 2：这是官方文档明确允许的 Flags 列表
 # OpenNext 要求 fs 和 vm 必须手动开启
 # 注意：绝对不要加 http, net, https，官方文档规定 v2 已包含
