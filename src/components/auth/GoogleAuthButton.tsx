@@ -105,12 +105,12 @@ export function GoogleAuthButton({
       nonce,
     });
 
-    // 使用 popup 模式，不依赖 FedCM
+    // 使用 filled_black 主题适配深色背景
     google.accounts.id.renderButton(buttonRef.current, {
       type: "standard",
-      theme: "outline",
+      theme: "filled_black",
       size: "large",
-      text: "signin_with",
+      text: "continue_with",
       shape: "rectangular",
       logo_alignment: "left",
       width: 400,
