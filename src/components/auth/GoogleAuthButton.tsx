@@ -93,9 +93,6 @@ export function GoogleAuthButton({
       },
       nonce,
     });
-
-    // 自动显示 Google 登录提示
-    google.accounts.id.prompt();
   }, [gisReady]);
 
   const handleGoogleLogin = async () => {
