@@ -33,24 +33,11 @@ export async function middleware(request: NextRequest) {
     const errorParam = url.searchParams.get("error");
     const redirectTo = url.searchParams.get("redirect_to") || "/";
 
-    // Debug: 记录收到的 cookies（不含敏感值）
-    const cookieNames = request.cookies.getAll().map(c => c.name);
-    console.log("[Auth Callback] pathname:", url.pathname);
     console.log("[Auth Callback] code:", code ? "present" : "missing");
     console.log("[Auth Callback] error:", errorParam);
-    console.log("[Auth Callback] redirectTo:", redirectTo);
-    console.log("[Auth Callback] cookie names:", cookieNames);
-
-    // 如果 URL 已有 error 参数，说明之前处理已失败，直接 redirect
-    if (errorParam) {
-      console.log("[Auth Callback] URL has error, redirecting to login");
-      return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(errorParam)}`, url.origin)
-      );
-    }
 
     if (code) {
-      // 用 URL search string（包含 code 和 state）交换 session
+      // 优先处理 code exchange
       const { error } = await supabase.auth.exchangeCodeForSession(url.search);
 
       if (error) {
@@ -60,12 +47,19 @@ export async function middleware(request: NextRequest) {
         );
       }
 
-      // 交换成功后重定向到目标页面
+      // 交换成功后重定向
       return NextResponse.redirect(new URL(redirectTo, url.origin));
     }
 
-    // 既没有 code 也没有 error，停留在此页面（正常应该是 loading）
-    console.log("[Auth Callback] no code, no error, rendering page");
+    if (errorParam) {
+      // 没有 code 但有 error，直接跳转到 login
+      console.log("[Auth Callback] no code, has error:", errorParam);
+      return NextResponse.redirect(
+        new URL(`/login?error=${encodeURIComponent(errorParam)}`, url.origin)
+      );
+    }
+
+    // 既没有 code 也没有 error，继续渲染页面（loading 状态）
   }
 
   // 普通路由：刷新 session
