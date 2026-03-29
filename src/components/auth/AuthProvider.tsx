@@ -1,29 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { createClient, User } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
+import { getSupabaseClient, supabase } from "@/lib/supabase";
 
-// Supabase 客户端懒加载（避免构建时因缺少环境变量而报错）
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
-
-export function getSupabaseClient(): ReturnType<typeof createClient> {
-  if (!supabaseInstance) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Missing Supabase environment variables");
-    }
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
-  }
-  return supabaseInstance;
-}
-
-// For backward compatibility - lazy initialized supabase client
-export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
-  get(_, prop) {
-    return getSupabaseClient()[prop as keyof ReturnType<typeof createClient>];
-  }
-});
+export { supabase };
+export { getSupabaseClient };
 
 interface AuthContextType {
   user: User | null;

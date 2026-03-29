@@ -1,18 +1,25 @@
-import { createClient } from '@supabase/supabase-js'
-import { createServerClient } from '@supabase/ssr'
+import { createClient, createServerClient, type CookieOptions } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 // Client-side singleton (for client components) - lazy initialization
+// 重要：所有组件必须使用同一个 Supabase 实例，否则 PKCE verifier 无法共享
 let supabaseInstance: ReturnType<typeof createClient> | null = null
 
-export function getSupabaseClient() {
+export function getSupabaseClient(): ReturnType<typeof createClient> {
   if (!supabaseInstance) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error("Missing Supabase environment variables")
     }
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        flowType: 'pkce',
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    })
   }
   return supabaseInstance
 }
@@ -34,25 +41,27 @@ export async function createServerSupabaseClient() {
     throw new Error("Missing Supabase environment variables")
   }
 
-  return createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing sessions.
-          }
-        },
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing sessions.
+        }
+      },
+    },
+    auth: {
+      flowType: 'pkce',
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  })
 }
