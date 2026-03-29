@@ -31,8 +31,8 @@ function Navbar() {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="VoiceNote" width={32} height={32} className="object-contain" />
-          <span className="text-xl font-bold tracking-tight text-[#1C1C1C]">VoiceNote</span>
+          <Image src="/logo.png" alt="Revnote" width={32} height={32} className="object-contain" />
+          <span className="text-xl font-bold tracking-tight text-[#1C1C1C]">Revnote</span>
         </div>
 
         {/* 导航链接 */}
@@ -300,7 +300,7 @@ function InterfaceShowcase() {
             Built for creators and professionals
           </h2>
           <p className="text-[#6B5B4F] max-w-lg mx-auto">
-            From podcasters to researchers, VoiceNote adapts to your workflow.
+            From podcasters to researchers, Revnote adapts to your workflow.
           </p>
         </div>
 
@@ -442,8 +442,8 @@ function Footer() {
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="VoiceNote" width={28} height={28} className="object-contain" />
-            <span className="text-lg font-bold text-[#1C1C1C]">VoiceNote</span>
+            <Image src="/logo.png" alt="Revnote" width={28} height={28} className="object-contain" />
+            <span className="text-lg font-bold text-[#1C1C1C]">Revnote</span>
           </div>
 
           <div className="flex items-center gap-6 text-sm text-[#9C8E80]">
@@ -459,7 +459,7 @@ function Footer() {
           </div>
 
           <p className="text-xs text-[#9C8E80]">
-            © {new Date().getFullYear()} VoiceNote. All rights reserved.
+            © {new Date().getFullYear()} Revnote. All rights reserved.
           </p>
         </div>
       </div>

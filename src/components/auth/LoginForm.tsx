@@ -7,15 +7,17 @@ import { Turnstile } from "react-turnstile";
 
 interface LoginFormProps {
   redirectTo?: string;
+  defaultMode?: "login" | "register";
 }
 
-export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
+export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">(defaultMode);
   const [error, setError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +25,11 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
 
     if (mode === "register" && !turnstileToken) {
       setError("Please complete the verification");
+      return;
+    }
+
+    if (mode === "register" && !acceptedTerms) {
+      setError("Please accept the Terms of Service and Privacy Policy");
       return;
     }
 
@@ -107,18 +114,34 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
         </div>
 
         {mode === "register" && (
-          <div className="py-2">
-            <Turnstile
-              sitekey="1x00000000000000000000AA"
-              onVerify={(token) => setTurnstileToken(token)}
-              theme="light"
-            />
-          </div>
+          <>
+            <div className="py-2">
+              <Turnstile
+                sitekey="1x00000000000000000000AA"
+                onVerify={(token) => setTurnstileToken(token)}
+                theme="light"
+              />
+            </div>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-[#D4C4B0] text-[#B8860B] focus:ring-[#B8860B]"
+              />
+              <span className="text-xs text-[#6B5B4F] leading-relaxed">
+                I agree to the{" "}
+                <a href="#" className="text-[#B8860B] hover:underline">Terms of Service</a>
+                {" "}and{" "}
+                <a href="#" className="text-[#B8860B] hover:underline">Privacy Policy</a>
+              </span>
+            </label>
+          </>
         )}
 
         <button
           type="submit"
-          disabled={loading || (mode === "register" && !turnstileToken)}
+          disabled={loading || (mode === "register" && (!turnstileToken || !acceptedTerms))}
           className="w-full h-12 rounded-xl bg-[#2C2C2C] hover:bg-[#1C1C1C] text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {loading ? (

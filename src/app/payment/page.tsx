@@ -158,7 +158,7 @@ export default function PaymentPage() {
               <PayPalButton
                 amount="9.99"
                 currency="USD"
-                description="Voice to Text - 基础套餐 (100分钟)"
+                description="Revnote - 基础套餐 (100分钟)"
                 customId="BASIC_100MIN"
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
@@ -215,7 +215,7 @@ export default function PaymentPage() {
               <PayPalButton
                 amount="39.99"
                 currency="USD"
-                description="Voice to Text - 专业套餐 (500分钟)"
+                description="Revnote - 专业套餐 (500分钟)"
                 customId="PRO_500MIN"
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}

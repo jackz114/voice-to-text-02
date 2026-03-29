@@ -143,7 +143,7 @@ export async function createPayPalOrder(
       intent: "CAPTURE",
       purchase_units: [purchaseUnit],
       application_context: {
-        brand_name: "Voice to Text",
+        brand_name: "Revnote",
         locale: "zh-CN",
         landing_page: "LOGIN",
         shipping_preference: "NO_SHIPPING",

@@ -67,7 +67,7 @@ function PayPalErrorMessage({ message }: { message: string }) {
 export function PayPalButton({
   amount,
   currency = "USD",
-  description = "Voice to Text Service",
+  description = "Revnote Service",
   customId,
   onSuccess,
   onError,

@@ -3,15 +3,15 @@ import { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Sign in - Revnote",
-  description: "Sign in to your Revnote account",
+  title: "Sign up - Revnote",
+  description: "Create your Revnote account",
 };
 
-interface LoginPageProps {
+interface RegisterPageProps {
   searchParams: Promise<{ redirect_to?: string }>;
 }
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   const params = await searchParams;
   const redirectTo = params.redirect_to || "/";
 
@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
         </div>
 
-        <LoginForm redirectTo={redirectTo} />
+        <LoginForm redirectTo={redirectTo} defaultMode="register" />
       </div>
     </div>
   );

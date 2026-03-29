@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const {
       amount,
       currency = "USD",
-      description = "Voice to Text Service",
+      description = "Revnote Service",
       customId, // 商家内部订单 ID
     } = body;
 

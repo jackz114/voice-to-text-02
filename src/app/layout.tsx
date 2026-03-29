@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Voice to Text - 语音转文本",
+  title: "Revnote - 语音转文本",
   description: "AI 驱动的语音转文本服务",
 };
 
