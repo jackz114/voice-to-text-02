@@ -1,5 +1,5 @@
 // src/app/api/capture/capture-client.ts
-// AI 提取客户端 — OpenAI API 调用
+// AI 提取客户端 — DeepSeek API 调用
 
 import { z } from "zod/v3";
 
@@ -31,7 +31,7 @@ export class CaptureError extends Error {
 }
 
 // 文本分块 — 在段落边界切分长文本
-// 每块约 3000 字符（约 750 tokens），在此范围内 GPT-4o-mini 提取质量稳定
+// 每块约 3000 字符，DeepSeek 上下文窗口足够在此范围内稳定提取
 export function chunkText(text: string, maxChars = 3000): string[] {
   const paragraphs = text.split(/\n\n+/);
   const chunks: string[] = [];
@@ -53,21 +53,21 @@ async function extractFromChunk(
   chunk: string,
   sourceUrl?: string
 ): Promise<KnowledgeItemCandidate[]> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
-    throw new CaptureError("OPENAI_API_KEY is not configured", "MISSING_API_KEY", 500);
+    throw new CaptureError("DEEPSEEK_API_KEY is not configured", "MISSING_API_KEY", 500);
   }
 
   const sourceHint = sourceUrl ? `\n来源网址: ${sourceUrl}` : "";
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "deepseek-chat",
       temperature: 0,
       messages: [
         {
@@ -87,37 +87,14 @@ async function extractFromChunk(
       ],
       response_format: {
         type: "json_object",
-        schema: {
-          type: "object",
-          properties: {
-            items: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  content: { type: "string", maxLength: 200 },
-                  source: { type: ["string", "null"] },
-                  domain: { type: "string" },
-                  tags: { type: "array", items: { type: "string" } },
-                },
-                required: ["title", "content", "domain", "tags"],
-                additionalProperties: false,
-              },
-            },
-          },
-          required: ["items"],
-          additionalProperties: false,
-        },
       },
     }),
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
     throw new CaptureError(
-      `OpenAI API error: ${response.status}`,
-      "OPENAI_ERROR",
+      `DeepSeek API error: ${response.status}`,
+      "DEEPSEEK_ERROR",
       response.status
     );
   }
