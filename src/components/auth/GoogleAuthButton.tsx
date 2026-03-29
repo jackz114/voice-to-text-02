@@ -1,11 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
+
+declare const google: {
+  accounts: {
+    id: {
+      initialize: (config: {
+        client_id: string;
+        callback: (response: CredentialResponse) => void;
+        nonce?: string;
+      }) => void;
+      prompt: () => void;
+    };
+  };
+};
+
+interface CredentialResponse {
+  credential?: string;
+  select_by?: string;
+}
 
 interface GoogleAuthButtonProps {
   redirectTo?: string;
   className?: string;
+}
+
+// 生成随机的 nonce（用于 ID Token 安全验证）
+function generateNonce(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array));
 }
 
 export function GoogleAuthButton({
@@ -13,28 +38,77 @@ export function GoogleAuthButton({
   className = "",
 }: GoogleAuthButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [gisReady, setGisReady] = useState(false);
+  const nonceRef = useRef<string>("");
+  const redirectToRef = useRef<string>(redirectTo);
+
+  // 同步 redirectTo ref，确保回调时能访问最新值
+  useEffect(() => {
+    redirectToRef.current = redirectTo;
+  }, [redirectTo]);
+
+  // 加载 Google Identity Services 库
+  useEffect(() => {
+    if (typeof google !== "undefined") {
+      setGisReady(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setGisReady(true);
+    document.head.appendChild(script);
+  }, []);
+
+  // 初始化 Google Identity Services 并处理 ID Token
+  useEffect(() => {
+    if (!gisReady || typeof google === "undefined") return;
+
+    const nonce = generateNonce();
+    nonceRef.current = nonce;
+
+    google.accounts.id.initialize({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+      callback: async (response: CredentialResponse) => {
+        if (!response.credential) return;
+
+        try {
+          const { error } = await getSupabaseClient().auth.signInWithIdToken({
+            provider: "google",
+            token: response.credential,
+            nonce, // 必须和 initialize 中传入的 nonce 一致
+          });
+
+          if (error) throw error;
+
+          // ID Token 登录成功，Supabase 会自动设置 session cookie
+          // AuthProvider 会检测到 session 变化并更新状态
+          window.location.href = redirectToRef.current;
+        } catch (error) {
+          console.error("Google ID Token login error:", error);
+          alert("Google 登录失败，请重试");
+          setLoading(false);
+        }
+      },
+      nonce,
+    });
+
+    // 自动显示 Google 登录提示
+    google.accounts.id.prompt();
+  }, [gisReady]);
 
   const handleGoogleLogin = async () => {
+    if (!gisReady || typeof google === "undefined") {
+      alert("Google 登录组件加载中，请稍后");
+      return;
+    }
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await getSupabaseClient().auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect_to=${redirectTo}`,
-          // 覆盖默认的 prompt=none，强制 Google 显示登录/账号选择界面
-          queryParams: {
-            prompt: "consent",
-          },
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
+      google.accounts.id.prompt();
     } catch (error) {
       console.error("Google login error:", error);
       alert("Google 登录失败，请重试");
-    } finally {
       setLoading(false);
     }
   };
@@ -42,7 +116,7 @@ export function GoogleAuthButton({
   return (
     <button
       onClick={handleGoogleLogin}
-      disabled={loading}
+      disabled={loading || !gisReady}
       className={`
         flex items-center justify-center gap-3
         w-full px-4 py-3
@@ -55,7 +129,7 @@ export function GoogleAuthButton({
         ${className}
       `}
     >
-      {loading ? (
+      {loading || !gisReady ? (
         <span className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
       ) : (
         <GoogleIcon />
