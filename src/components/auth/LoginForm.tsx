@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabase";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { Turnstile } from "react-turnstile";
@@ -69,13 +68,13 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
   return (
     <div className="w-full">
       {/* 标题 */}
-      <h1 className="text-2xl font-semibold text-white text-center mb-8">
+      <h1 className="text-2xl font-semibold text-[#1C1C1C] text-center mb-8">
         {mode === "login" ? "Sign in to your account" : "Create your account"}
       </h1>
 
       {/* 错误提示 */}
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
           {error}
         </div>
       )}
@@ -90,7 +89,7 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address"
             required
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#E8E0D5] text-[#1C1C1C] placeholder-[#9C8E80] text-sm focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
           />
         </div>
 
@@ -103,7 +102,7 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
             placeholder="Password"
             required
             minLength={6}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#E8E0D5] text-[#1C1C1C] placeholder-[#9C8E80] text-sm focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
           />
         </div>
 
@@ -112,7 +111,7 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
             <Turnstile
               sitekey="1x00000000000000000000AA"
               onVerify={(token) => setTurnstileToken(token)}
-              theme="dark"
+              theme="light"
             />
           </div>
         )}
@@ -120,7 +119,7 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
         <button
           type="submit"
           disabled={loading || (mode === "register" && !turnstileToken)}
-          className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          className="w-full h-12 rounded-xl bg-[#2C2C2C] hover:bg-[#1C1C1C] text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {loading ? (
             <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -137,26 +136,23 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
 
       {/* 分隔符 */}
       <div className="flex items-center gap-3 my-6">
-        <div className="flex-1 h-px bg-gray-700" />
-        <span className="text-xs text-gray-500">or continue with</span>
-        <div className="flex-1 h-px bg-gray-700" />
+        <div className="flex-1 h-px bg-[#E8E0D5]" />
+        <span className="text-xs text-[#9C8E80]">or continue with</span>
+        <div className="flex-1 h-px bg-[#E8E0D5]" />
       </div>
 
       {/* Google 登录 */}
       <GoogleAuthButton redirectTo={redirectTo} />
 
       {/* 切换登录/注册 */}
-      <p className="text-center text-sm text-gray-400 mt-6">
+      <p className="text-center text-sm text-[#6B5B4F] mt-6">
         {mode === "login" ? (
           <>
             Don't have an account?{" "}
             <button
               type="button"
-              onClick={() => {
-                setMode("register");
-                setError(null);
-              }}
-              className="text-blue-400 hover:text-blue-300 font-medium"
+              onClick={() => { setMode("register"); setError(null); }}
+              className="text-[#B8860B] hover:text-[#8B6914] font-medium"
             >
               Sign up
             </button>
@@ -166,11 +162,8 @@ export function LoginForm({ redirectTo = "/" }: LoginFormProps) {
             Already have an account?{" "}
             <button
               type="button"
-              onClick={() => {
-                setMode("login");
-                setError(null);
-              }}
-              className="text-blue-400 hover:text-blue-300 font-medium"
+              onClick={() => { setMode("login"); setError(null); }}
+              className="text-[#B8860B] hover:text-[#8B6914] font-medium"
             >
               Sign in
             </button>
