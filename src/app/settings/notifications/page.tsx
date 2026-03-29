@@ -24,7 +24,7 @@ async function getUserDomains(userId: string): Promise<string[]> {
     if (!data) return [];
 
     // Extract unique domains
-    const domains = [...new Set(data.map((item) => item.domain))];
+    const domains = [...new Set(data.map((item: { domain: string }) => item.domain))];
     return domains.sort();
   } catch {
     return [];

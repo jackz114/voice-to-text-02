@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/supabase-js'
+import { createClient, type CookieOptions } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 // Server-side client with cookie handling (for server components)
@@ -12,7 +12,7 @@ export async function createServerSupabaseClient() {
     throw new Error("Missing Supabase environment variables")
   }
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
