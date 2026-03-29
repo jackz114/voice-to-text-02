@@ -21,6 +21,10 @@ export function GoogleAuthButton({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback?redirect_to=${redirectTo}`,
+          // 覆盖默认的 prompt=none，强制 Google 显示登录/账号选择界面
+          queryParams: {
+            prompt: "consent",
+          },
         },
       });
 
