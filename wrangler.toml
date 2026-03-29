@@ -9,7 +9,6 @@ compatibility_date = "2026-03-27"
 
 # 📌 关键点 2：这是官方文档明确允许的 Flags 列表
 # OpenNext 要求 fs 和 vm 必须手动开启
-# 注意：绝对不要加 http, net, https，官方文档规定 v2 已包含
 compatibility_flags = [
   "nodejs_compat",
   "enable_nodejs_fs_module",

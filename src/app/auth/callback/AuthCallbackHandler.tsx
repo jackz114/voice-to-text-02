@@ -28,7 +28,7 @@ export default function AuthCallbackHandler() {
       try {
         // 处理 OAuth 回调
         const { error } = await getSupabaseClient().auth.exchangeCodeForSession(
-          window.location.hash
+          window.location.search
         );
 
         if (error) {
