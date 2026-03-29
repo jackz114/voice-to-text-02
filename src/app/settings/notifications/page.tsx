@@ -3,7 +3,7 @@
 
 import { Metadata } from "next";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
