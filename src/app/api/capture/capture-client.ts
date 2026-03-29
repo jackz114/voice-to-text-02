@@ -5,8 +5,14 @@ import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod/v3";
 
-// OpenAI 单例
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// OpenAI 客户端 — 懒加载，避免构建阶段因缺少 API key 报错
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new CaptureError("OPENAI_API_KEY is not configured", "MISSING_API_KEY", 500);
+  }
+  return new OpenAI({ apiKey });
+}
 
 // Zod schema — 单个知识条目
 export const KnowledgeItemCandidateSchema = z.object({
@@ -58,14 +64,9 @@ async function extractFromChunk(
   chunk: string,
   sourceUrl?: string
 ): Promise<KnowledgeItemCandidate[]> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new CaptureError("OPENAI_API_KEY is not configured", "MISSING_API_KEY", 500);
-  }
-
   const sourceHint = sourceUrl ? `\n来源网址: ${sourceUrl}` : "";
 
-  const result = await openai.chat.completions.parse({
+  const result = await getOpenAIClient().chat.completions.parse({
     model: "gpt-4o-mini",
     temperature: 0,
     messages: [
