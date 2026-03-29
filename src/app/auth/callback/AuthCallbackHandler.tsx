@@ -10,6 +10,11 @@ export default function AuthCallbackHandler() {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
+      // 如果 URL 里没有 code，说明不是 OAuth 回调，无需处理
+      if (!window.location.search.includes("code=")) {
+        return;
+      }
+
       try {
         // 处理 OAuth 回调
         const { error } = await getSupabaseClient().auth.exchangeCodeForSession(
