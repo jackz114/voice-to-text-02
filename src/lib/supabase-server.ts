@@ -1,4 +1,4 @@
-import { createClient, type CookieOptions } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 // Server-side client with cookie handling (for server components)
@@ -12,12 +12,12 @@ export async function createServerSupabaseClient() {
     throw new Error("Missing Supabase environment variables")
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
       },
-      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+      setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options)
@@ -27,12 +27,6 @@ export async function createServerSupabaseClient() {
           // This can be ignored if you have middleware refreshing sessions.
         }
       },
-    },
-    auth: {
-      flowType: 'pkce',
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
     },
   })
 }
