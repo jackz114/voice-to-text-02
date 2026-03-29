@@ -11,7 +11,20 @@ declare const google: {
         callback: (response: CredentialResponse) => void;
         nonce?: string;
       }) => void;
-      prompt: () => void;
+      renderButton: (
+        element: HTMLElement,
+        config: {
+          type?: "standard" | "icon";
+          theme?: "outline" | "filled_blue" | "filled_black";
+          size?: "large" | "medium" | "small";
+          text?: "signin_with" | "signup_with" | "continue_with" | "signup_with";
+          shape?: "rectangular" | "pill" | "circular";
+          logo_alignment?: "left" | "center";
+          width?: number;
+          ux_mode?: "popup" | "redirect";
+          redirect_url?: string;
+        }
+      ) => void;
     };
   };
 };
@@ -37,8 +50,8 @@ export function GoogleAuthButton({
   redirectTo = "/",
   className = "",
 }: GoogleAuthButtonProps) {
-  const [loading, setLoading] = useState(false);
   const [gisReady, setGisReady] = useState(false);
+  const buttonRef = useRef<HTMLDivElement>(null);
   const nonceRef = useRef<string>("");
   const redirectToRef = useRef<string>(redirectTo);
 
@@ -61,9 +74,9 @@ export function GoogleAuthButton({
     document.head.appendChild(script);
   }, []);
 
-  // 初始化 Google Identity Services 并处理 ID Token
+  // 初始化 Google Identity Services 并渲染按钮
   useEffect(() => {
-    if (!gisReady || typeof google === "undefined") return;
+    if (!gisReady || typeof google === "undefined" || !buttonRef.current) return;
 
     const nonce = generateNonce();
     nonceRef.current = nonce;
@@ -77,62 +90,51 @@ export function GoogleAuthButton({
           const { error } = await getSupabaseClient().auth.signInWithIdToken({
             provider: "google",
             token: response.credential,
-            nonce, // 必须和 initialize 中传入的 nonce 一致
+            nonce,
           });
 
           if (error) throw error;
 
           // ID Token 登录成功，Supabase 会自动设置 session cookie
-          // AuthProvider 会检测到 session 变化并更新状态
           window.location.href = redirectToRef.current;
         } catch (error) {
           console.error("Google ID Token login error:", error);
           alert("Google 登录失败，请重试");
-          setLoading(false);
         }
       },
       nonce,
     });
+
+    // 使用 popup 模式，不依赖 FedCM
+    google.accounts.id.renderButton(buttonRef.current, {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "signin_with",
+      shape: "rectangular",
+      logo_alignment: "left",
+      width: 400,
+      ux_mode: "popup",
+    });
   }, [gisReady]);
 
-  const handleGoogleLogin = async () => {
-    if (!gisReady || typeof google === "undefined") {
-      alert("Google 登录组件加载中，请稍后");
-      return;
-    }
-    setLoading(true);
-    try {
-      google.accounts.id.prompt();
-    } catch (error) {
-      console.error("Google login error:", error);
-      alert("Google 登录失败，请重试");
-      setLoading(false);
-    }
-  };
-
   return (
-    <button
-      onClick={handleGoogleLogin}
-      disabled={loading || !gisReady}
-      className={`
-        flex items-center justify-center gap-3
-        w-full px-4 py-3
-        bg-white text-gray-700 font-medium
-        border border-gray-300 rounded-lg
-        hover:bg-gray-50 hover:border-gray-400
-        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-        disabled:opacity-50 disabled:cursor-not-allowed
-        transition-colors
-        ${className}
-      `}
-    >
-      {loading || !gisReady ? (
-        <span className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-      ) : (
-        <GoogleIcon />
-      )}
-      <span>使用 Google 账号登录</span>
-    </button>
+    <div className="w-full">
+      {/* 这个 div 会被 Google GIS 库替换为真实的按钮 */}
+      <div
+        ref={buttonRef}
+        className={`
+          flex items-center justify-center
+          w-full px-4 py-3
+          bg-white text-gray-700 font-medium
+          border border-gray-300 rounded-lg
+          hover:bg-gray-50 hover:border-gray-400
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+          transition-colors
+          ${className}
+        `}
+      />
+    </div>
   );
 }
 
