@@ -2,7 +2,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Client-side singleton (for client components)
-// 使用 @supabase/ssr 的 createBrowserClient
+// 使用 @supabase/ssr 的 createBrowserClient，原生处理 PKCE，单例默认
 let supabaseInstance: SupabaseClient | null = null
 
 export function getSupabaseClient(): SupabaseClient {
@@ -14,7 +14,8 @@ export function getSupabaseClient(): SupabaseClient {
     }
     supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        flowType: 'implicit', // Cloudflare Workers 下关闭 PKCE（ stateless 环境）
+        // Cloudflare Workers 环境下关闭自动检测，避免和手动 exchangeCodeForSession 冲突
+        detectSessionInUrl: false,
       },
     })
   }

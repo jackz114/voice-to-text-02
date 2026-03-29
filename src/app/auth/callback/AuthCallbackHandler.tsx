@@ -1,44 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase";
-
+// OAuth 回调由 middleware 处理（见 middleware.ts）
+// 此组件仅作为 fallback 展示加载状态
 export default function AuthCallbackHandler() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const handleAuthCallback = async () => {
-      // 如果 URL 里没有 code，说明不是 OAuth 回调，无需处理
-      if (!window.location.search.includes("code=")) {
-        return;
-      }
-
-      try {
-        // 处理 OAuth 回调
-        const { error } = await getSupabaseClient().auth.exchangeCodeForSession(
-          window.location.search
-        );
-
-        if (error) {
-          console.error("Auth callback error:", error);
-          router.push("/login?error=auth_failed");
-          return;
-        }
-
-        // 获取重定向地址
-        const redirectTo = searchParams.get("redirect_to") || "/";
-        router.push(redirectTo);
-      } catch (error) {
-        console.error("Callback handling error:", error);
-        router.push("/login?error=unknown");
-      }
-    };
-
-    handleAuthCallback();
-  }, [router, searchParams]);
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="text-center">
