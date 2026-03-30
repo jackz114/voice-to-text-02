@@ -6,7 +6,18 @@ import { createClient } from "@supabase/supabase-js";
 const SILICONFLOW_BASE_URL = "https://api.siliconflow.cn/v1";
 const SILICONFLOW_MODEL = "FunAudioLLM/SenseVoiceSmall";
 
+// Estimate audio duration from file size (bytes)
+// Conservative estimate: ~500KB per minute (lower = more minutes allowed)
+const BYTES_PER_MINUTE = 500 * 1024;
+
+function estimateDurationMinutes(fileSizeBytes: number): number {
+  const minutes = Math.ceil(fileSizeBytes / BYTES_PER_MINUTE);
+  return Math.max(1, minutes); // Minimum 1 minute
+}
+
 export async function POST(request: NextRequest) {
+  let estimatedMinutes = 0;
+
   try {
     // Step 1: Verify user identity
     const supabase = createClient(
@@ -49,7 +60,37 @@ export async function POST(request: NextRequest) {
     const audioData = await audioObject.arrayBuffer();
     const audioSize = audioData.byteLength;
 
-    // Step 5: File size validation (Whisper 25MB limit)
+    // Step 5: Estimate duration and check user balance
+    estimatedMinutes = estimateDurationMinutes(audioSize);
+
+    // Check user balance
+    const { data: balance, error: balanceError } = await supabase
+      .from("user_balances")
+      .select("remaining_minutes, subscription_status")
+      .eq("user_id", user.id)
+      .single();
+
+    if (balanceError || !balance) {
+      console.error("Failed to get user balance:", balanceError);
+      return NextResponse.json(
+        { error: "Unable to verify account balance. Please contact support.", code: "BALANCE_CHECK_ERROR" },
+        { status: 500 }
+      );
+    }
+
+    if (balance.remaining_minutes < estimatedMinutes) {
+      return NextResponse.json(
+        {
+          error: `Insufficient minutes. You need ${estimatedMinutes} minutes but have ${balance.remaining_minutes} remaining. Please upgrade your plan.`,
+          code: "INSUFFICIENT_MINUTES",
+          required: estimatedMinutes,
+          remaining: balance.remaining_minutes,
+        },
+        { status: 402 }
+      );
+    }
+
+    // Step 6: File size validation (Whisper 25MB limit)
     const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
     if (audioSize > MAX_BYTES) {
       return NextResponse.json(
@@ -58,7 +99,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 6: Call SiliconFlow SenseVoice API for transcription
+    // Step 7: Call SiliconFlow SenseVoice API for transcription
     const ext = audioPath.split(".").pop() ?? "webm";
     const mimeType = ext === "mp3" ? "audio/mpeg" : ext === "wav" ? "audio/wav" : `audio/${ext}`;
 
@@ -105,14 +146,47 @@ export async function POST(request: NextRequest) {
     console.log("SiliconFlow API response:", transcriptionResult);
     const transcribedText = transcriptionResult.text ?? "";
 
+    // Step 8: Deduct minutes from user balance
+    const { error: deductError } = await supabase
+      .from("user_balances")
+      .update({
+        used_minutes: balance.used_minutes + estimatedMinutes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id);
+
+    if (deductError) {
+      console.error("Failed to deduct minutes:", deductError);
+      // Don't fail the transcription, but log the error
+    }
+
+    // Step 9: Record transcription
+    const { error: insertError } = await supabase.from("transcriptions").insert({
+      user_id: user.id,
+      audio_url: audioPath,
+      text: transcribedText,
+      status: "completed",
+      duration_seconds: estimatedMinutes * 60, // Estimate based on our calculation
+      cost_minutes: estimatedMinutes,
+    });
+
+    if (insertError) {
+      console.error("Failed to record transcription:", insertError);
+      // Don't fail the transcription, but log the error
+    }
+
     console.log("Transcription completed:", {
       userId: user.id,
       audioPath,
       textLength: transcribedText.length,
+      estimatedMinutes,
+      remainingMinutes: balance.remaining_minutes - estimatedMinutes,
     });
 
     return NextResponse.json({
       text: transcribedText,
+      minutesUsed: estimatedMinutes,
+      remainingMinutes: balance.remaining_minutes - estimatedMinutes,
     });
   } catch (error) {
     console.error("Transcription error:", error);
