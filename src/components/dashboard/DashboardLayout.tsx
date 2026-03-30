@@ -6,6 +6,14 @@ import Image from "next/image";
 import { useAuth, useFolders, Folder } from "@/components/auth/AuthProvider";
 import { useState, useEffect } from "react";
 import { RenameModal } from "./RenameModal";
+import { supabase } from "@/lib/supabase";
+
+interface UserBalance {
+  totalMinutes: number;
+  usedMinutes: number;
+  remainingMinutes: number;
+  subscriptionStatus: "none" | "active" | "expired";
+}
 
 interface NavItem {
   label: string;
@@ -114,6 +122,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [openFolderMenu, setOpenFolderMenu] = useState<string | null>(null);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [folderToRename, setFolderToRename] = useState<Folder | null>(null);
+  const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
 
   const handleLogout = async () => {
     await signOut();
@@ -134,6 +143,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     setTimeout(() => document.addEventListener("click", handleClick), 0);
     return () => document.removeEventListener("click", handleClick);
   }, [openFolderMenu]);
+
+  // Fetch user balance
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchBalance = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) return;
+
+        const response = await fetch("/api/user/balance", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserBalance(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+      }
+    };
+
+    fetchBalance();
+  }, [user]);
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -499,13 +536,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </span>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-[#B8860B]/10 text-[#B8860B] text-xs font-medium">
-                Free
+                {userBalance?.subscriptionStatus === "active" ? "Pro" : "Free"}
               </span>
             </div>
             <div className="h-1 bg-[#E8E0D5] rounded-full mb-2 overflow-hidden">
-              <div className="h-full bg-[#B8860B] rounded-full" style={{ width: "0%" }} />
+              <div
+                className="h-full bg-[#B8860B] rounded-full"
+                style={{
+                  width: userBalance
+                    ? `${Math.min((userBalance.usedMinutes / userBalance.totalMinutes) * 100, 100)}%`
+                    : "0%",
+                }}
+              />
             </div>
-            <p className="text-[#9C8E80] text-xs">0 of 180 minutes used</p>
+            <p className="text-[#9C8E80] text-xs">
+              {userBalance
+                ? `${userBalance.usedMinutes} of ${userBalance.totalMinutes} minutes used`
+                : "Loading..."}
+            </p>
           </div>
         )}
 
