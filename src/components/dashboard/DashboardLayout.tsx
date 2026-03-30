@@ -161,7 +161,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data = (await response.json()) as UserBalance;
           setUserBalance(data);
         }
       } catch (error) {
