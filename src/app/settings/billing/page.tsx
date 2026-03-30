@@ -1,12 +1,13 @@
 // src/app/settings/billing/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import {
   PayPalSubscriptionButtonDirect,
 } from "@/components/payment/PayPalButton";
+import { supabase } from "@/lib/supabase";
 
 const paypalOptions = {
   clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test",
@@ -16,15 +17,71 @@ const paypalOptions = {
   locale: "en_US",
 };
 
+interface UserBalance {
+  totalMinutes: number;
+  usedMinutes: number;
+  remainingMinutes: number;
+  subscriptionStatus: "none" | "active" | "expired";
+}
+
 function BillingContent() {
   const { user } = useAuth();
   const [subscriptionResult, setSubscriptionResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchBalance = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) return;
+
+        const response = await fetch("/api/user/balance", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserBalance(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+      }
+    };
+
+    fetchBalance();
+  }, [user]);
 
   const handleSubscriptionSuccess = (details: Record<string, unknown>) => {
     console.log("Subscription successful:", details);
     setSubscriptionResult(details);
     setError(null);
+    // Refresh balance after subscription
+    setTimeout(async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) return;
+
+        const response = await fetch("/api/user/balance", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserBalance(data);
+        }
+      } catch (error) {
+        console.error("Failed to refresh balance:", error);
+      }
+    }, 2000);
   };
 
   const handleSubscriptionError = (err: Error) => {
@@ -60,15 +117,21 @@ function BillingContent() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl font-semibold text-[#1C1C1C]">Free Plan</span>
+                  <span className="text-xl font-semibold text-[#1C1C1C]">
+                    {userBalance?.subscriptionStatus === "active" ? "Pro Plan" : "Free Plan"}
+                  </span>
                   <span className="px-2 py-0.5 bg-[#B8860B]/10 text-[#B8860B] text-xs font-medium rounded-full">
                     Current
                   </span>
                 </div>
-                <p className="text-[#6B5B4F]">180 minutes per month</p>
+                <p className="text-[#6B5B4F]">
+                  {userBalance?.totalMinutes ?? 180} minutes per month
+                </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-[#B8860B]">$0</p>
+                <p className="text-2xl font-bold text-[#B8860B]">
+                  {userBalance?.subscriptionStatus === "active" ? "$9.99" : "$0"}
+                </p>
                 <p className="text-sm text-[#9C8E80]">/month</p>
               </div>
             </div>
@@ -76,10 +139,21 @@ function BillingContent() {
             <div className="mt-4 pt-4 border-t border-[#E8E0D5]">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[#6B5B4F]">Minutes used this month</span>
-                <span className="font-medium text-[#1C1C1C]">0 of 180 minutes</span>
+                <span className="font-medium text-[#1C1C1C]">
+                  {userBalance
+                    ? `${userBalance.usedMinutes} of ${userBalance.totalMinutes} minutes`
+                    : "Loading..."}
+                </span>
               </div>
               <div className="mt-2 h-2 bg-[#FAF7F2] rounded-full overflow-hidden">
-                <div className="h-full bg-[#B8860B] rounded-full" style={{ width: "0%" }} />
+                <div
+                  className="h-full bg-[#B8860B] rounded-full"
+                  style={{
+                    width: userBalance
+                      ? `${Math.min((userBalance.usedMinutes / userBalance.totalMinutes) * 100, 100)}%`
+                      : "0%",
+                  }}
+                />
               </div>
             </div>
           </div>
