@@ -1,12 +1,12 @@
 // src/app/api/library/item/route.ts
-// 使用 Supabase REST API 查询/创建知识条目
+// Uses Supabase REST API to query/create knowledge items
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: NextRequest) {
   try {
-    // 步骤 1: 验证用户身份
+    // Step 1: Verify user identity
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -19,23 +19,31 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser(token ?? undefined);
     if (authError || !user) {
       return NextResponse.json(
-        { error: "请先登录", code: "UNAUTHORIZED" },
+        { error: "Please sign in first", code: "UNAUTHORIZED" },
         { status: 401 }
       );
     }
 
-    // 步骤 2: 解析请求体
-    const body = await request.json();
+    // Step 2: Parse request body
+    const body = (await request.json()) as {
+      title?: string;
+      content?: string;
+      domain?: string;
+      source?: string;
+      source_type?: string;
+      tags?: string[];
+      folder_id?: string;
+    };
     const { title, content, domain, source, source_type, tags, folder_id } = body;
 
     if (!title || !content) {
       return NextResponse.json(
-        { error: "缺少必填字段：title, content", code: "BAD_REQUEST" },
+        { error: "Missing required fields: title, content", code: "BAD_REQUEST" },
         { status: 400 }
       );
     }
 
-    // 步骤 3: 创建知识条目
+    // Step 3: Create knowledge item
     const { data: newItem, error: dbError } = await supabase
       .from("knowledge_items")
       .insert({
@@ -52,14 +60,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dbError) {
-      console.error("创建知识条目失败:", dbError);
+      console.error("Failed to create knowledge item:", dbError);
       return NextResponse.json(
-        { error: "数据库错误", code: "DB_ERROR", details: dbError.message },
+        { error: "Database error", code: "DB_ERROR", details: dbError.message },
         { status: 500 }
       );
     }
 
-    // 步骤 4: 创建 review_state 记录
+    // Step 4: Create review_state record
     const { error: reviewError } = await supabase
       .from("review_state")
       .insert({
@@ -69,13 +77,13 @@ export async function POST(request: NextRequest) {
       });
 
     if (reviewError) {
-      console.error("创建 review_state 失败:", reviewError);
-      // 不阻止成功响应，只是没有复习记录
+      console.error("Failed to create review_state:", reviewError);
+      // Don't block the success response, just no review record
     }
 
-    console.log("知识条目创建成功:", { userId: user.id, itemId: newItem.id, title });
+    console.log("Knowledge item created:", { userId: user.id, itemId: newItem.id, title });
 
-    // 步骤 5: 返回创建的条目
+    // Step 5: Return created item
     return NextResponse.json({
       id: newItem.id,
       title: newItem.title,
@@ -87,10 +95,10 @@ export async function POST(request: NextRequest) {
       folder_id: newItem.folder_id,
     });
   } catch (error) {
-    console.error("创建知识条目错误:", error);
+    console.error("Failed to create knowledge item:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "创建失败", code: "INTERNAL_ERROR", details: errorMessage },
+      { error: "Creation failed", code: "INTERNAL_ERROR", details: errorMessage },
       { status: 500 }
     );
   }
@@ -98,7 +106,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // 步骤 1: 验证用户身份
+    // Step 1: Verify user identity
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -111,21 +119,21 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser(token ?? undefined);
     if (authError || !user) {
       return NextResponse.json(
-        { error: "请先登录", code: "UNAUTHORIZED" },
+        { error: "Please sign in first", code: "UNAUTHORIZED" },
         { status: 401 }
       );
     }
 
-    // 步骤 2: 读取 id 查询参数
+    // Step 2: Read id query parameter
     const id = request.nextUrl.searchParams.get("id");
     if (!id) {
       return NextResponse.json(
-        { error: "缺少 id 参数", code: "BAD_REQUEST" },
+        { error: "Missing id parameter", code: "BAD_REQUEST" },
         { status: 400 }
       );
     }
 
-    // 步骤 3: 查询知识条目（使用 Supabase REST API 关联 review_state）
+    // Step 3: Query knowledge item (using Supabase REST API with review_state join)
     const { data: rawItem, error: dbError } = await supabase
       .from("knowledge_items")
       .select(
@@ -148,21 +156,21 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (dbError) {
-      console.error("知识条目查询失败:", dbError);
+      console.error("Failed to query knowledge item:", dbError);
       throw dbError;
     }
 
     if (!rawItem) {
       return NextResponse.json(
-        { error: "知识条目不存在", code: "NOT_FOUND" },
+        { error: "Knowledge item not found", code: "NOT_FOUND" },
         { status: 404 }
       );
     }
 
-    console.log("知识条目详情查询成功:", { userId: user.id, itemId: id });
+    console.log("Knowledge item details queried:", { userId: user.id, itemId: id });
 
-    // 步骤 4: 格式化并返回结果
-    // review_state 是数组类型，取第一个元素（一对一关系）
+    // Step 4: Format and return results
+    // review_state is an array type, take the first element (one-to-one relationship)
     const reviewState = Array.isArray(rawItem.review_state)
       ? rawItem.review_state[0]
       : rawItem.review_state;
@@ -181,10 +189,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(item);
   } catch (error) {
-    console.error("知识条目详情错误:", error);
+    console.error("Failed to get knowledge item details:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "获取失败", code: "INTERNAL_ERROR", details: errorMessage },
+      { error: "Failed to fetch", code: "INTERNAL_ERROR", details: errorMessage },
       { status: 500 }
     );
   }

@@ -2,13 +2,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// 硅基流动 API 配置
+// SiliconFlow API configuration
 const SILICONFLOW_BASE_URL = "https://api.siliconflow.cn/v1";
 const SILICONFLOW_MODEL = "FunAudioLLM/SenseVoiceSmall";
 
 export async function POST(request: NextRequest) {
   try {
-    // 步骤 1: 验证用户身份
+    // Step 1: Verify user identity
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -20,123 +20,92 @@ export async function POST(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser(token ?? undefined);
     if (authError || !user) {
-      return NextResponse.json({ error: "请先登录", code: "UNAUTHORIZED" }, { status: 401 });
+      return NextResponse.json({ error: "Please sign in first", code: "UNAUTHORIZED" }, { status: 401 });
     }
 
-    // 步骤 2: 解析请求体
+    // Step 2: Parse request body
     const { audioPath } = (await request.json()) as { audioPath: string };
     if (!audioPath || typeof audioPath !== "string") {
-      return NextResponse.json({ error: "缺少 audioPath", code: "INVALID_INPUT" }, { status: 400 });
+      return NextResponse.json({ error: "Missing audioPath", code: "INVALID_INPUT" }, { status: 400 });
     }
 
-    // 步骤 3: 创建 transcriptions 记录（状态：processing）
-    const { data: transcriptionRow, error: insertError } = await supabase
-      .from("transcriptions")
-      .insert({
-        user_id: user.id,
-        audio_url: audioPath,
-        status: "processing",
-        language: "zh",
-      })
-      .select("id")
-      .single();
-
-    if (insertError || !transcriptionRow) {
-      console.error("创建转录记录失败:", insertError);
-      return NextResponse.json(
-        { error: "创建转录记录失败", code: "DB_ERROR" },
-        { status: 500 }
-      );
+    // Step 3: Verify audio path ownership (audio/{userId}/...)
+    const pathParts = audioPath.split("/");
+    if (pathParts.length < 2 || pathParts[1] !== user.id) {
+      return NextResponse.json({ error: "Access denied", code: "FORBIDDEN" }, { status: 403 });
     }
 
-    // 步骤 4: 从 Supabase Storage 下载音频（服务端下载供 Whisper 使用）
-    const { data: audioData, error: downloadError } = await supabase.storage
-      .from("audio")
-      .download(audioPath);
-
-    if (downloadError || !audioData) {
-      await supabase
-        .from("transcriptions")
-        .update({ status: "failed" })
-        .eq("id", transcriptionRow.id);
-      console.error("音频下载错误:", downloadError);
-      return NextResponse.json(
-        { error: "音频文件访问失败", code: "DOWNLOAD_ERROR" },
-        { status: 500 }
-      );
+    // Step 4: Get audio from R2 bucket
+    const bucket = AUDIO_BUCKET;
+    if (!bucket) {
+      return NextResponse.json({ error: "Storage not configured", code: "STORAGE_ERROR" }, { status: 500 });
     }
 
-    // 步骤 5: 文件大小校验（Whisper 25MB 上限）
+    const audioObject = await bucket.get(audioPath);
+    if (!audioObject) {
+      return NextResponse.json({ error: "Audio file not found", code: "NOT_FOUND" }, { status: 404 });
+    }
+
+    const audioData = await audioObject.arrayBuffer();
+    const audioSize = audioData.byteLength;
+
+    // Step 5: File size validation (Whisper 25MB limit)
     const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
-    if (audioData.size > MAX_BYTES) {
-      await supabase
-        .from("transcriptions")
-        .update({ status: "failed" })
-        .eq("id", transcriptionRow.id);
+    if (audioSize > MAX_BYTES) {
       return NextResponse.json(
-        { error: "音频文件超过 25MB 限制", code: "FILE_TOO_LARGE" },
+        { error: "Audio file exceeds 25MB limit", code: "FILE_TOO_LARGE" },
         { status: 413 }
       );
     }
 
-    // 步骤 6: 调用硅基流动 SenseVoice API 进行转写
-    const arrayBuffer = await audioData.arrayBuffer();
+    // Step 6: Call SiliconFlow SenseVoice API for transcription
     const ext = audioPath.split(".").pop() ?? "webm";
     const mimeType = ext === "mp3" ? "audio/mpeg" : ext === "wav" ? "audio/wav" : `audio/${ext}`;
 
-    // 构建 FormData
+    // Build FormData
     const formData = new FormData();
-    formData.append("file", new Blob([arrayBuffer], { type: mimeType }), `audio.${ext}`);
+    formData.append("file", new Blob([audioData], { type: mimeType }), `audio.${ext}`);
     formData.append("model", SILICONFLOW_MODEL);
-    formData.append("language", "zh");
+    formData.append("language", "auto");
     formData.append("response_format", "json");
+
+    const siliconFlowApiKey = process.env.SILICONFLOW_API_KEY;
+    if (!siliconFlowApiKey) {
+      console.error("SILICONFLOW_API_KEY is not configured");
+      return NextResponse.json(
+        { error: "Transcription service not configured", code: "CONFIG_ERROR" },
+        { status: 500 }
+      );
+    }
 
     const response = await fetch(`${SILICONFLOW_BASE_URL}/audio/transcriptions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.SILICONFLOW_API_KEY}`,
+        Authorization: `Bearer ${siliconFlowApiKey}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("硅基流动 API 错误:", {
+      console.error("SiliconFlow API error:", {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
-        audioSize: audioData.size,
+        audioSize,
         mimeType,
       });
-      await supabase
-        .from("transcriptions")
-        .update({ status: "failed" })
-        .eq("id", transcriptionRow.id);
       return NextResponse.json(
-        { error: `转写服务错误: ${errorText.slice(0, 200)}`, code: "TRANSCRIPTION_API_ERROR" },
+        { error: `Transcription service error: ${errorText.slice(0, 200)}`, code: "TRANSCRIPTION_API_ERROR" },
         { status: 502 }
       );
     }
 
     const transcriptionResult = (await response.json()) as { text?: string };
-    console.log("硅基流动 API 响应:", transcriptionResult);
+    console.log("SiliconFlow API response:", transcriptionResult);
     const transcribedText = transcriptionResult.text ?? "";
 
-    // 步骤 7: 更新数据库记录（状态：completed）
-    const { error: updateError } = await supabase
-      .from("transcriptions")
-      .update({
-        text: transcribedText,
-        status: "completed",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", transcriptionRow.id);
-
-    if (updateError) {
-      console.error("更新转录记录失败:", updateError);
-    }
-
-    console.log("转写完成:", {
+    console.log("Transcription completed:", {
       userId: user.id,
       audioPath,
       textLength: transcribedText.length,
@@ -144,13 +113,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       text: transcribedText,
-      transcriptionId: transcriptionRow.id,
     });
   } catch (error) {
-    console.error("转写错误:", error);
-    const errorMessage = error instanceof Error ? error.message : "未知错误";
+    console.error("Transcription error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: `转写失败: ${errorMessage}`, code: "TRANSCRIPTION_ERROR" },
+      { error: `Transcription failed: ${errorMessage}`, code: "TRANSCRIPTION_ERROR" },
       { status: 500 }
     );
   }

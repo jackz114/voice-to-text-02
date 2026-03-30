@@ -1,12 +1,11 @@
-// PayPal API 客户端工具
-// 使用真实凭证: Client ID 和 Secret
+// PayPal API client utilities
+// Uses real credentials: Client ID and Secret
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "";
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || "";
-const PAYPAL_API_URL =
-  process.env.PAYPAL_API_URL || "https://api-m.sandbox.paypal.com";
+const PAYPAL_API_URL = process.env.PAYPAL_API_URL || "https://api-m.sandbox.paypal.com";
 
-// 接口定义
+// Interface definitions
 interface PayPalOrderAmount {
   currency_code: string;
   value: string;
@@ -64,7 +63,7 @@ interface PayPalOrder {
   }>;
 }
 
-// 错误类
+// Error class
 export class PayPalError extends Error {
   constructor(
     message: string,
@@ -76,11 +75,9 @@ export class PayPalError extends Error {
   }
 }
 
-// 获取 PayPal 访问令牌
+// Get PayPal access token
 export async function getPayPalAccessToken(): Promise<string> {
-  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString(
-    "base64"
-  );
+  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
 
   const response = await fetch(`${PAYPAL_API_URL}/v1/oauth2/token`, {
     method: "POST",
@@ -92,7 +89,10 @@ export async function getPayPalAccessToken(): Promise<string> {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as { error_description?: string; message?: string };
+    const errorData = (await response.json().catch(() => ({}))) as {
+      error_description?: string;
+      message?: string;
+    };
     throw new PayPalError(
       `Failed to get PayPal access token: ${errorData.error_description || response.statusText}`,
       response.status,
@@ -100,11 +100,11 @@ export async function getPayPalAccessToken(): Promise<string> {
     );
   }
 
-  const data = await response.json() as { access_token: string };
+  const data = (await response.json()) as { access_token: string };
   return data.access_token;
 }
 
-// 创建订单
+// Create order
 export async function createPayPalOrder(
   accessToken: string,
   amount: string,
@@ -143,8 +143,8 @@ export async function createPayPalOrder(
       intent: "CAPTURE",
       purchase_units: [purchaseUnit],
       application_context: {
-        brand_name: "Revnote",
-        locale: "zh-CN",
+        brand_name: "Recallmemo",
+        locale: "en-US",
         landing_page: "LOGIN",
         shipping_preference: "NO_SHIPPING",
         user_action: "PAY_NOW",
@@ -155,7 +155,7 @@ export async function createPayPalOrder(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as { message?: string };
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
     throw new PayPalError(
       `Failed to create PayPal order: ${errorData.message || response.statusText}`,
       response.status,
@@ -166,23 +166,17 @@ export async function createPayPalOrder(
   return response.json() as Promise<PayPalOrder>;
 }
 
-// 获取订单详情
-export async function getOrderDetails(
-  accessToken: string,
-  orderId: string
-): Promise<PayPalOrder> {
-  const response = await fetch(
-    `${PAYPAL_API_URL}/v2/checkout/orders/${orderId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+// Get order details
+export async function getOrderDetails(accessToken: string, orderId: string): Promise<PayPalOrder> {
+  const response = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders/${orderId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as { message?: string };
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
     throw new PayPalError(
       `Failed to get order details: ${errorData.message || response.statusText}`,
       response.status,
@@ -193,25 +187,22 @@ export async function getOrderDetails(
   return response.json() as Promise<PayPalOrder>;
 }
 
-// 捕获订单
+// Capture order
 export async function capturePayPalOrder(
   accessToken: string,
   orderId: string
 ): Promise<PayPalOrder> {
-  const response = await fetch(
-    `${PAYPAL_API_URL}/v2/checkout/orders/${orderId}/capture`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        "PayPal-Request-Id": generateRequestId(),
-      },
-    }
-  );
+  const response = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders/${orderId}/capture`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      "PayPal-Request-Id": generateRequestId(),
+    },
+  });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as { message?: string };
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
     throw new PayPalError(
       `Failed to capture PayPal order: ${errorData.message || response.statusText}`,
       response.status,
@@ -222,23 +213,17 @@ export async function capturePayPalOrder(
   return response.json() as Promise<PayPalOrder>;
 }
 
-// 验证订阅
-export async function getSubscriptionDetails(
-  accessToken: string,
-  subscriptionId: string
-) {
-  const response = await fetch(
-    `${PAYPAL_API_URL}/v1/billing/subscriptions/${subscriptionId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+// Verify subscription
+export async function getSubscriptionDetails(accessToken: string, subscriptionId: string) {
+  const response = await fetch(`${PAYPAL_API_URL}/v1/billing/subscriptions/${subscriptionId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as { message?: string };
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
     throw new PayPalError(
       `Failed to get subscription details: ${errorData.message || response.statusText}`,
       response.status,
@@ -249,12 +234,12 @@ export async function getSubscriptionDetails(
   return response.json();
 }
 
-// 生成发票 ID
+// Generate invoice ID
 function generateInvoiceId(): string {
   return `INV-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").substring(0, 9)}`;
 }
 
-// 生成请求 ID
+// Generate request ID
 function generateRequestId(): string {
   return `${Date.now()}-${crypto.randomUUID().replace(/-/g, "").substring(0, 12)}`;
 }

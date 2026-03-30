@@ -5,15 +5,15 @@ const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID || "";
 const PAYPAL_API_URL = process.env.PAYPAL_API_URL || "https://api-m.sandbox.paypal.com";
 
 /**
- * PayPal Webhook 验证
- * 参考: https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature
+ * PayPal Webhook verification
+ * Reference: https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature
  */
 async function verifyWebhookSignature(
   body: string,
   headers: Headers
 ): Promise<boolean> {
   try {
-    // 获取必要的请求头
+    // Get required request headers
     const authAlgo = headers.get("paypal-auth-algo");
     const certUrl = headers.get("paypal-cert-url");
     const transmissionId = headers.get("paypal-transmission-id");
@@ -25,7 +25,7 @@ async function verifyWebhookSignature(
       return false;
     }
 
-    // 构建验证请求体
+    // Build verification request body
     const verifyBody = {
       auth_algo: authAlgo,
       cert_url: certUrl,
@@ -36,7 +36,7 @@ async function verifyWebhookSignature(
       webhook_event: JSON.parse(body),
     };
 
-    // 调用 PayPal API 验证签名
+    // Call PayPal API to verify signature
     const response = await fetch(
       `${PAYPAL_API_URL}/v1/notifications/verify-webhook-signature`,
       {
@@ -63,11 +63,11 @@ async function verifyWebhookSignature(
 }
 
 /**
- * 处理 Webhook 事件
+ * Handle webhook events
  */
 export async function POST(request: NextRequest) {
   try {
-    // 获取原始请求体
+    // Get raw request body
     const rawBody = await request.text();
     const headers = request.headers;
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
 
-    // 验证 Webhook 签名
+    // Verify webhook signature
     const isValid = await verifyWebhookSignature(rawBody, headers);
     if (!isValid) {
       console.error("Invalid webhook signature");
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 解析事件数据
+    // Parse event data
     const event = JSON.parse(rawBody);
     const eventType = event.event_type;
     const resource = event.resource;
@@ -96,45 +96,45 @@ export async function POST(request: NextRequest) {
       status: resource?.status,
     });
 
-    // 处理不同类型的事件
+    // Handle different event types
     switch (eventType) {
       case "CHECKOUT.ORDER.APPROVED":
-        // 订单已批准（用户已授权）
+        // Order approved (user authorized)
         await handleOrderApproved(resource);
         break;
 
       case "CHECKOUT.ORDER.COMPLETED":
-        // 订单已完成（已捕获）
+        // Order completed (captured)
         await handleOrderCompleted(resource);
         break;
 
       case "PAYMENT.CAPTURE.COMPLETED":
-        // 支付捕获完成
+        // Payment capture completed
         await handlePaymentCaptureCompleted(resource);
         break;
 
       case "BILLING.SUBSCRIPTION.CREATED":
-        // 订阅已创建
+        // Subscription created
         await handleSubscriptionCreated(resource);
         break;
 
       case "BILLING.SUBSCRIPTION.ACTIVATED":
-        // 订阅已激活
+        // Subscription activated
         await handleSubscriptionActivated(resource);
         break;
 
       case "BILLING.SUBSCRIPTION.CANCELLED":
-        // 订阅已取消
+        // Subscription cancelled
         await handleSubscriptionCancelled(resource);
         break;
 
       case "BILLING.SUBSCRIPTION.EXPIRED":
-        // 订阅已过期
+        // Subscription expired
         await handleSubscriptionExpired(resource);
         break;
 
       case "BILLING.SUBSCRIPTION.PAYMENT.FAILED":
-        // 订阅支付失败
+        // Subscription payment failed
         await handleSubscriptionPaymentFailed(resource);
         break;
 
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
         console.log(`Unhandled event type: ${eventType}`);
     }
 
-    // 返回 200 确认收到
+    // Return 200 to acknowledge receipt
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook processing error:", error);
@@ -153,20 +153,20 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 处理订单已批准
+// Handle order approved
 async function handleOrderApproved(resource: Record<string, unknown>) {
   console.log("Order approved:", resource.id);
-  // 可选：发送邮件通知用户继续支付
+  // Optional: Send email to notify user to continue payment
 }
 
-// 处理订单已完成
+// Handle order completed
 async function handleOrderCompleted(resource: Record<string, unknown>) {
   console.log("Order completed:", resource.id);
-  // 更新数据库中的订单状态
+  // Update order status in database
   // await updateOrderStatus(resource.id, "COMPLETED");
 }
 
-// 处理支付捕获完成
+// Handle payment capture completed
 async function handlePaymentCaptureCompleted(resource: Record<string, unknown>) {
   const captureId = resource.id;
   const amount = (resource.amount as Record<string, string>)?.value;
@@ -178,20 +178,20 @@ async function handlePaymentCaptureCompleted(resource: Record<string, unknown>) 
     currency,
   });
 
-  // 这里应该：
-  // 1. 更新数据库中的支付记录
-  // 2. 增加用户的转录时长
-  // 3. 发送支付成功邮件
+  // TODO:
+  // 1. Update payment record in database
+  // 2. Add transcription minutes to user
+  // 3. Send payment success email
   // await updatePaymentStatus(captureId, "COMPLETED");
   // await addUserMinutes(userId, minutes);
 }
 
-// 处理订阅已创建
+// Handle subscription created
 async function handleSubscriptionCreated(resource: Record<string, unknown>) {
   console.log("Subscription created:", resource.id);
 }
 
-// 处理订阅已激活
+// Handle subscription activated
 async function handleSubscriptionActivated(resource: Record<string, unknown>) {
   const subscriptionId = resource.id;
   const status = resource.status;
@@ -203,27 +203,27 @@ async function handleSubscriptionActivated(resource: Record<string, unknown>) {
     planId,
   });
 
-  // 激活用户的会员权益
+  // Activate user subscription benefits
   // await activateUserSubscription(subscriptionId, planId);
 }
 
-// 处理订阅已取消
+// Handle subscription cancelled
 async function handleSubscriptionCancelled(resource: Record<string, unknown>) {
   console.log("Subscription cancelled:", resource.id);
-  // 取消用户的会员权益
+  // Cancel user subscription benefits
   // await cancelUserSubscription(resource.id);
 }
 
-// 处理订阅已过期
+// Handle subscription expired
 async function handleSubscriptionExpired(resource: Record<string, unknown>) {
   console.log("Subscription expired:", resource.id);
-  // 过期用户的会员权益
+  // Expire user subscription benefits
   // await expireUserSubscription(resource.id);
 }
 
-// 处理订阅支付失败
+// Handle subscription payment failed
 async function handleSubscriptionPaymentFailed(resource: Record<string, unknown>) {
   console.log("Subscription payment failed:", resource.id);
-  // 通知用户支付失败
+  // Notify user of payment failure
   // await notifyUserPaymentFailed(resource.id);
 }

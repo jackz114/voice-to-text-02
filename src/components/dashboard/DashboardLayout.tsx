@@ -149,8 +149,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Logo */}
         <div className="h-16 px-5 flex items-center">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Revnote" width={28} height={28} className="object-contain" />
-            <span className="text-[#1C1C1C] font-semibold text-sm">Revnote</span>
+            <Image
+              src="/logo.png"
+              alt="Recallmemo"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+            <span className="text-[#1C1C1C] font-semibold text-sm">Recallmemo</span>
           </Link>
         </div>
 
@@ -166,7 +172,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 : "text-[#6B5B4F] hover:text-[#1C1C1C] hover:bg-[#FAF7F2]",
             ].join(" ")}
           >
-            <span className={isActive("/dashboard") && pathname === "/dashboard" ? "text-[#B8860B]" : "text-[#9C8E80]"}>
+            <span
+              className={
+                isActive("/dashboard") && pathname === "/dashboard"
+                  ? "text-[#B8860B]"
+                  : "text-[#9C8E80]"
+              }
+            >
               <HomeIcon />
             </span>
             Home
@@ -179,7 +191,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={() => setFoldersExpanded(!foldersExpanded)}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-1 text-[#6B5B4F] hover:text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
             >
-              <span className="text-[#9C8E80]"><FolderIcon /></span>
+              <span className="text-[#9C8E80]">
+                <FolderIcon />
+              </span>
               <span className="flex-1 text-left">Library</span>
               <ChevronIcon expanded={foldersExpanded} />
             </button>
@@ -191,7 +205,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   href="/dashboard/library/default"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 text-[#6B5B4F] hover:text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
                 >
-                  <span className="text-[#9C8E80]"><FolderIcon /></span>
+                  <span className="text-[#9C8E80]">
+                    <FolderIcon />
+                  </span>
                   default
                 </Link>
                 {/* Dynamic folders */}
@@ -202,7 +218,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         href={`/dashboard/library/${folder.id}`}
                         className="flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 text-[#6B5B4F]"
                       >
-                        <span className="text-[#9C8E80]"><FolderIcon /></span>
+                        <span className="text-[#9C8E80]">
+                          <FolderIcon />
+                        </span>
                         {folder.name}
                       </Link>
                       <div className="relative">
@@ -234,7 +252,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                               }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
                                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                               </svg>
@@ -244,7 +269,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                               type="button"
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
                                 <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
                               </svg>
                               Star
@@ -259,7 +291,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                               }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
                                 <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
                               </svg>
                               Delete
@@ -275,7 +314,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   href="/dashboard/library/default?action=create-folder"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 text-[#6B5B4F] hover:text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
                 >
-                  <span className="text-[#9C8E80]"><FolderPlusIcon /></span>
+                  <span className="text-[#9C8E80]">
+                    <FolderPlusIcon />
+                  </span>
                   Create folder
                 </Link>
               </div>
@@ -349,32 +390,71 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Account Info */}
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#B8860B] to-[#D4A843] flex items-center justify-center text-white font-semibold">
-                {user.email.charAt(0).toUpperCase()}
+                {user.email?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[#1C1C1C] text-sm font-medium truncate">{user.email}</p>
-                <p className="text-[#9C8E80] text-xs">Member since {user.created_at ? new Date(user.created_at).toLocaleDateString("zh-CN", { year: "numeric", month: "short", day: "numeric" }) : "N/A"}</p>
+                <p className="text-[#9C8E80] text-xs">
+                  Member since{" "}
+                  {user.created_at
+                    ? new Date(user.created_at).toLocaleDateString("zh-CN", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </p>
               </div>
             </div>
 
             {/* Settings Links */}
             <div className="space-y-1">
-              <Link href="/dashboard/settings" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#1C1C1C] hover:bg-[#E8E0D5] transition-colors">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#1C1C1C] hover:bg-[#E8E0D5] transition-colors"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <circle cx="12" cy="12" r="3" />
                   <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
                 </svg>
                 Settings
               </Link>
-              <Link href="/dashboard/pricing" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#1C1C1C] hover:bg-[#E8E0D5] transition-colors">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <Link
+                href="/payment"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#1C1C1C] hover:bg-[#E8E0D5] transition-colors"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <line x1="12" y1="1" x2="12" y2="23" />
                   <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
                 </svg>
                 Pricing
               </Link>
-              <Link href="/dashboard/billing" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#1C1C1C] hover:bg-[#E8E0D5] transition-colors">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <Link
+                href="/settings/billing"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#1C1C1C] hover:bg-[#E8E0D5] transition-colors"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                   <line x1="1" y1="10" x2="23" y2="10" />
                 </svg>
@@ -385,7 +465,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
                   <polyline points="16,17 21,12 16,7" />
                   <line x1="21" y1="12" x2="9" y2="12" />
@@ -398,14 +485,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* User plan footer */}
         {user && (
-          <div className="mx-3 mb-2 p-3 rounded-lg bg-[#FAF7F2] hover:bg-[#F5EFE6] transition-colors cursor-pointer"
-               onClick={() => setShowSettings(!showSettings)}>
+          <div
+            className="mx-3 mb-2 p-3 rounded-lg bg-[#FAF7F2] hover:bg-[#F5EFE6] transition-colors cursor-pointer"
+            onClick={() => setShowSettings(!showSettings)}
+          >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-[#9C8E80]"><AccountIcon /></span>
-                <span className="text-[#1C1C1C] text-xs font-medium truncate max-w-[120px]">{user.email}</span>
+                <span className="text-[#9C8E80]">
+                  <AccountIcon />
+                </span>
+                <span className="text-[#1C1C1C] text-xs font-medium truncate max-w-[120px]">
+                  {user.email}
+                </span>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-[#B8860B]/10 text-[#B8860B] text-xs font-medium">Free</span>
+              <span className="px-2 py-0.5 rounded-full bg-[#B8860B]/10 text-[#B8860B] text-xs font-medium">
+                Free
+              </span>
             </div>
             <div className="h-1 bg-[#E8E0D5] rounded-full mb-2 overflow-hidden">
               <div className="h-full bg-[#B8860B] rounded-full" style={{ width: "0%" }} />
@@ -433,9 +528,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-white">
-        {children}
-      </main>
+      <main className="flex-1 overflow-y-auto bg-white">{children}</main>
     </div>
   );
 }

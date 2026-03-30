@@ -62,19 +62,19 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
 
   return (
     <div className="w-full">
-      {/* 标题 */}
+      {/* Title */}
       <h1 className="text-2xl font-semibold text-[#1C1C1C] text-center mb-8">
         {mode === "login" ? "Sign in to your account" : "Create your account"}
       </h1>
 
-      {/* 错误提示 */}
+      {/* Error message */}
       {error && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
           {error}
         </div>
       )}
 
-      {/* 表单 */}
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <input
@@ -138,17 +138,17 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
         </button>
       </form>
 
-      {/* 分隔符 */}
+      {/* Divider */}
       <div className="flex items-center gap-3 my-6">
         <div className="flex-1 h-px bg-[#E8E0D5]" />
         <span className="text-xs text-[#9C8E80]">or continue with</span>
         <div className="flex-1 h-px bg-[#E8E0D5]" />
       </div>
 
-      {/* Google 登录 */}
+      {/* Google Sign in */}
       <GoogleAuthButton redirectTo={redirectTo} />
 
-      {/* 切换登录/注册 */}
+      {/* Toggle login/register */}
       <p className="text-center text-sm text-[#6B5B4F] mt-6">
         {mode === "login" ? (
           <>

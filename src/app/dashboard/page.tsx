@@ -16,13 +16,15 @@ export default function DashboardPage() {
     const fetchDueCount = async () => {
       if (!user) return;
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         const token = session?.access_token ?? "";
         const response = await fetch("/api/review/due", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
-          const data = await response.json();
+          const data = (await response.json()) as { count?: number };
           setDueCount(data.count || 0);
         }
       } catch (error) {
@@ -64,15 +66,21 @@ export default function DashboardPage() {
       <div className="min-h-full bg-white flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 rounded-full bg-[#FAF7F2] flex items-center justify-center mx-auto mb-6">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="1.5">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#B8860B"
+              strokeWidth="1.5"
+            >
               <path d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-6.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-[#1C1C1C] mb-2">
-            Welcome to Revnote
-          </h1>
+          <h1 className="text-xl font-semibold text-[#1C1C1C] mb-2">Welcome to Recallmemo</h1>
           <p className="text-sm text-[#6B5B4F] mb-6">
-            Your AI-powered learning assistant. Start by creating a transcribe or browsing your library.
+            Your AI-powered learning assistant. Start by creating a transcribe or browsing your
+            library.
           </p>
           {dueCount > 0 && (
             <Link
@@ -106,10 +114,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <TranscribeModal
-        isOpen={transcribeOpen}
-        onClose={() => setTranscribeOpen(false)}
-      />
+      <TranscribeModal isOpen={transcribeOpen} onClose={() => setTranscribeOpen(false)} />
     </DashboardLayout>
   );
 }

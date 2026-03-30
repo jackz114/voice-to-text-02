@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, useKnowledge, useFolders, useStarred, useTrash } from "@/components/auth/AuthProvider";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { TranscribeModal } from "@/components/dashboard/TranscribeModal";
+import { supabase } from "@/lib/supabase";
 import type { Folder } from "@/components/auth/AuthProvider";
 
 type SortOption = "newest" | "oldest" | "alpha";
@@ -71,7 +72,7 @@ export function FolderContent({ folderId }: { folderId: string }) {
         body: JSON.stringify({ folder_id: folderId }),
       });
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as { activated_count?: number };
         setActivatedCount(data.activated_count || 0);
       }
     } catch (error) {
@@ -134,27 +135,28 @@ export function FolderContent({ folderId }: { folderId: string }) {
                 placeholder={`Search in ${folder?.name ?? "folder"}`}
                 className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#FAF7F2] border border-[#E8E0D5] text-[#1C1C1C] text-sm placeholder-[#9C8E80] focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
               />
-              {/* Start Learning Button */}
-              {items.length > 0 && (
-                <button
-                  onClick={handleStartLearning}
-                  disabled={activating}
-                  className="mt-2 px-4 py-2 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors disabled:opacity-50"
-                >
-                  {activating ? "Activating..." : "Start Learning"}
-                </button>
-              )}
-
-              {/* Activation Message */}
-              {activatedCount !== null && activatedCount > 0 && (
-                <p className="mt-2 text-sm text-[#B8860B]">
-                  {activatedCount} cards activated! Ready to review.
-                </p>
-              )}
             </div>
 
             {/* Spacer */}
             <div className="flex-1" />
+
+            {/* Start Learning Button */}
+            {items.length > 0 && (
+              <button
+                onClick={handleStartLearning}
+                disabled={activating}
+                className="px-4 py-2 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {activating ? "Activating..." : "Start Learning"}
+              </button>
+            )}
+
+            {/* Activation Message */}
+            {activatedCount !== null && activatedCount > 0 && (
+              <p className="text-sm text-[#B8860B]">
+                {activatedCount} cards activated! Ready to review.
+              </p>
+            )}
 
             {/* Sort Dropdown */}
             <div className="relative">

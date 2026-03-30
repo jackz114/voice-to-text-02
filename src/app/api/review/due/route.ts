@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const token = authHeader?.replace("Bearer ", "");
     const { data: { user } } = await supabase.auth.getUser(token ?? undefined);
     if (!user) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
+      return NextResponse.json({ error: "Please sign in first" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -52,14 +52,32 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
     if (error) throw error;
 
-    const items = (data || []).map((item: any) => ({
-      itemId: item.knowledge_items[0]?.id,
-      title: item.knowledge_items[0]?.title,
-      content: item.knowledge_items[0]?.content,
-      folder_id: item.knowledge_items[0]?.folder_id,
-      domain: item.knowledge_items[0]?.domain,
-      source: item.knowledge_items[0]?.source,
-      tags: item.knowledge_items[0]?.tags,
+    type DueItem = {
+      id: string;
+      knowledge_items?: Array<{
+        id: string;
+        title: string;
+        content: string;
+        folder_id: string | null;
+        domain: string;
+        source: string;
+        tags: string[];
+      }>;
+      next_review_at: string;
+      stability: number;
+      difficulty: number;
+      review_count: number;
+      last_reviewed_at: string | null;
+    };
+
+    const items = (data || []).map((item: DueItem) => ({
+      itemId: item.knowledge_items?.[0]?.id,
+      title: item.knowledge_items?.[0]?.title,
+      content: item.knowledge_items?.[0]?.content,
+      folder_id: item.knowledge_items?.[0]?.folder_id,
+      domain: item.knowledge_items?.[0]?.domain,
+      source: item.knowledge_items?.[0]?.source,
+      tags: item.knowledge_items?.[0]?.tags,
       reviewStateId: item.id,
       nextReviewAt: item.next_review_at,
       stability: item.stability,
@@ -70,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items, count: items.length });
   } catch (error) {
-    console.error("获取待复习笔记失败:", error);
-    return NextResponse.json({ error: "获取失败" }, { status: 500 });
+    console.error("Failed to get due review items:", error);
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }

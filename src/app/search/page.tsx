@@ -66,7 +66,7 @@ function SearchPageContent() {
       setResults(data.results);
       setTotal(data.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "搜索失败");
+      setError(err instanceof Error ? err.message : "Search failed");
       setResults([]);
     } finally {
       setLoading(false);
@@ -114,7 +114,7 @@ function SearchPageContent() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-xl font-bold text-gray-900">搜索知识库</h1>
+            <h1 className="text-xl font-bold text-gray-900">Search Knowledge</h1>
           </div>
 
           {/* Search bar */}
@@ -128,7 +128,7 @@ function SearchPageContent() {
                   setQuery(e.target.value);
                   setOffset(0);
                 }}
-                placeholder="输入关键词搜索..."
+                placeholder="Type to search..."
                 className="w-full rounded-lg border border-gray-200 py-3 pl-10 pr-4 text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 autoFocus
               />
@@ -146,10 +146,10 @@ function SearchPageContent() {
           {/* Results count */}
           {debouncedQuery.length >= 2 && !loading && (
             <div className="mt-3 text-sm text-gray-600">
-              找到 {total} 个结果
+              Found {total} results
               {selectedDomain && (
                 <span className="ml-2">
-                  (领域: <span className="font-medium">{selectedDomain}</span>)
+                  (Domain: <span className="font-medium">{selectedDomain}</span>)
                 </span>
               )}
             </div>
@@ -166,8 +166,8 @@ function SearchPageContent() {
         ) : debouncedQuery.length < 2 ? (
           <div className="py-12 text-center text-gray-500">
             <Search className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-            <p className="text-lg">输入关键词开始搜索</p>
-            <p className="mt-2 text-sm">支持标题、内容、标签、来源搜索</p>
+            <p className="text-lg">Type keywords to start searching</p>
+            <p className="mt-2 text-sm">Supports searching by title, content, tags, source</p>
           </div>
         ) : results.length === 0 && !loading ? (
           <SearchEmptyState
@@ -186,17 +186,17 @@ function SearchPageContent() {
                   disabled={offset === 0}
                   className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  上一页
+                  Previous
                 </button>
                 <span className="text-sm text-gray-600">
-                  第 {Math.floor(offset / RESULTS_PER_PAGE) + 1} 页
+                  Page {Math.floor(offset / RESULTS_PER_PAGE) + 1}
                 </span>
                 <button
                   onClick={() => setOffset((prev) => prev + RESULTS_PER_PAGE)}
                   disabled={!hasMore}
                   className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  下一页
+                  Next
                 </button>
               </div>
             )}
@@ -209,7 +209,7 @@ function SearchPageContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center">加载中...</div>}>
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
       <SearchPageContent />
     </Suspense>
   );

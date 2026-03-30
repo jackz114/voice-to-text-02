@@ -12,12 +12,11 @@ interface KnowledgeItemDetail extends KnowledgeItem {
   content?: string;
 }
 
-// 固定的波形数据，用于 SSR 稳定渲染
+// Fixed waveform data for SSR stable rendering
 const waveHeights = [
-  0.3, 0.5, 0.4, 0.6, 0.8, 0.7, 0.9, 0.6, 0.5, 0.7,
-  0.4, 0.6, 0.8, 0.5, 0.3, 0.6, 0.7, 0.9, 0.5, 0.4,
-  0.6, 0.8, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.5, 0.7,
-  0.9, 0.6, 0.4, 0.8, 0.5, 0.6, 0.7, 0.3, 0.5, 0.4,
+  0.3, 0.5, 0.4, 0.6, 0.8, 0.7, 0.9, 0.6, 0.5, 0.7, 0.4, 0.6, 0.8, 0.5, 0.3, 0.6, 0.7, 0.9, 0.5,
+  0.4, 0.6, 0.8, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.5, 0.7, 0.9, 0.6, 0.4, 0.8, 0.5, 0.6, 0.7, 0.3,
+  0.5, 0.4,
 ];
 
 function WaveformCanvas() {
@@ -57,7 +56,7 @@ function WaveformCanvas() {
       animationId = requestAnimationFrame(draw);
     };
 
-    // 设置 canvas 尺寸
+    // Set canvas size
     const resize = () => {
       if (canvas && canvas.parentElement) {
         canvas.width = canvas.parentElement.offsetWidth;
@@ -75,13 +74,7 @@ function WaveformCanvas() {
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="w-full h-20"
-      style={{ display: "block" }}
-    />
-  );
+  return <canvas ref={canvasRef} className="w-full h-20" style={{ display: "block" }} />;
 }
 
 export default function LibraryPage() {
@@ -104,8 +97,10 @@ export default function LibraryPage() {
       );
     })
     .sort((a, b) => {
-      if (sortBy === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (sortBy === "newest")
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === "oldest")
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       return a.title.localeCompare(b.title);
     });
 
@@ -123,7 +118,7 @@ export default function LibraryPage() {
       });
 
       if (!response.ok) return;
-      const detail = await response.json() as KnowledgeItemDetail;
+      const detail = (await response.json()) as KnowledgeItemDetail;
       setViewingItem(detail);
     } catch (err) {
       console.error("Failed to fetch item detail:", err);
@@ -141,12 +136,12 @@ export default function LibraryPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center gap-4">
-        <p className="text-[#6B5B4F]">请先登录后查看知识库。</p>
+        <p className="text-[#6B5B4F]">Please sign in to view your library.</p>
         <Link
           href="/login?redirect_to=/library"
           className="px-6 py-3 rounded-xl bg-[#2C2C2C] hover:bg-[#1C1C1C] text-white text-sm font-medium transition-colors"
         >
-          去登录
+          Sign in
         </Link>
       </div>
     );
@@ -158,8 +153,14 @@ export default function LibraryPage() {
       <nav className="sticky top-0 z-30 w-full bg-[#1C1C1C] px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Revnote" width={28} height={28} className="object-contain" />
-          <span className="text-white font-semibold">Revnote</span>
+          <Image
+            src="/logo.png"
+            alt="Recallmemo"
+            width={28}
+            height={28}
+            className="object-contain"
+          />
+          <span className="text-white font-semibold">Recallmemo</span>
         </div>
 
         {/* Center: Create Transcribe button */}
@@ -167,7 +168,14 @@ export default function LibraryPage() {
           href="/capture"
           className="hidden sm:flex items-center gap-2 px-5 py-2 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -179,9 +187,16 @@ export default function LibraryPage() {
           <Link
             href="/settings"
             className="w-9 h-9 flex items-center justify-center rounded-lg text-[#9C8E80] hover:text-white hover:bg-white/10 transition-colors"
-            aria-label="设置"
+            aria-label="Settings"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
@@ -189,7 +204,7 @@ export default function LibraryPage() {
           <button
             type="button"
             className="w-8 h-8 rounded-full bg-[#B8860B] text-white text-xs font-medium flex items-center justify-center overflow-hidden"
-            aria-label="用户菜单"
+            aria-label="User menu"
           >
             {user.email?.[0]?.toUpperCase() ?? "U"}
           </button>
@@ -211,7 +226,14 @@ export default function LibraryPage() {
           href="/capture"
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -273,7 +295,14 @@ export default function LibraryPage() {
               onClick={() => setSortOpen(!sortOpen)}
               className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-[#E8E0D5] text-[#6B5B4F] text-sm hover:border-[#B8860B] transition-colors"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <line x1="8" y1="6" x2="21" y2="6" />
                 <line x1="8" y1="12" x2="21" y2="12" />
                 <line x1="8" y1="18" x2="21" y2="18" />
@@ -317,7 +346,14 @@ export default function LibraryPage() {
         ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-[#F5EFE6] flex items-center justify-center mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="1.5">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#B8860B"
+                strokeWidth="1.5"
+              >
                 <path d="M9 12h6M9 16h6M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
               </svg>
             </div>
@@ -327,8 +363,8 @@ export default function LibraryPage() {
                   ? "No results found"
                   : "No transcribes yet"
                 : activeTab === "starred"
-                ? "No starred items"
-                : "Trash is empty"}
+                  ? "No starred items"
+                  : "Trash is empty"}
             </p>
             {activeTab === "transcribe" && !searchQuery && (
               <Link
@@ -342,11 +378,7 @@ export default function LibraryPage() {
         ) : (
           <div className="space-y-3">
             {filteredItems.map((item) => (
-              <KnowledgeItemCard
-                key={item.id}
-                item={item}
-                onClick={handleItemClick}
-              />
+              <KnowledgeItemCard key={item.id} item={item} onClick={handleItemClick} />
             ))}
           </div>
         )}
@@ -376,9 +408,16 @@ export default function LibraryPage() {
                 type="button"
                 onClick={() => setViewingItem(null)}
                 className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-[#9C8E80] hover:text-[#1C1C1C] hover:bg-[#F5EFE6] transition-colors"
-                aria-label="关闭"
+                aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -410,8 +449,21 @@ export default function LibraryPage() {
 
               {/* Dates */}
               <div className="flex flex-wrap gap-4 text-xs text-[#9C8E80] border-t border-[#E8E0D5] pt-4">
-                <span>Created {new Date(viewingItem.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
-                <span>Next review {new Date(viewingItem.nextReviewAt).toLocaleDateString("en-US", { month: "long", day: "numeric" })}</span>
+                <span>
+                  Created{" "}
+                  {new Date(viewingItem.createdAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+                <span>
+                  Next review{" "}
+                  {new Date(viewingItem.nextReviewAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
                 <span>{viewingItem.reviewCount} reviews</span>
               </div>
             </div>

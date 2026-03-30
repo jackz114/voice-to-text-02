@@ -14,6 +14,7 @@ export function TranscribeModal({ isOpen, onClose }: TranscribeModalProps) {
   const { refreshItems } = useKnowledge();
   const [transcribeMode, setTranscribeMode] = useState<"audio" | "text">("text");
   const [uploading, setUploading] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState("default");
@@ -21,6 +22,8 @@ export function TranscribeModal({ isOpen, onClose }: TranscribeModalProps) {
   const [backContent, setBackContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<"idle" | "uploading" | "transcribing" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClose = () => {
@@ -30,6 +33,8 @@ export function TranscribeModal({ isOpen, onClose }: TranscribeModalProps) {
     setTags([]);
     setTagInput("");
     setSelectedFolder("default");
+    setUploadProgress("idle");
+    setErrorMessage("");
     onClose();
   };
 
@@ -47,11 +52,92 @@ export function TranscribeModal({ isOpen, onClose }: TranscribeModalProps) {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  const handleFileSelect = (file: File) => {
-    if (file) {
-      setUploading(true);
-      console.log("Selected file:", file.name);
-      setTimeout(() => setUploading(false), 1000);
+  const handleFileSelect = async (file: File) => {
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["audio/mpeg", "audio/wav", "audio/webm", "audio/mp4", "audio/ogg", "audio/x-m4a"];
+    if (!validTypes.includes(file.type)) {
+      setErrorMessage("Invalid audio format. Please use WAV, MP3, M4A, or WebM.");
+      setUploadProgress("error");
+      return;
+    }
+
+    // Validate file size (50MB max)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setErrorMessage("File too large. Maximum size is 50MB.");
+      setUploadProgress("error");
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress("uploading");
+    setErrorMessage("");
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
+      // Step 1: Upload audio to R2 via our API
+      const formData = new FormData();
+      formData.append("audio", file);
+
+      const uploadResponse = await fetch("/api/audio/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorData = (await uploadResponse.json().catch(() => ({}))) as { error?: string };
+        throw new Error(errorData.error || "Upload failed");
+      }
+
+      const uploadData = (await uploadResponse.json()) as { key?: string };
+      const audioPath = uploadData.key;
+      console.log("Audio uploaded:", audioPath);
+
+      // Step 2: Transcribe the audio
+      setUploading(false);
+      setTranscribing(true);
+      setUploadProgress("transcribing");
+
+      const transcribeResponse = await fetch("/api/audio/transcribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ audioPath }),
+      });
+
+      if (!transcribeResponse.ok) {
+        const errorData = (await transcribeResponse.json().catch(() => ({}))) as { error?: string };
+        throw new Error(errorData.error || "Transcription failed");
+      }
+
+      const transcribeData = (await transcribeResponse.json()) as { text?: string };
+
+      // Step 3: Fill in the back content with transcribed text
+      setBackContent(transcribeData.text || "");
+      setUploadProgress("done");
+      setTranscribing(false);
+
+      // Auto-switch to text mode to show the result
+      setTranscribeMode("text");
+    } catch (error) {
+      console.error("Transcription error:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Transcription failed");
+      setUploadProgress("error");
+      setUploading(false);
+      setTranscribing(false);
     }
   };
 
@@ -85,17 +171,17 @@ export function TranscribeModal({ isOpen, onClose }: TranscribeModalProps) {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.details || error.error || "创建失败");
+        const error = (await response.json()) as { details?: string; error?: string };
+        throw new Error(error.details || error.error || "Creation failed");
       }
 
-      const newItem = await response.json();
+      const newItem = (await response.json()) as { id?: string };
       console.log("Note created:", newItem);
       await refreshItems();
       handleClose();
     } catch (error) {
-      console.error("创建笔记失败:", error);
-      alert(error instanceof Error ? error.message : "创建失败");
+      console.error("Failed to create note:", error);
+      alert(error instanceof Error ? error.message : "Creation failed");
     } finally {
       setCreating(false);
     }
@@ -259,20 +345,82 @@ export function TranscribeModal({ isOpen, onClose }: TranscribeModalProps) {
               >
                 <path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z" />
               </svg>
-              <p className="text-sm text-[#6B5B4F] mb-1">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-xs text-[#9C8E80] mb-4">
-                WAV, MP3, M4A up to 50MB
-              </p>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="px-5 py-2.5 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors disabled:opacity-50"
-              >
-                {uploading ? "Uploading..." : "Upload"}
-              </button>
+
+              {uploadProgress === "idle" && (
+                <>
+                  <p className="text-sm text-[#6B5B4F] mb-1">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-[#9C8E80] mb-4">
+                    WAV, MP3, M4A up to 50MB
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-5 py-2.5 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors"
+                  >
+                    Upload
+                  </button>
+                </>
+              )}
+
+              {uploadProgress === "uploading" && (
+                <>
+                  <div className="w-8 h-8 mx-auto mb-3 border-2 border-[#B8860B] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-[#6B5B4F] mb-1">Uploading audio...</p>
+                </>
+              )}
+
+              {uploadProgress === "transcribing" && (
+                <>
+                  <div className="w-8 h-8 mx-auto mb-3 border-2 border-[#B8860B] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-[#6B5B4F] mb-1">Transcribing audio...</p>
+                  <p className="text-xs text-[#9C8E80]">This may take a moment</p>
+                </>
+              )}
+
+              {uploadProgress === "done" && (
+                <>
+                  <div className="w-8 h-8 mx-auto mb-3 text-green-500">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-[#6B5B4F] mb-1">Transcription complete!</p>
+                  <p className="text-xs text-[#9C8E80] mb-4">Review and edit the result below</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadProgress("idle");
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors"
+                  >
+                    Transcribe Another
+                  </button>
+                </>
+              )}
+
+              {uploadProgress === "error" && (
+                <>
+                  <div className="w-8 h-8 mx-auto mb-3 text-red-500">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-red-600 mb-1">{errorMessage || "An error occurred"}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadProgress("idle");
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

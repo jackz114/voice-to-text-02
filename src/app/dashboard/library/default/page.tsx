@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, useKnowledge, useFolders, useStarred, useTrash } from "@/components/auth/AuthProvider";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { TranscribeModal } from "@/components/dashboard/TranscribeModal";
+import { supabase } from "@/lib/supabase";
 
 type SortOption = "newest" | "oldest" | "alpha";
 
@@ -101,6 +102,32 @@ function LibraryContent() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [transcribeOpen, setTranscribeOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activating, setActivating] = useState(false);
+  const [activatedCount, setActivatedCount] = useState<number | null>(null);
+
+  const handleStartLearning = async () => {
+    setActivating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+      const response = await fetch("/api/review/activate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ folder_id: "default" }),
+      });
+      if (response.ok) {
+        // Navigate directly to review page
+        router.push("/dashboard/review");
+      }
+    } catch (error) {
+      console.error("Failed to activate cards:", error);
+    } finally {
+      setActivating(false);
+    }
+  };
 
   // Check for action query param - show modal based on URL
   const action = searchParams.get("action");
@@ -180,6 +207,24 @@ function LibraryContent() {
 
             {/* Spacer */}
             <div className="flex-1" />
+
+            {/* Start Learning Button */}
+            {items.length > 0 && (
+              <button
+                onClick={handleStartLearning}
+                disabled={activating}
+                className="px-4 py-2 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {activating ? "Activating..." : "Start Learning"}
+              </button>
+            )}
+
+            {/* Activation Message */}
+            {activatedCount !== null && activatedCount > 0 && (
+              <p className="text-sm text-[#B8860B]">
+                {activatedCount} cards activated! Ready to review.
+              </p>
+            )}
 
             {/* Sort Dropdown */}
             <div className="relative">

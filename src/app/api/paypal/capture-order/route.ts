@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as { orderId?: string };
     const { orderId } = body;
 
-    // 参数验证
+    // Parameter validation
     if (!orderId || typeof orderId !== "string") {
       return NextResponse.json(
         { error: "Order ID is required", code: "INVALID_ORDER_ID" },
@@ -19,16 +19,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 获取 PayPal 访问令牌
+    // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
 
-    // 步骤 1: 验证订单状态 (官方推荐的最佳实践)
-    // 在捕获之前验证订单是否有效且未被处理
+    // Step 1: Validate order status (official best practice)
+    // Verify the order is valid and not already processed before capture
     const orderDetails = await getOrderDetails(accessToken, orderId);
 
     // 检查订单状态
     if (orderDetails.status === "COMPLETED") {
-      // 订单已经被捕获过，返回已完成的订单
+      // Order already captured, return completed order
       console.log("Order already completed:", orderId);
       return NextResponse.json({
         orderId,
@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 步骤 2: 捕获订单
+    // Step 2: Capture order
     const captureData = await capturePayPalOrder(accessToken, orderId);
 
-    // 步骤 3: 验证捕获结果
+    // Step 3: Validate capture result
     if (captureData.status !== "COMPLETED") {
       return NextResponse.json(
         {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 步骤 4: 提取支付信息
+    // Step 4: Extract payment information
     const purchaseUnit = captureData.purchase_units?.[0];
     const capture = purchaseUnit?.payments?.captures?.[0];
 
@@ -85,11 +85,11 @@ export async function POST(request: NextRequest) {
       createdAt: capture?.create_time,
     };
 
-    // 步骤 5: 保存到数据库 (建议实现)
+    // Step 5: Save to database (TODO: implement)
     // await savePaymentToDatabase(paymentRecord);
     // await updateUserBalance(userId, paymentRecord.netAmount);
 
-    // 记录成功日志
+    // Log success
     console.log("Payment captured successfully:", {
       orderId,
       captureId: paymentRecord.captureId,
@@ -105,9 +105,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Capture order error:", error);
 
-    // 处理 PayPal 特定错误
+    // Handle PayPal-specific errors
     if (error instanceof PayPalError) {
-      // 处理特定的 PayPal 错误码
+      // Handle specific PayPal error codes
       if (error.statusCode === 422) {
         return NextResponse.json(
           {
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 处理其他错误
+    // Handle other errors
     return NextResponse.json(
       {
         error: "Failed to capture order",

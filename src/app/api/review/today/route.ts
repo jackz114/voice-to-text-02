@@ -1,10 +1,10 @@
 // src/app/api/review/today/route.ts
-// 使用 Supabase REST API 查询今日复习条目
+// Uses Supabase REST API to query today's review items
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// 类型定义
+// Type definitions
 interface KnowledgeItem {
   id: string;
   title: string;
@@ -26,7 +26,7 @@ interface ReviewState {
 
 export async function GET(request: NextRequest) {
   try {
-    // 步骤 1: 验证用户身份
+    // Step 1: Verify user identity
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -39,13 +39,13 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser(token ?? undefined);
     if (authError || !user) {
       return NextResponse.json(
-        { error: "请先登录", code: "UNAUTHORIZED" },
+        { error: "Please sign in first", code: "UNAUTHORIZED" },
         { status: 401 }
       );
     }
 
-    // 步骤 2: 查询今日到期的复习条目
-    // 使用 Supabase REST API 从 review_state 表查询，关联 knowledge_items
+    // Step 2: Query review items due today
+    // Uses Supabase REST API to query from review_state table, joining knowledge_items
     const now = new Date().toISOString();
 
     const { data: rawItems, error: dbError } = await supabase
@@ -72,11 +72,11 @@ export async function GET(request: NextRequest) {
       .eq("knowledge_items.user_id", user.id);
 
     if (dbError) {
-      console.error("查询复习条目失败:", dbError);
+      console.error("Failed to query review items:", dbError);
       throw dbError;
     }
 
-    // 格式化结果
+    // Format results
     const dueItems = (rawItems || []).map((item: ReviewState) => ({
       itemId: item.knowledge_items[0]?.id,
       title: item.knowledge_items[0]?.title,
@@ -92,14 +92,14 @@ export async function GET(request: NextRequest) {
       lastReviewedAt: item.last_reviewed_at,
     }));
 
-    console.log("今日复习条目:", { userId: user.id, count: dueItems.length });
+    console.log("Today's review items:", { userId: user.id, count: dueItems.length });
 
-    // 步骤 3: 返回结果
+    // Step 3: Return results
     return NextResponse.json({ items: dueItems, count: dueItems.length });
   } catch (error) {
-    console.error("今日复习获取错误:", error);
+    console.error("Failed to get today's reviews:", error);
     return NextResponse.json(
-      { error: "获取失败", code: "INTERNAL_ERROR" },
+      { error: "Failed to fetch", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

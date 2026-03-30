@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as { subscriptionId?: string };
     const { subscriptionId } = body;
 
-    // 参数验证
+    // Parameter validation
     if (!subscriptionId || typeof subscriptionId !== "string") {
       return NextResponse.json(
         { error: "Subscription ID is required", code: "INVALID_SUBSCRIPTION_ID" },
@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 获取 PayPal 访问令牌
+    // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
 
-    // 获取订阅详情
+    // Get subscription details
     const subscriptionData = await getSubscriptionDetails(
       accessToken,
       subscriptionId
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       };
     };
 
-    // 验证订阅状态
+    // Validate subscription status
     const validStatuses = ["ACTIVE", "APPROVAL_PENDING"];
     if (!validStatuses.includes(subscriptionData.status)) {
       return NextResponse.json(
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 提取订阅信息
+    // Extract subscription info
     const subscriptionRecord = {
       subscriptionId,
       status: subscriptionData.status,
@@ -82,11 +82,11 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // 保存到数据库 (建议实现)
+    // Save to database (TODO: implement)
     // await saveSubscriptionToDatabase(subscriptionRecord);
     // await activateUserSubscription(userId, subscriptionRecord);
 
-    // 记录成功日志
+    // Log success
     console.log("Subscription verified successfully:", {
       subscriptionId,
       status: subscriptionData.status,
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Verify subscription error:", error);
 
-    // 处理 PayPal 特定错误
+    // Handle PayPal-specific errors
     if (error instanceof PayPalError) {
       return NextResponse.json(
         {
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 处理其他错误
+    // Handle other errors
     return NextResponse.json(
       {
         error: "Failed to verify subscription",

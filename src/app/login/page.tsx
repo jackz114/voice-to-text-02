@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Sign in - Revnote",
-  description: "Sign in to your Revnote account",
+  title: "Sign in - Recallmemo",
+  description: "Sign in to your Recallmemo account",
 };
 
 interface LoginPageProps {
@@ -21,8 +21,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Revnote" width={32} height={32} className="object-contain" />
-            <span className="text-xl font-bold text-[#1C1C1C]">Revnote</span>
+            <Image
+              src="/logo.png"
+              alt="Recallmemo"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
+            <span className="text-xl font-bold text-[#1C1C1C]">Recallmemo</span>
           </div>
         </div>
 

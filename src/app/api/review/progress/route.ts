@@ -12,46 +12,52 @@ export async function GET(request: NextRequest) {
     const token = authHeader?.replace("Bearer ", "");
     const { data: { user } } = await supabase.auth.getUser(token ?? undefined);
     if (!user) {
-      return NextResponse.json({ error: "请先登录" }, { status: 401 });
+      return NextResponse.json({ error: "Please sign in first" }, { status: 401 });
     }
 
-    // 获取所有文件夹及其笔记统计
+    // Get all folders and their note statistics
     const { data: folders, error: foldersError } = await supabase
       .from("folders")
       .select("id, name")
       .eq("user_id", user.id);
     if (foldersError) throw foldersError;
 
-    // 获取所有笔记数量（按文件夹分组）
+    // Get all note count (grouped by folder)
     const { data: allItems, error: itemsError } = await supabase
       .from("knowledge_items")
       .select("folder_id")
       .eq("user_id", user.id);
     if (itemsError) throw itemsError;
 
-    // 获取所有已激活的复习状态
+    // Get all activated review states
     const { data: allReviewStates, error: reviewError } = await supabase
       .from("review_state")
       .select("knowledge_item_id")
       .eq("user_id", user.id);
     if (reviewError) throw reviewError;
 
-    const activatedItemIds = new Set((allReviewStates || []).map((s: any) => s.knowledge_item_id));
+    type ReviewState = { knowledge_item_id: string };
+    const activatedItemIds = new Set((allReviewStates || []).map((s: ReviewState) => s.knowledge_item_id));
 
-    // 按文件夹统计
-    const folderStats = (folders || []).map(folder => {
-      const total = (allItems || []).filter(i => i.folder_id === folder.id).length;
-      const activated = (allItems || []).filter(i => i.folder_id === folder.id && activatedItemIds.has(i.id)).length;
+    // Type definitions for Supabase responses
+    type FolderItem = { id: string; name: string };
+    type KnowledgeItem = { id: string; folder_id: string | null };
+
+    // Stats by folder
+    const folderStats = ((folders || []) as FolderItem[]).map(folder => {
+      const total = ((allItems || []) as KnowledgeItem[]).filter(i => i.folder_id === folder.id).length;
+      const activated = ((allItems || []) as KnowledgeItem[]).filter(i => i.folder_id === folder.id && activatedItemIds.has(i.id)).length;
       return { id: folder.id, name: folder.name, total, activated };
     });
 
-    // default 文件夹
-    const defaultTotal = (allItems || []).filter(i => i.folder_id === null).length;
-    const defaultActivated = (allItems || []).filter(i => i.folder_id === null && activatedItemIds.has(i.id)).length;
+    // default folder
+    const typedAllItems = (allItems || []) as KnowledgeItem[];
+    const defaultTotal = typedAllItems.filter(i => i.folder_id === null).length;
+    const defaultActivated = typedAllItems.filter(i => i.folder_id === null && activatedItemIds.has(i.id)).length;
     folderStats.unshift({ id: "default", name: "default", total: defaultTotal, activated: defaultActivated });
 
-    // 全局统计
-    const totalItems = (allItems || []).length;
+    // Global stats
+    const totalItems = typedAllItems.length;
     const activatedCount = activatedItemIds.size;
 
     return NextResponse.json({
@@ -59,7 +65,7 @@ export async function GET(request: NextRequest) {
       stats: { total: totalItems, activated: activatedCount }
     });
   } catch (error) {
-    console.error("获取学习进度失败:", error);
-    return NextResponse.json({ error: "获取失败" }, { status: 500 });
+    console.error("Failed to get learning progress:", error);
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }

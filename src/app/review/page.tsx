@@ -10,7 +10,7 @@ export default function ReviewPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-400 text-sm">加载中...</p>
+        <p className="text-gray-400 text-sm">Loading...</p>
       </div>
     );
   }
@@ -18,9 +18,9 @@ export default function ReviewPage() {
   if (!user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <p className="text-gray-600">请先登录</p>
+        <p className="text-gray-600">Please sign in first</p>
         <Link href="/login" className="text-blue-600 hover:underline">
-          去登录
+          Sign in
         </Link>
       </div>
     );
@@ -30,9 +30,9 @@ export default function ReviewPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b px-6 py-4">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold">今日复习</h1>
+          <h1 className="text-xl font-bold">Today&apos;s Review</h1>
           <Link href="/library" className="text-sm text-gray-500 hover:text-gray-700">
-            返回知识库
+            Back to Library
           </Link>
         </div>
       </header>

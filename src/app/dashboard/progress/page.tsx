@@ -38,7 +38,10 @@ export default function ProgressPage() {
 
       if (!response.ok) throw new Error("Failed to fetch");
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        folders?: Array<{ id: string; name: string; total: number; activated: number }>;
+        stats?: { total: number; activated: number };
+      };
       setFolders(data.folders || []);
       setStats(data.stats || { total: 0, activated: 0 });
     } catch (error) {

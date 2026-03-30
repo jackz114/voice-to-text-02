@@ -1,5 +1,5 @@
 // src/app/api/review/rate/route.ts
-// 使用 Supabase REST API 更新复习评分
+// Uses Supabase REST API to update review ratings
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -8,7 +8,7 @@ import { dbRowToFsrsCard, fsrsResultToDbUpdate } from "@/lib/fsrs";
 
 export async function POST(request: NextRequest) {
   try {
-    // 步骤 1: 验证用户身份
+    // Step 1: Verify user identity
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser(token ?? undefined);
     if (authError || !user) {
       return NextResponse.json(
-        { error: "请先登录", code: "UNAUTHORIZED" },
+        { error: "Please sign in first", code: "UNAUTHORIZED" },
         { status: 401 }
       );
     }
 
-    // 步骤 2: 验证请求体
+    // Step 2: Validate request body
     const body = (await request.json()) as {
       knowledgeItemId?: unknown;
       rating?: unknown;
@@ -36,19 +36,19 @@ export async function POST(request: NextRequest) {
 
     if (!knowledgeItemId || typeof knowledgeItemId !== "string") {
       return NextResponse.json(
-        { error: "缺少 knowledgeItemId", code: "INVALID_INPUT" },
+        { error: "Missing knowledgeItemId", code: "INVALID_INPUT" },
         { status: 400 }
       );
     }
 
     if (typeof rating !== "number" || !Number.isInteger(rating) || rating < 1 || rating > 4) {
       return NextResponse.json(
-        { error: "评分必须是 1-4 之间的整数", code: "INVALID_RATING" },
+        { error: "Rating must be an integer between 1-4", code: "INVALID_RATING" },
         { status: 400 }
       );
     }
 
-    // 步骤 3: 查询 review_state 行并验证归属权
+    // Step 3: Query review_state row and verify ownership
     const { data: rawRow, error: queryError } = await supabase
       .from("review_state")
       .select(
@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
 
     if (queryError || !rawRow) {
       return NextResponse.json(
-        { error: "条目不存在或无权访问", code: "NOT_FOUND" },
+        { error: "Item not found or access denied", code: "NOT_FOUND" },
         { status: 404 }
       );
     }
 
-    // 格式化数据以兼容 fsrs 库
+    // Format data to be compatible with fsrs library
     const row = {
       reviewStateId: rawRow.id,
       knowledgeItemId: rawRow.knowledge_item_id,
@@ -87,15 +87,15 @@ export async function POST(request: NextRequest) {
       nextReviewAt: rawRow.next_review_at,
     };
 
-    // 步骤 4: 构建 FSRS 卡片并计算新状态
+    // Step 4: Build FSRS card and calculate new state
     const f = new FSRS({});
-    // 首次复习：使用 createEmptyCard() 避免 stability=0 的错误初始状态
+    // First review: use createEmptyCard() to avoid incorrect initial state with stability=0
     const fsrsCard =
       row.reviewCount === 0 ? createEmptyCard(row.nextReviewAt) : dbRowToFsrsCard(row);
     const result = f.next(fsrsCard, new Date(), rating as Grade);
     const dbUpdate = fsrsResultToDbUpdate(result, row.reviewCount);
 
-    // 步骤 5: 写回数据库
+    // Step 5: Write back to database
     const { error: updateError } = await supabase
       .from("review_state")
       .update({
@@ -109,11 +109,11 @@ export async function POST(request: NextRequest) {
       .eq("knowledge_item_id", knowledgeItemId);
 
     if (updateError) {
-      console.error("更新复习状态失败:", updateError);
+      console.error("Failed to update review state:", updateError);
       throw updateError;
     }
 
-    console.log("评分更新成功:", {
+    console.log("Rating update success:", {
       userId: user.id,
       knowledgeItemId,
       rating,
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       reviewCount: dbUpdate.reviewCount,
     });
 
-    // 步骤 6: 返回结果
+    // Step 6: Return results
     return NextResponse.json({
       nextReviewAt: result.card.due,
       stability: result.card.stability,
@@ -129,9 +129,9 @@ export async function POST(request: NextRequest) {
       reviewCount: dbUpdate.reviewCount,
     });
   } catch (error) {
-    console.error("评分更新错误:", error);
+    console.error("Rating update error:", error);
     return NextResponse.json(
-      { error: "更新失败", code: "INTERNAL_ERROR" },
+      { error: "Update failed", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

@@ -1,10 +1,10 @@
 // src/app/api/library/list/route.ts
-// 使用 Supabase REST API 查询知识库列表
+// Uses Supabase REST API to query knowledge library list
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// 类型定义
+// Type definitions
 interface ReviewState {
   next_review_at: string;
   review_count: number;
@@ -24,7 +24,7 @@ interface KnowledgeItem {
 
 export async function GET(request: NextRequest) {
   try {
-    // 步骤 1: 验证用户身份
+    // Step 1: Verify user identity
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -37,16 +37,16 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser(token ?? undefined);
     if (authError || !user) {
       return NextResponse.json(
-        { error: "请先登录", code: "UNAUTHORIZED" },
+        { error: "Please sign in first", code: "UNAUTHORIZED" },
         { status: 401 }
       );
     }
 
-    // 步骤 2: 读取可选的 domain 查询参数
+    // Step 2: Read optional domain query parameter
     const domain = request.nextUrl.searchParams.get("domain");
 
-    // 步骤 3: 查询知识条目（使用 Supabase REST API 的 foreign table 查询）
-    // 查询 knowledge_items 表，并通过外键关联 review_state 表
+    // Step 3: Query knowledge items (using Supabase REST API foreign table query)
+    // Query knowledge_items table and join review_state via foreign key
     let query = supabase
       .from("knowledge_items")
       .select(
@@ -67,22 +67,22 @@ export async function GET(request: NextRequest) {
       )
       .eq("user_id", user.id);
 
-    // 可选的 domain 过滤
+    // Optional domain filter
     if (domain) {
       query = query.eq("domain", domain);
     }
 
-    // 排序：按创建时间倒序
+    // Sort: by creation time descending
     query = query.order("created_at", { ascending: false });
 
     const { data: rawItems, error: dbError } = await query;
 
     if (dbError) {
-      console.error("知识库查询失败:", dbError);
+      console.error("Failed to query knowledge library:", dbError);
       throw dbError;
     }
 
-    // 格式化结果（保持与原接口相同的字段名）
+    // Format results (keeping same field names as original interface)
     const items = (rawItems || []).map((item: KnowledgeItem) => ({
       id: item.id,
       title: item.title,
@@ -94,18 +94,18 @@ export async function GET(request: NextRequest) {
       folder_id: item.folder_id,
       nextReviewAt: item.review_state?.[0]?.next_review_at,
       reviewCount: item.review_state?.[0]?.review_count,
-      // 生成 content 预览（前50个字符）
+      // Generate content preview (first 50 characters)
       contentPreview: item.content?.slice(0, 50) || "",
     }));
 
-    console.log("知识库列表查询成功:", { userId: user.id, count: items.length, domain });
+    console.log("Knowledge library list queried:", { userId: user.id, count: items.length, domain });
 
-    // 步骤 4: 返回结果
+    // Step 4: Return results
     return NextResponse.json({ items });
   } catch (error) {
-    console.error("知识库列表错误:", error);
+    console.error("Failed to get knowledge library list:", error);
     return NextResponse.json(
-      { error: "获取失败", code: "INTERNAL_ERROR" },
+      { error: "Failed to fetch", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

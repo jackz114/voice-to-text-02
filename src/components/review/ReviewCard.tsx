@@ -33,7 +33,7 @@ export function ReviewCard({ item, isTop, onRate, stackIndex }: ReviewCardProps)
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
   const controls = useAnimation();
 
-  // 视觉堆叠效果（非顶部卡片轻微偏移和缩放）
+  // Visual stacking effect (slight offset and scale for non-top cards)
   const stackOffset = stackIndex * 4; // px offset per card in stack
   const stackScale = 1 - stackIndex * 0.02; // slight scale reduction
 
@@ -46,7 +46,7 @@ export function ReviewCard({ item, isTop, onRate, stackIndex }: ReviewCardProps)
       // 左滑 = Again
       controls.start({ x: -500, opacity: 0 }).then(() => onRate(item.itemId, 1));
     } else {
-      controls.start({ x: 0 }); // 弹回中心
+      controls.start({ x: 0 }); // Bounce back to center
     }
   };
 
@@ -60,36 +60,36 @@ export function ReviewCard({ item, isTop, onRate, stackIndex }: ReviewCardProps)
       animate={controls}
       className="absolute w-full max-w-md bg-white rounded-2xl shadow-lg border border-gray-200 p-6 cursor-grab active:cursor-grabbing select-none"
     >
-      {/* 卡片头部：领域徽章 + 复习次数 */}
+      {/* Card header: domain badge + review count */}
       <div className="flex items-center justify-between mb-2">
         <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-1 rounded-full">
           {item.domain}
         </span>
-        <span className="text-xs text-gray-400">第 {item.reviewCount} 次复习</span>
+        <span className="text-xs text-gray-400">Review #{item.reviewCount}</span>
       </div>
 
-      {/* 标题 */}
+      {/* Title */}
       <h2 className="text-xl font-bold text-center mt-4 mb-6">{item.title}</h2>
 
-      {/* 内容区域 */}
+      {/* Content area */}
       {!revealed ? (
-        /* 未揭示状态 — 点击揭示内容按钮 */
+        /* Hidden state — click to reveal content */
         <div className="flex flex-col items-center justify-center py-8">
-          <p className="text-gray-400 text-sm mb-2">先尝试回忆内容，再点击揭示</p>
-          <p className="text-gray-400 text-xs mb-4">揭示后可评分</p>
+          <p className="text-gray-400 text-sm mb-2">Try to recall first, then click to reveal</p>
+          <p className="text-gray-400 text-xs mb-4">Rate after revealing</p>
           <button
             onClick={() => setRevealed(true)}
             className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
           >
-            点击揭示内容
+            Click to reveal
           </button>
         </div>
       ) : (
-        /* 揭示状态 — 完整内容 + 评分按钮 */
+        /* Revealed state — full content + rating buttons */
         <div>
           <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-4">{item.content}</p>
 
-          {/* 标签 */}
+          {/* Tags */}
           {item.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-4">
               {item.tags.map((tag) => (
@@ -103,10 +103,10 @@ export function ReviewCard({ item, isTop, onRate, stackIndex }: ReviewCardProps)
             </div>
           )}
 
-          {/* 来源链接 */}
+          {/* Source link */}
           {item.source && (
             <p className="text-xs text-gray-400 mb-4 truncate">
-              来源:{" "}
+              Source:{" "}
               <a
                 href={item.source}
                 target="_blank"
@@ -119,13 +119,13 @@ export function ReviewCard({ item, isTop, onRate, stackIndex }: ReviewCardProps)
             </p>
           )}
 
-          {/* 评分按钮 */}
+          {/* Rating buttons */}
           <RatingButtons onRate={(r) => onRate(item.itemId, r)} disabled={!isTop} />
 
-          {/* 滑动提示 */}
+          {/* Swipe hint */}
           {isTop && (
             <p className="text-xs text-gray-400 text-center mt-3">
-              左滑 = 完全忘记 &nbsp;|&nbsp; 右滑 = 秒答且轻松
+              Left = Forgot &nbsp;|&nbsp; Right = Instant
             </p>
           )}
         </div>

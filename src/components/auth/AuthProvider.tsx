@@ -19,6 +19,7 @@ interface KnowledgeItem {
   id: string;
   title: string;
   folder_id: string | null;
+  domain: string;
   source: string | null;
   tags: string[];
   createdAt: string;
@@ -118,13 +119,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasFetchedTrash, setHasFetchedTrash] = useState(false);
 
   useEffect(() => {
-    // 获取初始会话
+    // Get initial session
     getSupabaseClient().auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // 监听认证状态变化
+    // Listen for auth state changes
     const {
       data: { subscription },
     } = getSupabaseClient().auth.onAuthStateChange((_event, session) => {
@@ -368,13 +369,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const trashItem = useCallback(async (itemId: string) => {
     if (!user) return;
     try {
-      // 1. 删除关联的 review_state（如果存在）
+      // 1. Delete associated review_state (if exists)
       await supabase.from("review_state").delete().eq("item_id", itemId);
 
-      // 2. 删除关联的 starred_items
+      // 2. Delete associated starred_items
       await supabase.from("starred_items").delete().eq("item_id", itemId);
 
-      // 3. 从 knowledge_items 删除
+      // 3. Delete from knowledge_items
       const { error: deleteError } = await supabase
         .from("knowledge_items")
         .delete()
@@ -386,7 +387,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw deleteError;
       }
 
-      // 4. 从本地状态移除
+      // 4. Remove from local state
       setItems((prev) => prev.filter((item) => item.id !== itemId));
     } catch (err) {
       console.error("Trash item error:", err);

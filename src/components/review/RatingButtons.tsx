@@ -9,7 +9,7 @@ const RATINGS = [
   {
     value: 1 as const,
     emoji: "😵",
-    label: "完全忘记",
+    label: "Forgot",
     sublabel: "Again",
     color:
       "bg-red-100 hover:bg-red-200 text-red-800 border-red-200",
@@ -17,7 +17,7 @@ const RATINGS = [
   {
     value: 2 as const,
     emoji: "😐",
-    label: "模糊记得",
+    label: "Vague",
     sublabel: "Hard",
     color:
       "bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200",
@@ -25,7 +25,7 @@ const RATINGS = [
   {
     value: 3 as const,
     emoji: "🙂",
-    label: "准确回忆",
+    label: "Correct",
     sublabel: "Good",
     color:
       "bg-green-100 hover:bg-green-200 text-green-800 border-green-200",
@@ -33,7 +33,7 @@ const RATINGS = [
   {
     value: 4 as const,
     emoji: "🚀",
-    label: "秒答且轻松",
+    label: "Easy",
     sublabel: "Easy",
     color:
       "bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-200",

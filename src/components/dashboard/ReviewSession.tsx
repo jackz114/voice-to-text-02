@@ -42,8 +42,8 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
 
       if (!response.ok) throw new Error("Failed to fetch");
 
-      const data = await response.json();
-      setItems(data.items || []);
+      const data = (await response.json()) as { items?: unknown[] };
+      setItems((data.items || []) as typeof items);
     } catch (error) {
       console.error("Failed to fetch review items:", error);
     } finally {
@@ -76,6 +76,7 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
 
       // Move to next item
       if (currentIndex + 1 >= items.length) {
+        setItems([]); // Clear items to show completion state
         onComplete();
       } else {
         setCurrentIndex(currentIndex + 1);

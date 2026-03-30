@@ -50,12 +50,12 @@ export function GoogleAuthButton({ redirectTo = "/" }: GoogleAuthButtonProps) {
   const nonceRef = useRef<string>("");
   const redirectToRef = useRef<string>(redirectTo);
 
-  // 保持 redirectTo 最新
+  // Keep redirectTo latest
   useEffect(() => {
     redirectToRef.current = redirectTo;
   }, [redirectTo]);
 
-  // 加载 Google Identity Services 脚本
+  // Load Google Identity Services script
   useEffect(() => {
     if (typeof google !== "undefined") return;
 
@@ -69,7 +69,7 @@ export function GoogleAuthButton({ redirectTo = "/" }: GoogleAuthButtonProps) {
     document.head.appendChild(script);
   }, []);
 
-  // 初始化 Google Identity Services 并渲染按钮
+  // Initialize Google Identity Services and render button
   useEffect(() => {
     if (typeof google === "undefined" || !buttonRef.current) return;
 
@@ -93,13 +93,13 @@ export function GoogleAuthButton({ redirectTo = "/" }: GoogleAuthButtonProps) {
           window.location.href = redirectToRef.current;
         } catch (error) {
           console.error("Google ID Token login error:", error);
-          alert("Google 登录失败，请重试");
+          alert("Google sign in failed, please try again");
         }
       },
       nonce,
     });
 
-    // 使用 popup 模式
+    // Use popup mode
     google.accounts.id.renderButton(buttonRef.current, {
       type: "standard",
       theme: "outline",

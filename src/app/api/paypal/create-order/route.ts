@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getPayPalAccessToken,
-  createPayPalOrder,
-  PayPalError,
-} from "../paypal-client";
+import { getPayPalAccessToken, createPayPalOrder, PayPalError } from "../paypal-client";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       amount?: string;
       currency?: string;
       description?: string;
@@ -16,11 +12,11 @@ export async function POST(request: NextRequest) {
     const {
       amount,
       currency = "USD",
-      description = "Revnote Service",
-      customId, // 商家内部订单 ID
+      description = "Recallmemo Service",
+      customId, // Internal merchant order ID
     } = body;
 
-    // 参数验证
+    // Parameter validation
     if (!amount || typeof amount !== "string") {
       return NextResponse.json(
         { error: "Amount is required and must be a string", code: "INVALID_AMOUNT" },
@@ -28,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证金额格式 (必须是有效的数字)
+    // Validate amount format (must be a valid number)
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
       return NextResponse.json(
@@ -37,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证金额精度 (PayPal 最多支持 2 位小数)
+    // Validate amount precision (PayPal supports max 2 decimal places)
     if (amount.split(".")[1]?.length > 2) {
       return NextResponse.json(
         { error: "Amount can have at most 2 decimal places", code: "INVALID_AMOUNT_PRECISION" },
@@ -45,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证币种
+    // Validate currency
     const validCurrencies = ["USD", "EUR", "GBP", "CNY", "JPY", "AUD", "CAD"];
     if (!validCurrencies.includes(currency)) {
       return NextResponse.json(
@@ -54,22 +50,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 获取 PayPal 访问令牌
+    // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
 
-    // 创建订单
-    const order = await createPayPalOrder(
-      accessToken,
-      amount,
-      currency,
-      description,
-      {
-        customId,
-        invoiceId: `INV-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-      }
-    );
+    // Create order
+    const order = await createPayPalOrder(accessToken, amount, currency, description, {
+      customId,
+      invoiceId: `INV-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    });
 
-    // 记录订单创建日志 (生产环境应该保存到数据库)
+    // Log order creation (in production, save to database)
     console.log("PayPal order created:", {
       orderId: order.id,
       amount,
@@ -87,7 +77,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Create order error:", error);
 
-    // 处理 PayPal 特定错误
+    // Handle PayPal-specific errors
     if (error instanceof PayPalError) {
       return NextResponse.json(
         {
@@ -99,7 +89,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 处理其他错误
+    // Handle other errors
     return NextResponse.json(
       {
         error: "Failed to create order",

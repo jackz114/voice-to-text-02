@@ -20,13 +20,13 @@ export function UserNav() {
         href="/login"
         className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
       >
-        登录
+        Sign in
       </a>
     );
   }
 
   const userEmail = user.email;
-  const userName = user.user_metadata?.name || userEmail?.split("@")[0] || "用户";
+  const userName = user.user_metadata?.name || userEmail?.split("@")[0] || "User";
   const avatarUrl = user.user_metadata?.avatar_url;
 
   return (
@@ -69,7 +69,7 @@ export function UserNav() {
               onClick={() => setIsOpen(false)}
             >
               <Bell className="h-4 w-4" />
-              通知设置
+              Notification Settings
             </a>
             <div className="my-2 border-t border-gray-200 dark:border-gray-700" />
             <button
@@ -80,7 +80,7 @@ export function UserNav() {
               className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <LogOut className="h-4 w-4" />
-              退出
+              Sign out
             </button>
           </div>
         </>
