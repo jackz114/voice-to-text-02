@@ -26,7 +26,7 @@ export default function DashboardPage() {
           setDueCount(data.count || 0);
         }
       } catch (error) {
-        console.error("获取待复习数量失败:", error);
+        console.error("Failed to fetch due count:", error);
       }
     };
 
@@ -83,8 +83,8 @@ export default function DashboardPage() {
                 {dueCount}
               </div>
               <div>
-                <p className="text-sm font-medium text-[#1C1C1C]">今日待复习</p>
-                <p className="text-xs text-[#6B5B4F]">点击开始复习</p>
+                <p className="text-sm font-medium text-[#1C1C1C]">Due for Review</p>
+                <p className="text-xs text-[#6B5B4F]">Click to start</p>
               </div>
             </Link>
           )}

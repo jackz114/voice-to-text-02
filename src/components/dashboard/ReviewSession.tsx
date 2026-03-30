@@ -40,12 +40,12 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error("获取失败");
+      if (!response.ok) throw new Error("Failed to fetch");
 
       const data = await response.json();
       setItems(data.items || []);
     } catch (error) {
-      console.error("获取待复习笔记失败:", error);
+      console.error("Failed to fetch review items:", error);
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
         }),
       });
 
-      if (!response.ok) throw new Error("评分失败");
+      if (!response.ok) throw new Error("Failed to submit rating");
 
       // Move to next item
       if (currentIndex + 1 >= items.length) {
@@ -81,8 +81,8 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
         setCurrentIndex(currentIndex + 1);
       }
     } catch (error) {
-      console.error("提交评分失败:", error);
-      alert("提交评分失败，请重试");
+      console.error("Failed to submit rating:", error);
+      alert("Failed to submit rating. Please try again.");
     }
   };
 
@@ -102,13 +102,13 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 className="text-[#1C1C1C] text-xl font-semibold mb-2">今日复习完成！</h2>
-        <p className="text-[#6B5B4F] mb-6">没有更多待复习的笔记了</p>
+        <h2 className="text-[#1C1C1C] text-xl font-semibold mb-2">Review Complete!</h2>
+        <p className="text-[#6B5B4F] mb-6">No more cards to review today</p>
         <button
           onClick={onExit}
           className="px-6 py-3 bg-[#B8860B] hover:bg-[#8B6914] text-white rounded-full font-medium transition-colors"
         >
-          返回首页
+          Back to Home
         </button>
       </div>
     );

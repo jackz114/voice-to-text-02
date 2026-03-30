@@ -75,7 +75,7 @@ export function FolderContent({ folderId }: { folderId: string }) {
         setActivatedCount(data.activated_count || 0);
       }
     } catch (error) {
-      console.error("激活笔记失败:", error);
+      console.error("Failed to activate cards:", error);
     } finally {
       setActivating(false);
     }
@@ -141,14 +141,14 @@ export function FolderContent({ folderId }: { folderId: string }) {
                   disabled={activating}
                   className="mt-2 px-4 py-2 rounded-full bg-[#B8860B] hover:bg-[#8B6914] text-white text-sm font-medium transition-colors disabled:opacity-50"
                 >
-                  {activating ? "激活中..." : "开始学习"}
+                  {activating ? "Activating..." : "Start Learning"}
                 </button>
               )}
 
               {/* Activation Message */}
               {activatedCount !== null && activatedCount > 0 && (
                 <p className="mt-2 text-sm text-[#B8860B]">
-                  已激活 {activatedCount} 张笔记，开始复习吧！
+                  {activatedCount} cards activated! Ready to review.
                 </p>
               )}
             </div>

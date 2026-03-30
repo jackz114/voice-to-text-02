@@ -31,7 +31,7 @@ export function ReviewCard({ item, currentIndex, total, onRate, onExit }: Review
           onClick={onExit}
           className="text-[#B8860B] text-sm flex items-center gap-1 hover:underline"
         >
-          ← 返回
+          ← Back
         </button>
         <span className="text-[#6B5B4F] text-sm">
           {currentIndex + 1}/{total}
@@ -54,7 +54,7 @@ export function ReviewCard({ item, currentIndex, total, onRate, onExit }: Review
               onClick={() => setShowAnswer(true)}
               className="px-8 py-3 bg-[#B8860B] hover:bg-[#8B6914] text-white rounded-full font-medium transition-colors"
             >
-              显示答案
+              Show Answer
             </button>
           ) : (
             <div className="bg-white rounded-xl p-6 text-left border border-[#E8E0D5]">
