@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     // Check user balance
     const { data: balance, error: balanceError } = await supabase
       .from("user_balances")
-      .select("remaining_minutes, subscription_status")
+      .select("used_minutes, remaining_minutes, subscription_status")
       .eq("user_id", user.id)
       .single();
 
