@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 import { GoogleAuthButton } from "./GoogleAuthButton";
-import { Turnstile } from "react-turnstile";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -14,7 +13,6 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [mode, setMode] = useState<"login" | "register">(defaultMode);
   const [error, setError] = useState<string | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -22,11 +20,6 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    if (mode === "register" && !turnstileToken) {
-      setError("Please complete the verification");
-      return;
-    }
 
     if (mode === "register" && !acceptedTerms) {
       setError("Please accept the Terms of Service and Privacy Policy");
@@ -51,11 +44,6 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
         const { error } = await getSupabaseClient().auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              turnstile_token: turnstileToken,
-            },
-          },
         });
 
         if (error) {
@@ -115,13 +103,6 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
 
         {mode === "register" && (
           <>
-            <div className="py-2">
-              <Turnstile
-                sitekey="1x00000000000000000000AA"
-                onVerify={(token) => setTurnstileToken(token)}
-                theme="light"
-              />
-            </div>
             <label className="flex items-start gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -141,7 +122,7 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
 
         <button
           type="submit"
-          disabled={loading || (mode === "register" && (!turnstileToken || !acceptedTerms))}
+          disabled={loading || (mode === "register" && !acceptedTerms)}
           className="w-full h-12 rounded-xl bg-[#2C2C2C] hover:bg-[#1C1C1C] text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {loading ? (
@@ -171,7 +152,7 @@ export function LoginForm({ redirectTo = "/", defaultMode = "login" }: LoginForm
       <p className="text-center text-sm text-[#6B5B4F] mt-6">
         {mode === "login" ? (
           <>
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <button
               type="button"
               onClick={() => { setMode("register"); setError(null); }}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export interface KnowledgeItem {
   id: string;
@@ -17,144 +16,130 @@ export interface KnowledgeItem {
 
 interface KnowledgeItemCardProps {
   item: KnowledgeItem;
-  viewMode: "list" | "grid";
-  onDelete: (id: string) => void;
   onClick: (item: KnowledgeItem) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function KnowledgeItemCard({ item, viewMode, onDelete, onClick }: KnowledgeItemCardProps) {
+// 固定的波形数据，用于 SSR 稳定渲染
+const waveHeights = [
+  0.3, 0.5, 0.4, 0.6, 0.8, 0.7, 0.9, 0.6, 0.5, 0.7,
+  0.4, 0.6, 0.8, 0.5, 0.3, 0.6, 0.7, 0.9, 0.5, 0.4,
+  0.6, 0.8, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.5, 0.7,
+  0.9, 0.6, 0.4, 0.8, 0.5, 0.6, 0.7, 0.3, 0.5, 0.4,
+];
+
+export function KnowledgeItemCard({ item, onClick, onDelete }: KnowledgeItemCardProps) {
   const [hovered, setHovered] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
+  const formattedDate = new Date(item.createdAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
+  const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDeleteDialog(true);
+    setMenuOpen(!menuOpen);
   };
 
-  const handleConfirmDelete = () => {
-    setShowDeleteDialog(false);
-    onDelete(item.id);
-  };
-
-  const formattedNextReview = new Date(item.nextReviewAt).toLocaleDateString("zh-CN");
-
-  if (viewMode === "list") {
-    return (
-      <div
-        className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 group"
-        onClick={() => onClick(item)}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {/* Left side */}
-        <div className="flex-1 min-w-0 mr-4">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-gray-900 dark:text-white truncate">
-              {item.title}
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
-              {item.domain}
-            </span>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-            {item.contentPreview}
-          </p>
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="text-right hidden sm:block">
-            <p className="text-xs text-gray-500">下次复习</p>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{formattedNextReview}</p>
-          </div>
-          {item.reviewCount > 0 && (
-            <span className="text-xs bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">
-              ×{item.reviewCount}
-            </span>
-          )}
-          {/* Delete button — visible on hover (web) or always visible on touch */}
-          <button
-            type="button"
-            onClick={handleDeleteClick}
-            className={[
-              "text-red-600 hover:text-red-800 text-sm transition-opacity",
-              hovered ? "opacity-100" : "opacity-0 group-hover:opacity-100",
-            ].join(" ")}
-            aria-label="删除"
-          >
-            删除
-          </button>
-        </div>
-
-        {/* Delete confirmation dialog */}
-        <ConfirmDialog
-          isOpen={showDeleteDialog}
-          title="删除确认"
-          message={`确定要删除「${item.title}」这条知识吗？此操作不可撤销。`}
-          confirmText="删除"
-          cancelText="取消"
-          confirmVariant="danger"
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setShowDeleteDialog(false)}
-        />
-      </div>
-    );
-  }
-
-  // Grid mode
   return (
     <div
-      className="relative p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 group"
+      className="relative flex items-center gap-4 p-4 bg-[#2C2C2C] rounded-xl hover:bg-[#383838] transition-colors cursor-pointer group"
       onClick={() => onClick(item)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {/* Delete button in top-right corner for grid mode */}
-      <button
-        type="button"
-        onClick={handleDeleteClick}
-        className="absolute top-2 right-2 text-xs text-red-600 hover:text-red-800 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
-        aria-label="删除"
-      >
-        删除
-      </button>
-
-      {/* Domain badge */}
-      <div className="mb-2">
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-          {item.domain}
-        </span>
-      </div>
-
-      {/* Title */}
-      <h3 className="font-semibold text-gray-900 dark:text-white mb-2 leading-snug">
-        {item.title}
-      </h3>
-
-      {/* Content preview */}
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-        {item.contentPreview}
-      </p>
-
-      {/* Bottom: review date and count */}
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <span>{formattedNextReview}</span>
-        {item.reviewCount > 0 && (
-          <span className="bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">
-            ×{item.reviewCount}
+      {/* Left: Text content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-medium text-white text-sm truncate">{item.title}</span>
+          <span className="shrink-0 text-xs text-[#B8860B] bg-[#B8860B]/10 px-2 py-0.5 rounded-full">
+            {item.domain}
           </span>
-        )}
+        </div>
+        <p className="text-xs text-[#9C8E80] truncate">{item.contentPreview}</p>
       </div>
 
-      {/* Delete confirmation dialog */}
-      <ConfirmDialog
-        isOpen={showDeleteDialog}
-        title="删除确认"
-        message={`确定要删除「${item.title}」这条知识吗？此操作不可撤销。`}
-        confirmText="删除"
-        cancelText="取消"
-        confirmVariant="danger"
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setShowDeleteDialog(false)}
-      />
+      {/* Mini waveform visual */}
+      <div className="hidden sm:flex items-center gap-px w-24 h-8 shrink-0">
+        {waveHeights.slice(0, 20).map((h, i) => (
+          <div
+            key={i}
+            className="w-1 bg-[#B8860B]/40 rounded-full"
+            style={{ height: `${h * 100}%` }}
+          />
+        ))}
+      </div>
+
+      {/* Right: Date + Menu */}
+      <div className="flex items-center gap-3 shrink-0">
+        <span className="text-xs text-[#9C8E80] hidden sm:block">{formattedDate}</span>
+
+        {/* 3-dot menu */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={handleMenuClick}
+            className={[
+              "w-8 h-8 flex items-center justify-center rounded-lg text-[#9C8E80] hover:text-white hover:bg-white/10 transition-colors",
+              hovered ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+            ].join(" ")}
+            aria-label="更多操作"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="3" r="1.5" />
+              <circle cx="8" cy="8" r="1.5" />
+              <circle cx="8" cy="13" r="1.5" />
+            </svg>
+          </button>
+
+          {menuOpen && (
+            <div
+              className="absolute right-0 top-full mt-1 w-36 bg-[#3C3C3C] rounded-xl shadow-lg border border-[#4C4C4C] py-1 z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onClick(item);
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                查看
+              </button>
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm text-[#B8860B] hover:bg-white/10 flex items-center gap-2"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                标为星标
+              </button>
+              <div className="border-t border-[#4C4C4C] my-1" />
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-white/10 flex items-center gap-2"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete?.(item.id);
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                删除
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

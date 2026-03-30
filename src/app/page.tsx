@@ -27,7 +27,7 @@ export default function HomePage() {
 
 function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FAF7F2]/90 backdrop-blur-md border-b border-[#E8E0D5]">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#E8E0D5]">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2">
@@ -37,7 +37,7 @@ function Navbar() {
 
         {/* 导航链接 */}
         <div className="hidden md:flex items-center gap-8">
-          <NavLink href="/capture">Product</NavLink>
+          <NavLink href="/dashboard">Product</NavLink>
           <NavLink href="#">Technology</NavLink>
           <NavLink href="#">About</NavLink>
           <NavLink href="/payment">Pricing</NavLink>
@@ -67,7 +67,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <a
       href={href}
-      className="text-sm font-medium text-[#6B5B4F] hover:text-[#1C1C1C] transition-colors"
+      className="text-sm font-medium text-[#6B5B4F] hover:text-[rgb(101,31,255)] transition-colors"
     >
       {children}
     </a>
@@ -182,7 +182,7 @@ function WaveformDemo() {
         {translations.map((t, i) => (
           <div
             key={i}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FAF7F2] border border-[#E8E0D5] text-xs"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5EFE6] border border-[#E8E0D5] text-xs"
           >
             <span className="text-[#6B5B4F]">{t.from}</span>
             <span className="text-[#D4C4B0]">→</span>
@@ -192,7 +192,7 @@ function WaveformDemo() {
       </div>
 
       {/* 转写文字 */}
-      <div className="bg-[#FAF7F2] rounded-lg p-4 border border-[#E8E0D5]">
+      <div className="bg-[#F5EFE6] rounded-lg p-4 border border-[#E8E0D5]">
         <p className="text-sm text-[#1C1C1C] font-medium">
           Hello, how are you today?
         </p>
@@ -365,7 +365,7 @@ function DashboardMock() {
             <div className="text-xs text-[#9C8E80]">Newest first</div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="bg-[#FAF7F2] rounded-lg px-3 py-1.5 text-xs text-[#6B5B4F] border border-[#E8E0D5]">
+            <div className="bg-[#F5EFE6] rounded-lg px-3 py-1.5 text-xs text-[#6B5B4F] border border-[#E8E0D5]">
               Select language
             </div>
           </div>
@@ -380,9 +380,9 @@ function DashboardMock() {
         ].map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#FAF7F2] cursor-pointer mb-2"
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#F5EFE6] cursor-pointer mb-2"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#FAF7F2] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#F5EFE6] flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2">
                 <path d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-6.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
               </svg>
@@ -403,7 +403,7 @@ function DashboardMock() {
       </div>
 
       {/* 右侧预览区 */}
-      <div className="w-72 border-l border-[#E8E0D5] p-4 bg-[#FAF7F2]">
+      <div className="w-72 border-l border-[#E8E0D5] p-4 bg-[#F5EFE6]">
         {/* 波形条 */}
         <div className="flex items-center gap-0.5 h-16 mb-4">
           {waveHeights.map((h, i) => (

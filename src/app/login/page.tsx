@@ -13,7 +13,7 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
-  const redirectTo = params.redirect_to || "/";
+  const redirectTo = params.redirect_to || "/dashboard";
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center px-4">

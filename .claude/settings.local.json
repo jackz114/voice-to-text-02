@@ -32,7 +32,26 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs",
       "Bash(npm install:*)",
-      "WebSearch"
+      "WebSearch",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__press_key",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__playwright__playwright_navigate",
+      "mcp__playwright__playwright_get_visible_text",
+      "mcp__playwright__playwright_console_logs",
+      "Bash(npx eslint:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "Read(//c/Users/J/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/subagent-driven-development/**)"
+    ],
+    "additionalDirectories": [
+      "e:\\projects_all\\voice-to-text\\voice-to-txt-02\\src\\app\\dashboard\\library",
+      "e:\\projects_all\\voice-to-text\\voice-to-txt-02\\src\\app\\dashboard\\library\\[folder]"
     ]
   }
 }

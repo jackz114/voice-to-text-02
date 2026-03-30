@@ -248,7 +248,6 @@ export function KnowledgeLibrary() {
               <KnowledgeItemCard
                 key={item.id}
                 item={item}
-                viewMode={viewMode}
                 onDelete={handleDelete}
                 onClick={handleItemClick}
               />

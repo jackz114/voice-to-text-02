@@ -88,7 +88,7 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1C1C1C] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#B8860B] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -96,10 +96,14 @@ export function ReviewSession({ folderId, onComplete, onExit }: ReviewSessionPro
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-[#1C1C1C] flex flex-col items-center justify-center">
-        <div className="text-6xl mb-6">✓</div>
-        <h2 className="text-white text-xl font-semibold mb-2">今日复习完成！</h2>
-        <p className="text-[#888] mb-6">没有更多待复习的笔记了</p>
+      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-[#FAF7F2] flex items-center justify-center mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="1.5">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-[#1C1C1C] text-xl font-semibold mb-2">今日复习完成！</h2>
+        <p className="text-[#6B5B4F] mb-6">没有更多待复习的笔记了</p>
         <button
           onClick={onExit}
           className="px-6 py-3 bg-[#B8860B] hover:bg-[#8B6914] text-white rounded-full font-medium transition-colors"

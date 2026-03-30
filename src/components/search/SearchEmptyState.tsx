@@ -77,17 +77,6 @@ export function SearchEmptyState({
             </button>
           ))}
         </div>
-
-        {/* Create new entry */}
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
-          <button
-            onClick={() => router.push(`/capture?title=${encodeURIComponent(query)}`)}
-            className="flex w-full items-center justify-center gap-2 text-blue-600 hover:text-blue-700"
-          >
-            <Plus className="h-5 w-5" />
-            <span>创建关于 &quot;{query}&quot; 的新笔记</span>
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>闪卡设计对比</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; padding: 40px; }
+    h1 { text-align: center; margin-bottom: 40px; color: #333; }
+    .container { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+    .design { background: white; border-radius: 16px; padding: 20px; width: 320px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .design-title { font-size: 14px; color: #666; margin-bottom: 12px; text-align: center; }
+    .phone-frame { background: #1C1C1C; border-radius: 24px; padding: 12px; width: 280px; margin: 0 auto; }
+    .screen { background: white; border-radius: 16px; height: 480px; display: flex; flex-direction: column; overflow: hidden; }
+    .header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
+    .back { color: #B8860B; font-size: 14px; }
+    .progress { color: #999; font-size: 14px; }
+    .content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; }
+    .question { font-size: 20px; color: #1C1C1C; text-align: center; margin-bottom: 24px; }
+    .show-answer { background: #B8860B; color: white; border: none; padding: 12px 32px; border-radius: 24px; font-size: 14px; cursor: pointer; }
+    .answer { display: none; padding: 20px; background: #FAF7F2; border-radius: 12px; margin-top: 16px; }
+    .answer-text { font-size: 16px; color: #333; text-align: center; }
+    .rating { display: flex; gap: 8px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+    .rating button { padding: 8px 16px; border-radius: 20px; border: none; font-size: 12px; cursor: pointer; }
+    .again { background: #fee; color: #c00; }
+    .hard { background: #ffd; color: #a70; }
+    .good { background: #dfd; color: #060; }
+    .easy { background: #dff; color: #069; }
+
+    /* Design A - 简洁卡片 */
+    .design-a .screen { background: #FAF7F2; }
+    .design-a .content { padding: 32px; }
+
+    /* Design B - 全屏沉浸 */
+    .design-b .screen { background: #1C1C1C; }
+    .design-b .question { color: white; font-size: 22px; }
+    .design-b .show-answer { background: #B8860B; }
+    .design-b .header { border-bottom: 1px solid #333; }
+    .design-b .back { color: #B8860B; }
+    .design-b .progress { color: #888; }
+
+    /* Design C - 两侧留白聚焦 */
+    .design-c .content { background: #FAF7F2; margin: 16px; border-radius: 16px; padding: 32px; }
+    .design-c .show-answer { background: #B8860B; }
+    .design-c .header { background: white; }
+  </style>
+</head>
+<body>
+  <h1>闪卡设计对比</h1>
+  <div class="container">
+    <!-- Design A -->
+    <div class="design design-a">
+      <div class="design-title">版本 A — 简洁卡片</div>
+      <div class="phone-frame">
+        <div class="screen">
+          <div class="header">
+            <span class="back">← 返回</span>
+            <span class="progress">3/20</span>
+          </div>
+          <div class="content">
+            <div class="question">什么是闭包？</div>
+            <button class="show-answer">显示答案</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Design B -->
+    <div class="design design-b">
+      <div class="design-title">版本 B — 全屏沉浸</div>
+      <div class="phone-frame">
+        <div class="screen">
+          <div class="header">
+            <span class="back">← 返回</span>
+            <span class="progress">3/20</span>
+          </div>
+          <div class="content">
+            <div class="question">什么是闭包？</div>
+            <button class="show-answer">显示答案</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Design C -->
+    <div class="design design-c">
+      <div class="design-title">版本 C — 两侧留白聚焦</div>
+      <div class="phone-frame">
+        <div class="screen">
+          <div class="header">
+            <span class="back">← 返回</span>
+            <span class="progress">3/20</span>
+          </div>
+          <div class="content">
+            <div class="question">什么是闭包？</div>
+            <button class="show-answer">显示答案</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

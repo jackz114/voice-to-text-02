@@ -24,7 +24,7 @@ export function ReviewCard({ item, currentIndex, total, onRate, onExit }: Review
   };
 
   return (
-    <div className="min-h-screen bg-[#1C1C1C] flex flex-col">
+    <div className="min-h-screen bg-[#FAF7F2] flex flex-col">
       {/* Header */}
       <div className="px-6 py-4 flex items-center justify-between">
         <button
@@ -33,7 +33,7 @@ export function ReviewCard({ item, currentIndex, total, onRate, onExit }: Review
         >
           ← 返回
         </button>
-        <span className="text-[#888] text-sm">
+        <span className="text-[#6B5B4F] text-sm">
           {currentIndex + 1}/{total}
         </span>
       </div>
@@ -43,7 +43,7 @@ export function ReviewCard({ item, currentIndex, total, onRate, onExit }: Review
         <div className="max-w-lg w-full text-center">
           {/* Question */}
           <div className="mb-8">
-            <p className="text-white text-2xl font-medium leading-relaxed">
+            <p className="text-[#1C1C1C] text-2xl font-medium leading-relaxed">
               {item.title}
             </p>
           </div>
@@ -57,8 +57,8 @@ export function ReviewCard({ item, currentIndex, total, onRate, onExit }: Review
               显示答案
             </button>
           ) : (
-            <div className="bg-[#2A2A2A] rounded-xl p-6 text-left">
-              <p className="text-[#E0E0E0] text-lg leading-relaxed whitespace-pre-wrap">
+            <div className="bg-white rounded-xl p-6 text-left border border-[#E8E0D5]">
+              <p className="text-[#1C1C1C] text-lg leading-relaxed whitespace-pre-wrap">
                 {item.content}
               </p>
             </div>

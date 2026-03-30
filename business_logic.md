@@ -229,11 +229,23 @@ interface User {
 }
 ```
 
+### 文件夹表 (folders)
+```typescript
+interface Folder {
+  id: string;              // UUID, 主键
+  user_id: string;         // 外键 -> users.id
+  name: string;            // 文件夹名称
+  created_at: string;      // 创建时间
+  updated_at: string;      // 更新时间
+}
+```
+
 ### 转录记录表 (transcriptions)
 ```typescript
 interface Transcription {
   id: string;              // UUID, 主键
   user_id: string;         // 外键 -> users.id
+  folder_id: string | null; // 外键 -> folders.id, null 表示默认/未分类
   audio_url: string;       // 音频文件 Storage URL
   text: string | null;     // 转录文本结果
   status: 'pending' | 'processing' | 'completed' | 'failed';
@@ -300,9 +312,18 @@ interface UserBalance {
 ├─────────────┤         ├──────────────────┤
 │ id (PK)     │◄───────│ user_id (FK)     │
 │ email       │   1:M   │ id (PK)          │
-│ provider    │         │ audio_url        │
-│ avatar_url  │         │ status           │
-└──────┬──────┘         └──────────────────┘
+│ provider    │         │ folder_id (FK)   │
+│ avatar_url  │         │ audio_url        │
+└──────┬──────┘         │ status           │
+       │                └──────────────────┘
+       │
+       │    1:M   ┌──────────────────┐
+       ├─────────▶│     folders      │
+       │          ├──────────────────┤
+       │          │ id (PK)          │
+       │          │ user_id (FK)     │
+       │          │ name             │
+       │          └──────────────────┘
        │
        │    1:1   ┌──────────────────┐
        ├─────────▶│  user_balances   │
@@ -337,6 +358,29 @@ interface UserBalance {
 ## 🔐 权限控制 (RLS)
 
 ### Row Level Security 策略
+
+#### folders 表
+```sql
+-- 用户只能查看自己的文件夹
+CREATE POLICY "Users can view own folders"
+  ON folders FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- 用户只能创建自己的文件夹
+CREATE POLICY "Users can create own folders"
+  ON folders FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- 用户只能更新自己的文件夹
+CREATE POLICY "Users can update own folders"
+  ON folders FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- 用户只能删除自己的文件夹
+CREATE POLICY "Users can delete own folders"
+  ON folders FOR DELETE
+  USING (auth.uid() = user_id);
+```
 
 #### transcriptions 表
 ```sql
