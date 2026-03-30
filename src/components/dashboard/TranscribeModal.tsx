@@ -119,7 +119,18 @@ export function TranscribeModal({ isOpen, onClose }: TranscribeModalProps) {
       });
 
       if (!transcribeResponse.ok) {
-        const errorData = (await transcribeResponse.json().catch(() => ({}))) as { error?: string };
+        const errorData = (await transcribeResponse.json().catch(() => ({}))) as {
+          error?: string;
+          code?: string;
+          required?: number;
+          remaining?: number;
+        };
+
+        if (transcribeResponse.status === 402 || errorData.code === "INSUFFICIENT_MINUTES") {
+          throw new Error(
+            `Not enough minutes. You need ${errorData.required || "more"} minutes but have ${errorData.remaining || 0} remaining. Please upgrade your plan.`
+          );
+        }
         throw new Error(errorData.error || "Transcription failed");
       }
 
